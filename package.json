@@ -1,0 +1,24 @@
+{
+  "author": "Firebase.co <npm@firebase.co> (http://www.firebase.co/)",
+  "name": "express-winston",
+  "description": "express.js middleware for flatiron/winston",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/firebaseco/express-winston.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "dependencies": {
+    "winston": "0.6.x",
+    "async": "0.1.x"
+  },
+  "devDependencies": {
+    "vows": "0.6.x"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "0.6.x"
+  }
+}
