@@ -1,5 +1,5 @@
 # express-winston
-[![Build Status](https://secure.travis-ci.org/firejs/fire.png)](http://travis-ci.org/firebaseco/express-winston)
+[![Build Status](https://secure.travis-ci.org/firebaseco/express-winston.png)](http://travis-ci.org/firebaseco/express-winston)
 
 > [winston](https://github.com/flatiron/winston) middleware for express.js
 
