@@ -2,6 +2,7 @@
   "author": "Firebase.co <npm@firebase.co> (http://www.firebase.co/)",
   "name": "express-winston",
   "description": "express.js middleware for flatiron/winston",
+  "keywords": ["winston", "flatiron", "logging", "express", "log", "error", "handler", "middleware"],
   "version": "0.1.0",
   "repository": {
     "url": "https://github.com/firebaseco/express-winston.git"
@@ -17,8 +18,13 @@
   "devDependencies": {
     "vows": "0.6.x"
   },
-  "optionalDependencies": {},
   "engines": {
     "node": "0.6.x"
-  }
+  },
+	"licenses" : [
+		{
+			"type" : "MIT", 
+			"url" : "https://github.com/firebaseco/express-winston/blob/master/LICENSE"
+		}
+	]
 }
