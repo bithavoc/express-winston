@@ -80,6 +80,7 @@ function logger(options) {
   if(!options) throw new Error("options are required by express-winston middleware");
   if(!options.transports || !(options.transports.length > 0)) throw new Error("transports are required by express-winston middleware");
   options.requestFilter = options.requestFilter || defaultRequestFilter;
+  options.level = options.level || "info";
   return function(req, res, next) {
     var meta = {
       req: filterRequest(req, options.requestFilter)
@@ -87,7 +88,7 @@ function logger(options) {
     var msg = util.format("HTTP %s %s", req.method, req.url);
 
     function logOnTransport(transport, nextTransport) {
-      return transport.log('info', msg, meta, nextTransport);
+      return transport.log(options.level, msg, meta, nextTransport);
     };
 
     function done() {
