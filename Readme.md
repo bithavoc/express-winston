@@ -17,7 +17,7 @@ Use `expressWinston.errorLogger(options)` to create a middleware that log the er
 
 ``` js
     app.use(app.router); // notice how the router goes first.
-    app.use(expressWinston.errorHandler({
+    app.use(expressWinston.errorLogger({
       transports: [
         new winston.transports.Console({
           json: true,
@@ -28,6 +28,13 @@ Use `expressWinston.errorLogger(options)` to create a middleware that log the er
 ```
 
 The logger needs to be added AFTER the express router(`app.router)`) and BEFORE any of your custom error handlers(`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
+
+### Options
+
+``` js
+    transports: [<WinstonTransport>], // list of all winston transports instances to use.
+    level: String // log level to use, the default is "info".
+```
 
 ### Request Logging
 
@@ -69,8 +76,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
 
     app.use(app.router);
 
-    // express-winston errorHandler makes sense AFTER the router.
-    app.use(expressWinston.errorHandler({
+    // express-winston errorLogger makes sense AFTER the router.
+    app.use(expressWinston.errorLogger({
       transports: [
         new winston.transports.Console({
           json: true,
@@ -80,7 +87,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     }));
 
     // Optionally you can include your custom error handler after the logging.
-    app.use(express.errorHandler({
+    app.use(express.errorLogger({
       dumpExceptions: true,
       showStack: true
     }));
@@ -205,17 +212,17 @@ Browse `/error` will show you how express-winston handles and logs the errors in
 
 ## Issues and Collaboration
 
-* Add option to set the log level.
 * Add support for filtering of __req.body__. At this moment `body` is not included in the logging because it can contain sensitive fields like 'password' or 'password_confirmation'.
 * Implement a chain of requestFilters. Currently only one requestFilter is allowed in the options.
 
-We are accepting pull-request for this features.
+We are accepting pull-request for these features.
 
 If you ran into any problems, please use the project [Issues section](https://github.com/firebaseco/express-winston/issues) to search or post any bug.
 
 ## Contributors
 
-* Johan (author). Email: *johan@firebase.co*
+* [Johan Hernandez](https://github.com/thepumpkin1979). [https://github.com/thepumpkin1979](https://github.com/thepumpkin1979)
+* [Lars Jacob]((https://github.com/jaclar)) [https://github.com/jaclar)](https://github.com/jaclar)
 
 ## MIT License
 
