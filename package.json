@@ -3,7 +3,7 @@
   "name": "express-winston",
   "description": "express.js middleware for flatiron/winston",
   "keywords": ["winston", "flatiron", "logging", "express", "log", "error", "handler", "middleware"],
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repository": {
     "url": "https://github.com/firebaseco/express-winston.git"
   },
