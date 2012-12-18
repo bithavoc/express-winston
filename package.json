@@ -12,8 +12,7 @@
     "test": "node test/test.js"
   },
   "dependencies": {
-    "winston": "0.6.x",
-    "async": "0.1.x"
+    "winston": "0.6.x"
   },
   "devDependencies": {
     "vows": "0.6.x"
