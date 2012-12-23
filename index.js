@@ -31,6 +31,13 @@ var util = require('util');
 var requestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
 
 /**
+ * A default list of properties in the request body that are allowed to be logged.
+ * This will normally be empty here, since it should be done at the route level.
+ * @type {Array}
+ */
+var bodyWhitelist = [];
+
+/**
  * A default list of properties in the response object that are allowed to be logged.
  * These properties will be safely included in the meta of the log.
  * @type {Array}
@@ -120,17 +127,37 @@ function logger(options) {
 
         req._startTime = (new Date);
 
+        req._routeWhitelists = {
+            req: [],
+            res: [],
+            body: []
+        };
+
         // Manage to get information from the response too, just like Connect.logger does:
         var end = res.end;
         res.end = function(chunk, encoding) {
+            var responseTime = (new Date) - req._startTime;
+
             res.end = end;
             res.end(chunk, encoding);
 
-            var meta = {
-                req: filterObject(req, requestWhitelist, options.requestFilter),
-                res: filterObject(res, responseWhitelist, options.responseFilter),
-                responseTime: (new Date) - req._startTime
+            var meta = {};
+
+            var bodyWhitelist;
+
+            requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
+            responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
+
+            meta.req = filterObject(req, requestWhitelist, options.requestFilter);
+            meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+
+            bodyWhitelist = req._routeWhitelists.body || [];
+
+            if (bodyWhitelist) {
+                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
             };
+
+            meta.responseTime = responseTime;
 
             var msg = util.format("HTTP %s %s", req.method, req.url);
 
@@ -155,6 +182,7 @@ function ensureValidOptions(options) {
 module.exports.errorLogger = errorLogger;
 module.exports.logger = logger;
 module.exports.requestWhitelist = requestWhitelist;
+module.exports.bodyWhitelist = bodyWhitelist;
 module.exports.responseWhitelist = responseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
