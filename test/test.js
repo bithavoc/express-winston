@@ -263,5 +263,16 @@ vows.describe("logger").addBatch({
       assert.isTrue(result.log.meta.responseTime > 120);
       assert.isTrue(result.log.meta.responseTime < 130);
     }
+    , "the meta should contain a filtered response": function(result){
+      assert.isTrue(!!result.log.meta.res, "res should be defined in meta");
+      assert.isNotNull(result.log.meta.res);
+      assert.equal(result.log.meta.res.statusCode, 200);
+      assert.isUndefined(result.log.meta.req.filteredProperty);
+    }
+    , "the meta should contain a response time": function(result){
+      assert.isTrue(!!result.log.meta.responseTime, "responseTime should be defined in meta");
+      assert.isNotNull(result.log.meta.responseTime);
+      assert.equal(result.log.meta.responseTime, 125);
+    }
   }
 }).export(module);
