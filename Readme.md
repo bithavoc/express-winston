@@ -55,7 +55,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
 
 ## Example
 
-``` js 
+``` js
     var express = require('express');
     var expressWinston = require('express-winston');
     var winston = require('winston'); // for transports.Console
@@ -127,9 +127,13 @@ Browse `/` to see a regular HTTP logging like this:
         "originalUrl": "/",
         "query": {}
       },
+      "res": {
+        "statusCode": 200
+      },
+      "responseTime" : 12,
       "level": "info",
       "message": "HTTP GET /favicon.ico"
-    } 
+    }
 
 Browse `/error` will show you how express-winston handles and logs the errors in the express pipeline like this:
 
