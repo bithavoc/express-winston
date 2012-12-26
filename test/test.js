@@ -15,11 +15,17 @@ vows.describe("exports").addBatch({
     topic: function() {
       return expressWinston;
     },
-    "an array with all the properties whilelist in the req object": function(exports) {
+    "an array with all the properties whitelisted in the req object": function(exports) {
       assert.isArray(exports.requestWhitelist);
+    },
+    "an array with all the properties whitelisted in the res object": function(exports) {
+      assert.isArray(exports.responseWhitelist);
     },
     "and the factory should contain a default request filter function": function(exports) {
       assert.isFunction(exports.defaultRequestFilter);
+    },
+    "and the factory should contain a default response filter function": function(exports) {
+      assert.isFunction(exports.defaultResponseFilter);
     },
     "it should export a function for the creation of error loggers middlewares": function(exports) {
       assert.isFunction(exports.errorLogger);
@@ -61,7 +67,7 @@ vows.describe("errorLogger").addBatch({
         var middleware = factory({
           transports: [
             new MockTransport({
-              
+
             })
           ]
         });
@@ -86,7 +92,7 @@ vows.describe("errorLogger").addBatch({
         params: {
           id: 20
         },
-        filteredProperty: "value that should not be logged"
+        nonWhitelistedProperty: "value that should not be logged"
       };
       var res = {
 
@@ -134,7 +140,7 @@ vows.describe("errorLogger").addBatch({
       assert.deepEqual(result.log.meta.req.query, {
                       val: '1'
       });
-      assert.isUndefined(result.log.meta.req.filteredProperty);
+      assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
     },
     "the express-winston middleware should not swallow the pipeline error": function(result) {
       assert.isNotNull(result.pipelineError);
@@ -174,7 +180,7 @@ vows.describe("logger").addBatch({
         var middleware = factory({
           transports: [
             new MockTransport({
-              
+
             })
           ]
         });
@@ -199,17 +205,23 @@ vows.describe("logger").addBatch({
         params: {
           id: 20
         },
-        filteredProperty: "value that should not be logged"
+        nonWhitelistedProperty: "value that should not be logged"
       };
       var res = {
+        statusCode: 200,
+        nonWhitelistedProperty: "value that should not be logged",
+        end: function(chunk, encoding) {
 
+        }
       };
       var test = {
         req: req,
         res: res,
         log: {}
       };
-      var next = function() {
+      var next = function(_req, _res, next) {
+        req._startTime = (new Date) - 125;
+        res.end();
         return callback(null, test);
       };
 
@@ -237,7 +249,19 @@ vows.describe("logger").addBatch({
       assert.deepEqual(result.log.meta.req.query, {
                       val: '2'
       });
-      assert.isUndefined(result.log.meta.req.filteredProperty);
+      assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
+    }
+    , "the meta should contain a filtered response": function(result){
+      assert.isTrue(!!result.log.meta.res, "res should be defined in meta");
+      assert.isNotNull(result.log.meta.res);
+      assert.equal(result.log.meta.res.statusCode, 200);
+      assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
+    }
+    , "the meta should contain a response time": function(result){
+      assert.isTrue(!!result.log.meta.responseTime, "responseTime should be defined in meta");
+      assert.isNotNull(result.log.meta.responseTime);
+      assert.isTrue(result.log.meta.responseTime > 120);
+      assert.isTrue(result.log.meta.responseTime < 130);
     }
   }
 }).export(module);
