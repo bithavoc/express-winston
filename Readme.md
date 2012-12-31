@@ -9,7 +9,7 @@
 
 ## Usage
 
-express-winston provides middlewares for request and error logging of your express.js application.
+express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.
 
 ### Error Logging
 
@@ -53,7 +53,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     app.use(app.router); // notice how the router goes after the logger.
 ```
 
-## Example
+## Examples
 
 ``` js
     var express = require('express');
@@ -210,13 +210,55 @@ Browse `/error` will show you how express-winston handles and logs the errors in
       "message": "middlewareError"
     }
 
+## Whitelists
+New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
+
+``` js
+    app.post('/user/register', function(req, res, next) {
+      req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
+      req._routeWhitelists.res = ['_headers'];
+    });
+```
+
+Post to `/user/register` would give you something like the following:
+
+    {
+      "req": {
+        "httpVersion": "1.1",
+        "headers": {
+          "host": "localhost:3000",
+          "connection": "keep-alive",
+          "accept": "*/*",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+          "accept-encoding": "gzip,deflate,sdch",
+          "accept-language": "en-US,en;q=0.8,es-419;q=0.6,es;q=0.4",
+          "accept-charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+          "cookie": "connect.sid=nGspCCSzH1qxwNTWYAoexI23.seE%2B6Whmcwd"
+        },
+        "url": "/",
+        "method": "GET",
+        "originalUrl": "/",
+        "query": {},
+        "body": {
+          "username": "foo",
+          "email": "foo@bar.com",
+          "age": "72"
+        }
+      },
+      "res": {
+        "statusCode": 200
+      },
+      "responseTime" : 12,
+      "level": "info",
+      "message": "HTTP GET /favicon.ico"
+    }
+
 ## Tests
 
     npm test
 
 ## Issues and Collaboration
 
-* Add support for filtering of __req.body__. At this moment `body` is not included in the logging because it can contain sensitive fields like 'password' or 'password_confirmation'.
 * Implement a chain of requestFilters. Currently only one requestFilter is allowed in the options.
 
 We are accepting pull-request for these features.
@@ -225,8 +267,9 @@ If you ran into any problems, please use the project [Issues section](https://gi
 
 ## Contributors
 
-* [Johan Hernandez](https://github.com/thepumpkin1979). [https://github.com/thepumpkin1979](https://github.com/thepumpkin1979)
-* [Lars Jacob]((https://github.com/jaclar)) [https://github.com/jaclar)](https://github.com/jaclar)
+* [Johan Hernandez](https://github.com/thepumpkin1979) (https://github.com/thepumpkin1979)
+* [Lars Jacob](https://github.com/jaclar) (https://github.com/jaclar)
+* [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
 
 ## MIT License
 

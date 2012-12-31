@@ -21,6 +21,9 @@ vows.describe("exports").addBatch({
     "an array with all the properties whitelisted in the res object": function(exports) {
       assert.isArray(exports.responseWhitelist);
     },
+    "an array with all the properties whitelisted in the body object": function(exports) {
+      assert.isArray(exports.bodyWhitelist);
+    },
     "and the factory should contain a default request filter function": function(exports) {
       assert.isFunction(exports.defaultRequestFilter);
     },
@@ -149,7 +152,7 @@ vows.describe("errorLogger").addBatch({
   }
 }).export(module);
 
-vows.describe("logger").addBatch({
+vows.describe("logger 0.1.x").addBatch({
   "when I run the middleware factory": {
     topic: function() {
       return expressWinston.logger;
@@ -205,14 +208,10 @@ vows.describe("logger").addBatch({
         params: {
           id: 20
         },
-        nonWhitelistedProperty: "value that should not be logged"
+        filteredProperty: "value that should not be logged"
       };
       var res = {
-        statusCode: 200,
-        nonWhitelistedProperty: "value that should not be logged",
-        end: function(chunk, encoding) {
-
-        }
+        end: function(chunk, encoding) {}
       };
       var test = {
         req: req,
@@ -220,7 +219,6 @@ vows.describe("logger").addBatch({
         log: {}
       };
       var next = function(_req, _res, next) {
-        req._startTime = (new Date) - 125;
         res.end();
         return callback(null, test);
       };
@@ -249,13 +247,132 @@ vows.describe("logger").addBatch({
       assert.deepEqual(result.log.meta.req.query, {
                       val: '2'
       });
+      assert.isUndefined(result.log.meta.req.filteredProperty);
+    }
+  }
+}).export(module);
+
+vows.describe("logger 0.2.x").addBatch({
+  "when I run the middleware factory": {
+    topic: function() {
+      return expressWinston.logger;
+    },
+    "without options": {
+      "an error should be raised": function(factory) {
+        assert.throws(function() {
+          factory();
+        }, Error);
+      }
+    },
+    "without any transport specified": {
+      "an error should be raised": function(factory) {
+        assert.throws(function() {
+          factory({});
+        }, Error);
+      }
+    },
+    "with an empty list of transports": {
+      "an error should be raised": function(factory) {
+        assert.throws(function() {
+          factory({transports:[]});
+        }, Error);
+      }
+    },
+    "with proper options": {
+      "the result should be a function with three arguments that fit req, res, next": function (factory) {
+        var middleware = factory({
+          transports: [
+            new MockTransport({
+
+            })
+          ]
+        });
+        assert.equal(middleware.length, 3);
+      }
+    }
+  },
+  "When the express-winston middleware is invoked in pipeline": {
+    topic: function() {
+      var factory = expressWinston.logger;
+      var callback = this.callback;
+      var req = {
+        url: "/hello?val=1",
+        headers: {
+          'header-1': 'value 1'
+        },
+        method: 'GET',
+        query: {
+          val: '2'
+        },
+        originalUrl: "/hello?val=2",
+        params: {
+          id: 20
+        },
+        nonWhitelistedProperty: "value that should not be logged",
+        routeLevelAddedProperty: "value that should be logged",
+        body: {
+          username: 'bobby',
+          password: 'top-secret'
+        }
+      };
+      var res = {
+        statusCode: 200,
+        nonWhitelistedProperty: "value that should not be logged",
+        routeLevelAddedProperty: "value that should be logged",
+        end: function(chunk, encoding) {
+
+        }
+      };
+      var test = {
+        req: req,
+        res: res,
+        log: {}
+      };
+      var next = function(_req, _res, next) {
+        req._startTime = (new Date) - 125;
+
+        req._routeWhitelists.req = [ 'routeLevelAddedProperty' ];
+        req._routeWhitelists.body = [ 'username' ];
+
+        res.end();
+        return callback(null, test);
+      };
+
+      var transport = new MockTransport({});
+      transport.log = function(level, msg, meta, cb) {
+        test.transportInvoked = true;
+        test.log.level = level;
+        test.log.msg = msg;
+        test.log.meta = meta;
+        this.emit('logged');
+        return cb();
+      };
+      var middleware = factory({
+        transports: [transport]
+      });
+      middleware(req, res, next);
+    }
+    , "then the transport should be invoked": function(result){
+      assert.isTrue(result.transportInvoked);
+    }
+    , "the meta should contain a filtered request": function(result){
+      assert.isTrue(!!result.log.meta.req, "req should be defined in meta");
+      assert.isNotNull(result.log.meta.req);
+      assert.equal(result.log.meta.req.method, "GET");
+      assert.deepEqual(result.log.meta.req.query, { val: '2' });
       assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
+
+      assert.isNotNull(result.log.meta.req.routeLevelAddedProperty);
+    }
+    , "the meta should contain a filtered request body": function(result) {
+      assert.deepEqual(result.log.meta.req.body, {username: 'bobby'});
+      assert.isUndefined(result.log.meta.req.body.password);
     }
     , "the meta should contain a filtered response": function(result){
       assert.isTrue(!!result.log.meta.res, "res should be defined in meta");
       assert.isNotNull(result.log.meta.res);
       assert.equal(result.log.meta.res.statusCode, 200);
-      assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
+      assert.isNotNull(result.log.meta.res.routeLevelAddedProperty);
     }
     , "the meta should contain a response time": function(result){
       assert.isTrue(!!result.log.meta.responseTime, "responseTime should be defined in meta");
