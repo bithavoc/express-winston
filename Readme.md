@@ -15,6 +15,8 @@ express-winston provides middlewares for request and error logging of your expre
 
 Use `expressWinston.errorLogger(options)` to create a middleware that log the errors of the pipeline.
 
+This creates a new winston logger that is separate from `winston.log`
+
 ``` js
     app.use(app.router); // notice how the router goes first.
     app.use(expressWinston.errorLogger({
@@ -25,6 +27,15 @@ Use `expressWinston.errorLogger(options)` to create a middleware that log the er
         })
       ]
     }));
+```
+
+Or to use the default winston logger:
+``` js
+    var winston = require('winston');
+    winston.add(winston.transports.File, { filename: 'error.log' });
+    ...
+    app.use(app.router);
+    app.use(expressWinston.errorLogger());
 ```
 
 The logger needs to be added AFTER the express router(`app.router)`) and BEFORE any of your custom error handlers(`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
@@ -40,6 +51,8 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 
 Use `expressWinston.logger(options)` to create a middleware to log your HTTP requests.
 
+This creates a new winston logger that is separate from `winston.log`
+
 ``` js
 
     app.use(expressWinston.logger({
@@ -51,6 +64,12 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
       ]
     }));
     app.use(app.router); // notice how the router goes after the logger.
+```
+
+Or, using the default winston logger:
+``` js
+    winston.add(winston.transports.File, { filename: 'output.log' });
+    app.use(expressWinston.logger());
 ```
 
 ## Examples
