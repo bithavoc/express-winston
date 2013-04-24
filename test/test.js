@@ -44,6 +44,7 @@ vows.describe("errorLogger").addBatch({
     topic: function() {
       return expressWinston.errorLogger;
     },
+    "with transports option": {
       "the result should be a function with four arguments that fit err, req, res, next": function (factory) {
         var middleware = factory({
           transports: [
@@ -53,6 +54,12 @@ vows.describe("errorLogger").addBatch({
           ]
         });
         assert.equal(middleware.length, 4);
+      }
+    },
+    "without options": {
+      "the result should be a function with four arguments that fit err, req, res, next": function(factory) {
+        var middleware = factory();
+        assert.equal(middlware.length, 4);
       }
     }
   },
@@ -135,6 +142,7 @@ vows.describe("logger 0.1.x").addBatch({
     topic: function() {
       return expressWinston.logger;
     },
+    "with transports option": {
       "the result should be a function with three arguments that fit req, res, next": function (factory) {
         var middleware = factory({
           transports: [
@@ -143,6 +151,12 @@ vows.describe("logger 0.1.x").addBatch({
             })
           ]
         });
+        assert.equal(middleware.length, 3);
+      }
+    },
+    "without options": {
+      "the result should be a function with three arguments that fit req, res, next": function (factory) {
+        var middleware = factory();
         assert.equal(middleware.length, 3);
       }
     }
