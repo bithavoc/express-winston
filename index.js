@@ -86,25 +86,27 @@ function filterObject(originalObj, whiteList, initialFilter) {
 
 
 function errorLogger(options) {
+    var options = options || {}
+      , transports = options.transports
+      , filter = options.requestFilter || defaultRequestFilter;
 
-    ensureValidOptions(options);
+    var logger;
 
-    options.requestFilter = options.requestFilter || defaultRequestFilter;
+    // Instantiate a new logger if we're given transports
+    if (transports) {
+        logger = new winston.Logger({transports: transports});
+    } else {
+        // If not, just use winston.log
+        logger = winston;
+    }
 
     return function (err, req, res, next) {
 
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
-        exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
+        exceptionMeta.req = filterObject(req, requestWhitelist, filter);
 
-        // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        for(var i = 0; i < options.transports.length; i++) {
-            var transport = options.transports[i];
-            transport.logException('middlewareError', exceptionMeta, function () {
-                // Nothing to do here
-            });
-        }
-
+        logger.logException('middlewareError', exceptionMeta);
         next(err);
     };
 }
