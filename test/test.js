@@ -44,28 +44,7 @@ vows.describe("errorLogger").addBatch({
     topic: function() {
       return expressWinston.errorLogger;
     },
-    "without options": {
-      "an error should be raised": function(factory) {
-        assert.throws(function() {
-          factory();
-        }, Error);
-      }
-    },
-    "without any transport specified": {
-      "an error should be raised": function(factory) {
-        assert.throws(function() {
-          factory({});
-        }, Error);
-      }
-    },
-    "with an empty list of transports": {
-      "an error should be raised": function(factory) {
-        assert.throws(function() {
-          factory({transports:[]});
-        }, Error);
-      }
-    },
-    "with proper options": {
+    "with transports option": {
       "the result should be a function with four arguments that fit err, req, res, next": function (factory) {
         var middleware = factory({
           transports: [
@@ -75,6 +54,12 @@ vows.describe("errorLogger").addBatch({
           ]
         });
         assert.equal(middleware.length, 4);
+      }
+    },
+    "without options": {
+      "the result should be a function with four arguments that fit err, req, res, next": function(factory) {
+        var middleware = factory();
+        assert.equal(middlware.length, 4);
       }
     }
   },
@@ -157,28 +142,7 @@ vows.describe("logger 0.1.x").addBatch({
     topic: function() {
       return expressWinston.logger;
     },
-    "without options": {
-      "an error should be raised": function(factory) {
-        assert.throws(function() {
-          factory();
-        }, Error);
-      }
-    },
-    "without any transport specified": {
-      "an error should be raised": function(factory) {
-        assert.throws(function() {
-          factory({});
-        }, Error);
-      }
-    },
-    "with an empty list of transports": {
-      "an error should be raised": function(factory) {
-        assert.throws(function() {
-          factory({transports:[]});
-        }, Error);
-      }
-    },
-    "with proper options": {
+    "with transports option": {
       "the result should be a function with three arguments that fit req, res, next": function (factory) {
         var middleware = factory({
           transports: [
@@ -187,6 +151,12 @@ vows.describe("logger 0.1.x").addBatch({
             })
           ]
         });
+        assert.equal(middleware.length, 3);
+      }
+    },
+    "without options": {
+      "the result should be a function with three arguments that fit req, res, next": function (factory) {
+        var middleware = factory();
         assert.equal(middleware.length, 3);
       }
     }
