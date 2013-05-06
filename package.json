@@ -9,7 +9,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "node test/test.js"
+    "test": "vows --spec"
   },
   "dependencies": {
     "winston": "0.6.x"
