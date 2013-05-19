@@ -59,7 +59,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     var express = require('express');
     var expressWinston = require('express-winston');
     var winston = require('winston'); // for transports.Console
-    var app = module.exports = express.createServer();
+    var app = module.exports = express();
 
     app.use(express.bodyParser());
     app.use(express.methodOverride());
