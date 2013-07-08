@@ -271,6 +271,8 @@ If you ran into any problems, please use the project [Issues section](https://gi
 * [Lars Jacob](https://github.com/jaclar) (https://github.com/jaclar)
 * [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
 
+Also see AUTHORS file, add yourself if you are missing.
+
 ## MIT License
 
 Copyright (c) 2012-2013 Heapsource.com and Contributors - http://www.heapsource.com
