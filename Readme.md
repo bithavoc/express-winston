@@ -273,7 +273,7 @@ If you ran into any problems, please use the project [Issues section](https://gi
 
 ## MIT License
 
-Copyright (c) 2012 Firebase.co and Contributors - http://www.firebase.co
+Copyright (c) 2012-2013 Heapsource.com and Contributors - http://www.heapsource.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

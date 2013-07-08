@@ -1,11 +1,11 @@
 {
-  "author": "Firebase.co <npm@firebase.co> (http://www.firebase.co/)",
+  "author": "Heapsource.com <npm@heapsource.com> (http://www.heapsource.com)",
   "name": "express-winston",
   "description": "express.js middleware for flatiron/winston",
   "keywords": ["winston", "flatiron", "logging", "express", "log", "error", "handler", "middleware"],
   "version": "0.2.0",
   "repository": {
-    "url": "https://github.com/firebaseco/express-winston.git"
+    "url": "https://github.com/heapsource/express-winston.git"
   },
   "main": "index.js",
   "scripts": {
@@ -20,10 +20,5 @@
   "engines": {
     "node": "*"
   },
-	"licenses" : [
-		{
-			"type" : "MIT",
-			"url" : "https://github.com/firebaseco/express-winston/blob/master/LICENSE"
-		}
-	]
+	"license": "MIT"
 }
