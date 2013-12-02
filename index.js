@@ -20,6 +20,7 @@
 //
 var winston = require('winston');
 var util = require('util');
+var _ = require('underscore');
 
 /**
  * A default list of properties in the request object that are allowed to be logged.
@@ -122,6 +123,7 @@ function logger(options) {
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.responseFilter = options.responseFilter || defaultResponseFilter;
     options.level = options.level || "info";
+    options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
 
     return function (req, res, next) {
 
@@ -136,30 +138,37 @@ function logger(options) {
         // Manage to get information from the response too, just like Connect.logger does:
         var end = res.end;
         res.end = function(chunk, encoding) {
-            var responseTime = (new Date) - req._startTime;
+            res.responseTime = (new Date) - req._startTime;
 
             res.end = end;
             res.end(chunk, encoding);
 
-            var meta = {};
+            if(options.meta !== false) {
+              var meta = {};
 
-            var bodyWhitelist;
+              var bodyWhitelist;
 
-            requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
-            responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
+              requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
+              responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
-            meta.req = filterObject(req, requestWhitelist, options.requestFilter);
-            meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              meta.req = filterObject(req, requestWhitelist, options.requestFilter);
+              meta.res = filterObject(res, responseWhitelist, options.responseFilter);
 
-            bodyWhitelist = req._routeWhitelists.body || [];
+              bodyWhitelist = req._routeWhitelists.body || [];
 
-            if (bodyWhitelist) {
-                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+              if (bodyWhitelist) {
+                  meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+              };
+
+              meta.responseTime = res.responseTime;
+            }
+
+            // Using mustache style templating
+            _.templateSettings = {
+              interpolate: /\{\{(.+?)\}\}/g
             };
-
-            meta.responseTime = responseTime;
-
-            var msg = util.format("HTTP %s %s", req.method, req.url);
+            var template = _.template(options.msg);
+            var msg = template({req: req, res: res});
 
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             for(var i = 0; i < options.transports.length; i++) {

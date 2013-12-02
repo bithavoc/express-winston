@@ -2,7 +2,16 @@
   "author": "Heapsource.com <npm@heapsource.com> (http://www.heapsource.com)",
   "name": "express-winston",
   "description": "express.js middleware for flatiron/winston",
-  "keywords": ["winston", "flatiron", "logging", "express", "log", "error", "handler", "middleware"],
+  "keywords": [
+    "winston",
+    "flatiron",
+    "logging",
+    "express",
+    "log",
+    "error",
+    "handler",
+    "middleware"
+  ],
   "version": "0.2.1",
   "repository": {
     "url": "https://github.com/heapsource/express-winston.git"
@@ -12,7 +21,8 @@
     "test": "vows --spec"
   },
   "dependencies": {
-    "winston": "0.6.x"
+    "winston": "0.6.x",
+    "underscore": "~1.5.2"
   },
   "devDependencies": {
     "vows": "0.6.x"
@@ -20,5 +30,5 @@
   "engines": {
     "node": "*"
   },
-	"license": "MIT"
+  "license": "MIT"
 }
