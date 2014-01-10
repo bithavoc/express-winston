@@ -11,6 +11,28 @@
 
 express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.
 
+To make use of express-winston, you need to add the following to your application:
+
+In `package.json`:
+
+```
+{
+  "dependencies": {
+    "...": "...",
+    "winston": "0.6.x",
+    "express-winston": "0.2.x",
+    "...": "..."
+  }
+}
+```
+
+In `server.js` (or wherever you need it):
+
+```
+var winston = require('winston'),
+    expressWinston = require('express-winston');
+```
+
 ### Error Logging
 
 Use `expressWinston.errorLogger(options)` to create a middleware that log the errors of the pipeline.
