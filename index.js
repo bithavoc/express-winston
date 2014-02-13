@@ -1,4 +1,4 @@
-// Copyright (c) 2012 Firebase.co and Contributors - http://www.firebase.co
+// Copyright (c) 2012-2014 Heapsource.com and Contributors - http://www.heapsource.com
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
