@@ -12,7 +12,7 @@
     "handler",
     "middleware"
   ],
-  "version": "0.2.3",
+  "version": "0.2.4",
   "repository": {
     "url": "https://github.com/heapsource/express-winston.git"
   },
