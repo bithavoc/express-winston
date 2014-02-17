@@ -20,7 +20,11 @@
 //
 var winston = require('winston');
 var util = require('util');
+
+//Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
+delete require.cache[require.resolve('underscore')];
 var _ = require('underscore');
+delete require.cache[require.resolve('underscore')];
 
 /**
  * A default list of properties in the request object that are allowed to be logged.
