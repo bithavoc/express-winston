@@ -147,9 +147,9 @@ function logger(options) {
             res.end = end;
             res.end(chunk, encoding);
 
+            var meta = {};
+            
             if(options.meta !== false) {
-              var meta = {};
-
               var bodyWhitelist;
 
               requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
