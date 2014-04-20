@@ -147,6 +147,7 @@ function logger(options) {
             res.end = end;
             res.end(chunk, encoding);
             
+            if (res.statusCode > 100) { options.level = "warn"; }
             if (res.statusCode > 399) { options.level = "warn"; }
             if (res.statusCode > 499) { options.level = "error"; }
 
