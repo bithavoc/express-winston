@@ -292,7 +292,7 @@ vows.describe("logger 0.2.x").addBatch({
     }
   },
   "When the express-winston middleware is invoked in pipeline": {
-    topic: function() {
+    topic: function () {
       var factory = expressWinston.logger;
       var callback = this.callback;
       var req = {
@@ -348,7 +348,8 @@ vows.describe("logger 0.2.x").addBatch({
         return cb();
       };
       var middleware = factory({
-        transports: [transport]
+        transports: [transport],
+        statusLevels: true
       });
       middleware(req, res, next);
     }
@@ -380,5 +381,9 @@ vows.describe("logger 0.2.x").addBatch({
       assert.isTrue(result.log.meta.responseTime > 120);
       assert.isTrue(result.log.meta.responseTime < 130);
     }
+    , "the log level should be info": function (result) {
+      assert.equal(result.log.level, "info");
+    }
   }
 }).export(module);
+
