@@ -55,7 +55,8 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 
 ``` js
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
-    level: String // log level to use, the default is "info".
+    level: String, // log level to use, the default is "info".
+    statusLevel: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
 ```
 
 ### Request Logging
