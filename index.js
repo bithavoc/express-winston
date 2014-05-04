@@ -127,6 +127,7 @@ function logger(options) {
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.responseFilter = options.responseFilter || defaultResponseFilter;
     options.level = options.level || "info";
+    options.statusLevels = options.statusLevels || false;
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
 
     return function (req, res, next) {
@@ -146,6 +147,12 @@ function logger(options) {
 
             res.end = end;
             res.end(chunk, encoding);
+            
+            if (options.statusLevels) {
+                if (res.statusCode >= 100) { options.level = "info"; }
+                if (res.statusCode >= 400) { options.level = "warn"; }
+                if (res.statusCode >= 500) { options.level = "error"; }
+            };       
 
             var meta = {};
             
