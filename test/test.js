@@ -384,6 +384,49 @@ vows.describe("logger 0.2.x").addBatch({
     , "the log level should be info": function (result) {
       assert.equal(result.log.level, "info");
     }
+  },
+  "When the express-winston middleware is invoked in pipeline": {
+    topic: function () {
+      var factory = expressWinston.logger;
+      var callback = this.callback;
+      var req = {
+        url: "/hello",
+        body: {
+        }
+      };
+      var res = {
+        statusCode: 200,
+        end: function(chunk, encoding) {
+        }
+      };
+      var test = {
+        req: req,
+        res: res,
+        log: {}
+      };
+      var next = function(_req, _res, next) {
+        res.end();
+        return callback(null, test);
+      };
+
+      var transport = new MockTransport({});
+      transport.log = function(level, msg, meta, cb) {
+        test.transportInvoked = true;
+        test.log.level = level;
+        test.log.msg = msg;
+        test.log.meta = meta;
+        this.emit('logged');
+        return cb();
+      };
+      var middleware = factory({
+        transports: [transport],
+        statusLevels: true
+      });
+      middleware(req, res, next);
+    }
+    , "the empty body should not be present in req meta": function (result) {
+      assert.equal(typeof result.log.meta.req.body, "undefined");
+    }
   }
 }).export(module);
 
