@@ -72,16 +72,18 @@ var defaultResponseFilter = function (req, propName) {
 function filterObject(originalObj, whiteList, initialFilter) {
 
     var obj = {};
+    var fieldsSet = false;
 
     [].concat(whiteList).forEach(function (propName) {
         var value = initialFilter(originalObj, propName);
 
         if(typeof (value) !== 'undefined') {
             obj[propName] = value;
+            fieldsSet = true;
         };
     });
 
-    return obj;
+    return fieldsSet?obj:undefined;
 }
 
 //
