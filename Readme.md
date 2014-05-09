@@ -59,6 +59,8 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     statusLevel: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
 ```
 
+To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
+
 ### Request Logging
 
 Use `expressWinston.logger(options)` to create a middleware to log your HTTP requests.
