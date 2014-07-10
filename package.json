@@ -21,7 +21,7 @@
     "test": "node_modules/.bin/vows --spec"
   },
   "dependencies": {
-    "winston": "0.6.x",
+    "winston": "0.7.x",
     "underscore": "~1.5.2"
   },
   "devDependencies": {
