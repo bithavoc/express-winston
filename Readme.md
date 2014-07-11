@@ -237,7 +237,26 @@ Browse `/error` will show you how express-winston handles and logs the errors in
       "message": "middlewareError"
     }
 
-## Whitelists
+## Global Whitelists
+
+Express-winston exposes three whitelists that control which properties of the `request`, `body`, and `response` are logged:
+
+* `requestWhitelist`
+* `bodyWhitelist`
+* `responseWhitelist`
+
+For example, `requestWhitelist` defaults to:
+
+    ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
+
+Only those properties of the request object will be logged. Set or modify the whitelist as necessary.
+
+For example, to include the session property (the session data), add the following during logger setup:
+
+    expressWinston.requestWhitelist.push('session');
+
+## Route-Specific Whitelists
+
 New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
 
 ``` js
