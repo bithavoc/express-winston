@@ -7,6 +7,7 @@ var events = require('events');
 
 var MockTransport = function(options) {
   winston.Transport.call(this, options);
+  this.log = function () {};
 };
 util.inherits(MockTransport, winston.Transport);
 
@@ -426,6 +427,46 @@ vows.describe("logger 0.2.x").addBatch({
     }
     , "the empty body should not be present in req meta": function (result) {
       assert.equal(typeof result.log.meta.req.body, "undefined");
+    }
+  },
+  "When the express-winston middleware is invoked in pipeline and transport level is 'error'": {
+    topic: function () {
+      var factory = expressWinston.logger;
+      var callback = this.callback;
+      var req = {
+        url: "/hello",
+        body: {
+        }
+      };
+      var res = {
+        statusCode: 200,
+        end: function(chunk, encoding) {
+        }
+      };
+      var test = {
+        req: req,
+        res: res,
+        log: {}
+      };
+      var next = function(_req, _res, next) {
+        res.end();
+        return callback(null, test);
+      };
+
+      test.transportInvoked = false;
+
+      var transport = new MockTransport({ level: 'error' });
+      transport.log = function(level, msg, meta, cb) {
+        test.transportInvoked = true;
+      };
+      var middleware = factory({
+        transports: [transport],
+        statusLevels: true
+      });
+      middleware(req, res, next);
+    }
+    , "then the transport should not be invoked": function(result) {
+      assert.isFalse(result.transportInvoked);
     }
   }
 }).export(module);
