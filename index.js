@@ -169,30 +169,30 @@ function logger(options) {
             var meta = {};
 
             if(options.meta !== false) {
-                var bodyWhitelist, blacklist;
+              var bodyWhitelist, blacklist;
 
-                requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
-                responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
+              requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
+              responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
-                meta.req = filterObject(req, requestWhitelist, options.requestFilter);
-                meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              meta.req = filterObject(req, requestWhitelist, options.requestFilter);
+              meta.res = filterObject(res, responseWhitelist, options.responseFilter);
 
-                bodyWhitelist = req._routeWhitelists.body || [];
-                blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
+              bodyWhitelist = req._routeWhitelists.body || [];
+              blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
 
-                if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                    var whitelist = _.difference(_.keys(req.body), blacklist);
-                    meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
-                } else {
-                    meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
-                }
+              if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                var whitelist = _.difference(_.keys(req.body), blacklist);
+                meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
+              } else {
+                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+              }
 
-                meta.responseTime = res.responseTime;
+              meta.responseTime = res.responseTime;
             }
 
             // Using mustache style templating
             _.templateSettings = {
-                interpolate: /\{\{(.+?)\}\}/g
+              interpolate: /\{\{(.+?)\}\}/g
             };
             var template = _.template(options.msg);
             var msg = template({req: req, res: res});
