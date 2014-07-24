@@ -176,6 +176,9 @@ function logger(options) {
 
               meta.req = filterObject(req, requestWhitelist, options.requestFilter);
               meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              if (_.contains(responseWhitelist, 'body')) {
+                  meta.res.body = res._headers['content-type'].indexOf('json') >= 0 ? JSON.parse(chunk) : chunk;
+              }
 
               bodyWhitelist = req._routeWhitelists.body || [];
               blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
