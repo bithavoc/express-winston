@@ -104,6 +104,7 @@ function errorLogger(options) {
     ensureValidOptions(options);
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
+    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
 
     return function (err, req, res, next) {
 
@@ -112,12 +113,9 @@ function errorLogger(options) {
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        for(var i = 0; i < options.transports.length; i++) {
-            var transport = options.transports[i];
-            transport.logException('middlewareError', exceptionMeta, function () {
-                // Nothing to do here
-            });
-        }
+        options.winstonInstance.log('error', 'middlewareError', exceptionMeta, function () {
+            // Nothing to do here
+        });
 
         next(err);
     };
@@ -135,6 +133,7 @@ function logger(options) {
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.responseFilter = options.responseFilter || defaultResponseFilter;
+    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
@@ -216,13 +215,9 @@ function logger(options) {
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            for(var i = 0; i < options.transports.length; i++) {
-              var transport = options.transports[i];
-              var finalMsg = (!transport.colorize) ? chalk.stripColor(msg) : msg;
-              transport.log(options.level, finalMsg, meta, function () {
+            options.winstonInstance.log(options.level, msg, meta, function () {
                 // Nothing to do here
-              });
-            }
+            });
         };
 
         next();
@@ -231,7 +226,8 @@ function logger(options) {
 
 function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
-    if(!options.transports || !(options.transports.length > 0)) throw new Error("transports are required by express-winston middleware");
+    if(!((options.transports && (options.transports.length > 0)) || options.winstonInstance))
+        throw new Error("transports or a winstonInstance are required by express-winston middleware");
 };
 
 module.exports.errorLogger = errorLogger;
