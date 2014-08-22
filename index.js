@@ -44,6 +44,12 @@ var requestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl'
 var bodyWhitelist = [];
 
 /**
+ * A default list of properties in the request body that are not allowed to be logged.
+ * @type {Array}
+ */
+var bodyBlacklist = [];
+
+/**
  * A default list of properties in the response object that are allowed to be logged.
  * These properties will be safely included in the meta of the log.
  * @type {Array}
@@ -145,6 +151,10 @@ function logger(options) {
             body: []
         };
 
+        req._routeBlacklists = {
+            body: []
+        };
+
         // Manage to get information from the response too, just like Connect.logger does:
         var end = res.end;
         res.end = function(chunk, encoding) {
@@ -152,7 +162,7 @@ function logger(options) {
 
             res.end = end;
             res.end(chunk, encoding);
-            
+
             if (options.statusLevels) {
               if (res.statusCode >= 100) { options.level = "info"; }
               if (res.statusCode >= 400) { options.level = "warn"; }
@@ -169,21 +179,28 @@ function logger(options) {
             }
 
             var meta = {};
-            
+
             if(options.meta !== false) {
-              var bodyWhitelist;
+              var bodyWhitelist, blacklist;
 
               requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
               responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
               meta.req = filterObject(req, requestWhitelist, options.requestFilter);
               meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              if (_.contains(responseWhitelist, 'body')) {
+                  meta.res.body = res._headers['content-type'].indexOf('json') >= 0 ? JSON.parse(chunk) : chunk;
+              }
 
               bodyWhitelist = req._routeWhitelists.body || [];
+              blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
 
-              if (bodyWhitelist) {
-                  meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
-              };
+              if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                var whitelist = _.difference(_.keys(req.body), blacklist);
+                meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
+              } else {
+                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+              }
 
               meta.responseTime = res.responseTime;
             }
@@ -221,6 +238,7 @@ module.exports.errorLogger = errorLogger;
 module.exports.logger = logger;
 module.exports.requestWhitelist = requestWhitelist;
 module.exports.bodyWhitelist = bodyWhitelist;
+module.exports.bodyBlacklist = bodyBlacklist;
 module.exports.responseWhitelist = responseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
