@@ -20,6 +20,7 @@
 //
 var winston = require('winston');
 var util = require('util');
+var chalk = require('chalk');
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
 delete require.cache[require.resolve('underscore')];
@@ -131,6 +132,8 @@ function logger(options) {
     options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
+    options.colorStatus = options.colorStatus || false;
+    options.expressFormat = options.expressFormat || false;
 
     return function (req, res, next) {
 
@@ -151,10 +154,19 @@ function logger(options) {
             res.end(chunk, encoding);
             
             if (options.statusLevels) {
-                if (res.statusCode >= 100) { options.level = "info"; }
-                if (res.statusCode >= 400) { options.level = "warn"; }
-                if (res.statusCode >= 500) { options.level = "error"; }
-            };       
+              if (res.statusCode >= 100) { options.level = "info"; }
+              if (res.statusCode >= 400) { options.level = "warn"; }
+              if (res.statusCode >= 500) { options.level = "error"; }
+            };
+
+            if ((options.colorStatus) || (options.expressFormat)) {
+              // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
+              var statusColor = 'green';
+              if (res.statusCode >= 500) statusColor = 'red';
+              else if (res.statusCode >= 400) statusColor = 'yellow';
+              else if (res.statusCode >= 300) statusColor = 'cyan';
+              var coloredStatusCode = chalk[statusColor](res.statusCode);
+            }
 
             var meta = {};
             
@@ -176,19 +188,24 @@ function logger(options) {
               meta.responseTime = res.responseTime;
             }
 
-            // Using mustache style templating
-            _.templateSettings = {
-              interpolate: /\{\{(.+?)\}\}/g
-            };
-            var template = _.template(options.msg);
-            var msg = template({req: req, res: res});
+            if(options.expressFormat) {
+              var msg = chalk.grey(req.method+" "+req.url)+" "+chalk[statusColor](res.statusCode)+" "+chalk.grey(res.responseTime+"ms");
+            } else {
+              // Using mustache style templating
+              _.templateSettings = {
+                interpolate: /\{\{(.+?)\}\}/g
+              };
+              var template = _.template(options.msg);
+              var msg = template({req: req, res: res});
 
-            // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            for(var i = 0; i < options.transports.length; i++) {
-                var transport = options.transports[i];
-                transport.log(options.level, msg, meta, function () {
-                    // Nothing to do here
-                });
+              // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
+              for(var i = 0; i < options.transports.length; i++) {
+                  var transport = options.transports[i];
+                  var finalMsg = (!transport.colorize) ? chalk.stripColor(msg) : msg;
+                  transport.log(options.level, finalMsg, meta, function () {
+                      // Nothing to do here
+                  });
+              }
             }
         };
 

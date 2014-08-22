@@ -12,7 +12,7 @@
     "handler",
     "middleware"
   ],
-  "version": "0.2.6",
+  "version": "0.2.7",
   "repository": {
     "url": "https://github.com/heapsource/express-winston.git"
   },
@@ -21,8 +21,9 @@
     "test": "node_modules/.bin/vows --spec"
   },
   "dependencies": {
-    "winston": "0.7.x",
-    "underscore": "~1.5.2"
+    "chalk": "^0.5.1",
+    "underscore": "~1.5.2",
+    "winston": "0.7.x"
   },
   "devDependencies": {
     "vows": "0.7.x"
