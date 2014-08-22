@@ -197,15 +197,14 @@ function logger(options) {
               };
               var template = _.template(options.msg);
               var msg = template({req: req, res: res});
-
-              // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-              for(var i = 0; i < options.transports.length; i++) {
-                  var transport = options.transports[i];
-                  var finalMsg = (!transport.colorize) ? chalk.stripColor(msg) : msg;
-                  transport.log(options.level, finalMsg, meta, function () {
-                      // Nothing to do here
-                  });
-              }
+            }
+            // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
+            for(var i = 0; i < options.transports.length; i++) {
+              var transport = options.transports[i];
+              var finalMsg = (!transport.colorize) ? chalk.stripColor(msg) : msg;
+              transport.log(options.level, finalMsg, meta, function () {
+                // Nothing to do here
+              });
             }
         };
 
