@@ -130,7 +130,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     });
 
     app.listen(3000, function(){
-      console.log("express-winston demo listening on port %d in %s mode", app.address().port, app.settings.env);
+      console.log("express-winston demo listening on port %d in %s mode", this.address().port, app.settings.env);
     });
 ```
 
