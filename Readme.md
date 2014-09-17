@@ -1,5 +1,5 @@
 # express-winston
-[![Build Status](https://secure.travis-ci.org/firebaseco/express-winston.png)](http://travis-ci.org/firebaseco/express-winston)
+[![Build Status](https://secure.travis-ci.org/bithavoc/express-winston.png)](http://travis-ci.org/bithavoc/express-winston)
 
 > [winston](https://github.com/flatiron/winston) middleware for express.js
 
@@ -314,11 +314,11 @@ Post to `/user/register` would give you something like the following:
 
 We are accepting pull-request for these features.
 
-If you ran into any problems, please use the project [Issues section](https://github.com/firebaseco/express-winston/issues) to search or post any bug.
+If you ran into any problems, please use the project [Issues section](https://github.com/bithavoc/express-winston/issues) to search or post any bug.
 
 ## Contributors
 
-* [Johan Hernandez](https://github.com/thepumpkin1979) (https://github.com/thepumpkin1979)
+* [Johan Hernandez](https://github.com/bithavoc) (https://github.com/bithavoc)
 * [Lars Jacob](https://github.com/jaclar) (https://github.com/jaclar)
 * [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
 
@@ -326,7 +326,7 @@ Also see AUTHORS file, add yourself if you are missing.
 
 ## MIT License
 
-Copyright (c) 2012-2014 Heapsource.com and Contributors - http://www.heapsource.com
+Copyright (c) 2012-2014 Bithavoc.io and Contributors - http://www.bithavoc.io
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
