@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Express-winston by bithavoc</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Express-winston</h1>
+        <h2>express.js middleware for flatiron/winston</h2>
+        <a href="https://github.com/bithavoc/express-winston" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="express-winston" class="anchor" href="#express-winston"><span class="octicon octicon-link"></span></a>express-winston</h1>
+
+<p><a href="http://travis-ci.org/bithavoc/express-winston"><img src="https://secure.travis-ci.org/bithavoc/express-winston.png" alt="Build Status"></a></p>
+
+<blockquote>
+<p><a href="https://github.com/flatiron/winston">winston</a> middleware for express.js</p>
+</blockquote>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<pre><code>npm install express-winston
+</code></pre>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.</p>
+
+<p>To make use of express-winston, you need to add the following to your application:</p>
+
+<p>In <code>package.json</code>:</p>
+
+<pre><code>{
+  "dependencies": {
+    "...": "...",
+    "winston": "0.6.x",
+    "express-winston": "0.2.x",
+    "...": "..."
+  }
+}
+</code></pre>
+
+<p>In <code>server.js</code> (or wherever you need it):</p>
+
+<pre><code>var winston = require('winston'),
+    expressWinston = require('express-winston');
+</code></pre>
+
+<h3>
+<a name="error-logging" class="anchor" href="#error-logging"><span class="octicon octicon-link"></span></a>Error Logging</h3>
+
+<p>Use <code>expressWinston.errorLogger(options)</code> to create a middleware that log the errors of the pipeline.</p>
+
+<div class="highlight highlight-js"><pre>    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">router</span><span class="p">);</span> <span class="c1">// notice how the router goes first.</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">errorLogger</span><span class="p">({</span>
+      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
+        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
+          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">})</span>
+      <span class="p">]</span>
+    <span class="p">}));</span>
+</pre></div>
+
+<p>The logger needs to be added AFTER the express router(<code>app.router)</code>) and BEFORE any of your custom error handlers(<code>express.handler</code>). Since express-winston will just log the errors and not <strong>handle</strong> them, you can still use your custom error handler like <code>express.handler</code>, just be sure to put the logger before any of your handlers.</p>
+
+<h3>
+<a name="options" class="anchor" href="#options"><span class="octicon octicon-link"></span></a>Options</h3>
+
+<div class="highlight highlight-js"><pre>    <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span><span class="o">&lt;</span><span class="nx">WinstonTransport</span><span class="o">&gt;</span><span class="p">],</span> <span class="c1">// list of all winston transports instances to use.</span>
+    <span class="nx">winstonInstance</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">WinstonLogger</span><span class="o">&gt;</span><span class="p">,</span> <span class="c1">// a winston logger instance. If this is provided the transports option is ignored</span>
+    <span class="nx">level</span><span class="o">:</span> <span class="nb">String</span><span class="p">,</span> <span class="c1">// log level to use, the default is "info".</span>
+    <span class="nx">statusLevels</span><span class="o">:</span> <span class="nb">Boolean</span> <span class="c1">// different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false</span>
+</pre></div>
+
+<p>To use winston's existing transports, set <code>transports</code> to the values (as in key-value) of the <code>winston.default.transports</code> object. This may be done, for example, by using underscorejs: <code>transports: _.values(winston.default.transports)</code>.</p>
+
+<p>Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the <code>winstonInstance</code> option. The <code>transports</code> option is then ignored.</p>
+
+<h3>
+<a name="request-logging" class="anchor" href="#request-logging"><span class="octicon octicon-link"></span></a>Request Logging</h3>
+
+<p>Use <code>expressWinston.logger(options)</code> to create a middleware to log your HTTP requests.</p>
+
+<div class="highlight highlight-js"><pre>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">logger</span><span class="p">({</span>
+      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
+        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
+          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">})</span>
+      <span class="p">],</span>
+      <span class="nx">meta</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="c1">// optional: control whether you want to log the meta data about the request (default to true)</span>
+      <span class="nx">msg</span><span class="o">:</span> <span class="s2">"HTTP {{req.method}} {{req.url}}"</span><span class="p">,</span> <span class="c1">// optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"</span>
+      <span class="nx">expressFormat</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="c1">// Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true</span>
+      <span class="nx">colorStatus</span><span class="o">:</span> <span class="kc">true</span> <span class="c1">// Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true</span>
+    <span class="p">}));</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">router</span><span class="p">);</span> <span class="c1">// notice how the router goes after the logger.</span>
+</pre></div>
+
+<h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<div class="highlight highlight-js"><pre>    <span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express'</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">expressWinston</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express-winston'</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">winston</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'winston'</span><span class="p">);</span> <span class="c1">// for transports.Console</span>
+    <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">bodyParser</span><span class="p">());</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">methodOverride</span><span class="p">());</span>
+
+    <span class="c1">// express-winston logger makes sense BEFORE the router.</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">logger</span><span class="p">({</span>
+      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
+        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
+          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">})</span>
+      <span class="p">]</span>
+    <span class="p">}));</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">router</span><span class="p">);</span>
+
+    <span class="c1">// express-winston errorLogger makes sense AFTER the router.</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">errorLogger</span><span class="p">({</span>
+      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
+        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
+          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
+        <span class="p">})</span>
+      <span class="p">]</span>
+    <span class="p">}));</span>
+
+    <span class="c1">// Optionally you can include your custom error handler after the logging.</span>
+    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">errorLogger</span><span class="p">({</span>
+      <span class="nx">dumpExceptions</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="nx">showStack</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}));</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'/error'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// here we cause an error in the pipeline so we see express-winston in action.</span>
+      <span class="k">return</span> <span class="nx">next</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">"This is an error and it should be logged to the console"</span><span class="p">));</span>
+    <span class="p">});</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">res</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s1">'This is a normal request, it should be logged to the console too'</span><span class="p">);</span>
+      <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">();</span>
+    <span class="p">});</span>
+
+    <span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"express-winston demo listening on port %d in %s mode"</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">address</span><span class="p">().</span><span class="nx">port</span><span class="p">,</span> <span class="nx">app</span><span class="p">.</span><span class="nx">settings</span><span class="p">.</span><span class="nx">env</span><span class="p">);</span>
+    <span class="p">});</span>
+</pre></div>
+
+<p>Browse <code>/</code> to see a regular HTTP logging like this:</p>
+
+<pre><code>{
+  "req": {
+    "httpVersion": "1.1",
+    "headers": {
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "accept": "*/*",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+      "accept-encoding": "gzip,deflate,sdch",
+      "accept-language": "en-US,en;q=0.8,es-419;q=0.6,es;q=0.4",
+      "accept-charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+      "cookie": "connect.sid=nGspCCSzH1qxwNTWYAoexI23.seE%2B6Whmcwd"
+    },
+    "url": "/",
+    "method": "GET",
+    "originalUrl": "/",
+    "query": {}
+  },
+  "res": {
+    "statusCode": 200
+  },
+  "responseTime" : 12,
+  "level": "info",
+  "message": "HTTP GET /favicon.ico"
+}
+</code></pre>
+
+<p>Browse <code>/error</code> will show you how express-winston handles and logs the errors in the express pipeline like this:</p>
+
+<pre><code>{
+  "date": "Thu Jul 19 2012 23:39:44 GMT-0500 (COT)",
+  "process": {
+    "pid": 35719,
+    "uid": 501,
+    "gid": 20,
+    "cwd": "/Users/thepumpkin/Projects/testExpressWinston",
+    "execPath": "/usr/local/bin/node",
+    "version": "v0.6.18",
+    "argv": [
+      "node",
+      "/Users/thepumpkin/Projects/testExpressWinston/app.js"
+    ],
+    "memoryUsage": {
+      "rss": 14749696,
+      "heapTotal": 7033664,
+      "heapUsed": 5213280
+    }
+  },
+  "os": {
+    "loadavg": [
+      1.95068359375,
+      1.5166015625,
+      1.38671875
+    ],
+    "uptime": 498086
+  },
+  "trace": [
+    ...,
+    {
+      "column": 3,
+      "file": "Object].log (/Users/thepumpkin/Projects/testExpressWinston/node_modules/winston/lib/winston/transports/console.js",
+      "function": "[object",
+      "line": 87,
+      "method": null,
+      "native": false
+    }
+  ],
+  "stack": [
+    "Error: This is an error and it should be logged to the console",
+    "    at /Users/thepumpkin/Projects/testExpressWinston/app.js:39:15",
+    "    at callbacks (/Users/thepumpkin/Projects/testExpressWinston/node_modules/express/lib/router/index.js:272:11)",
+    "    at param (/Users/thepumpkin/Projects/testExpressWinston/node_modules/express/lib/router/index.js:246:11)",
+    "    at pass (/Users/thepumpkin/Projects/testExpressWinston/node_modules/express/lib/router/index.js:253:5)",
+    "    at Router._dispatch (/Users/thepumpkin/Projects/testExpressWinston/node_modules/express/lib/router/index.js:280:4)",
+    "    at Object.handle (/Users/thepumpkin/Projects/testExpressWinston/node_modules/express/lib/router/index.js:45:10)",
+    "    at next (/Users/thepumpkin/Projects/testExpressWinston/node_modules/express/node_modules/connect/lib/http.js:204:15)",
+    "    at done (/Users/thepumpkin/Dropbox/Projects/express-winston/index.js:91:14)",
+    "    at /Users/thepumpkin/Dropbox/Projects/express-winston/node_modules/async/lib/async.js:94:25",
+    "    at [object Object].log (/Users/thepumpkin/Projects/testExpressWinston/node_modules/winston/lib/winston/transports/console.js:87:3)"
+  ],
+  "req": {
+    "httpVersion": "1.1",
+    "headers": {
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "cache-control": "max-age=0",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+      "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "accept-encoding": "gzip,deflate,sdch",
+      "accept-language": "en-US,en;q=0.8,es-419;q=0.6,es;q=0.4",
+      "accept-charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+      "cookie": "connect.sid=nGspCCSzH1qxwNTWYAoexI23.seE%2B6WhmcwdzFEjqhMDuIIl3mAUY7dT4vn%2BkWvRPhZc"
+    },
+    "url": "/error",
+    "method": "GET",
+    "originalUrl": "/error",
+    "query": {}
+  },
+  "level": "error",
+  "message": "middlewareError"
+}
+</code></pre>
+
+<h2>
+<a name="global-whitelists" class="anchor" href="#global-whitelists"><span class="octicon octicon-link"></span></a>Global Whitelists</h2>
+
+<p>Express-winston exposes three whitelists that control which properties of the <code>request</code>, <code>body</code>, and <code>response</code> are logged:</p>
+
+<ul>
+<li><code>requestWhitelist</code></li>
+<li><code>bodyWhitelist</code></li>
+<li><code>responseWhitelist</code></li>
+</ul><p>For example, <code>requestWhitelist</code> defaults to:</p>
+
+<pre><code>['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
+</code></pre>
+
+<p>Only those properties of the request object will be logged. Set or modify the whitelist as necessary.</p>
+
+<p>For example, to include the session property (the session data), add the following during logger setup:</p>
+
+<pre><code>expressWinston.requestWhitelist.push('session');
+</code></pre>
+
+<h2>
+<a name="route-specific-whitelists" class="anchor" href="#route-specific-whitelists"><span class="octicon octicon-link"></span></a>Route-Specific Whitelists</h2>
+
+<p>New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a <code>_routeWhitelists</code> object to the <code>req</code>uest, containing <code>.body</code>, <code>.req</code> and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:</p>
+
+<div class="highlight highlight-js"><pre>    <span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">'/user/register'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'age'</span><span class="p">];</span> <span class="c1">// But not 'password' or 'confirm-password' or 'top-secret'</span>
+      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">res</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'_headers'</span><span class="p">];</span>
+    <span class="p">});</span>
+</pre></div>
+
+<p>Post to <code>/user/register</code> would give you something like the following:</p>
+
+<pre><code>{
+  "req": {
+    "httpVersion": "1.1",
+    "headers": {
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "accept": "*/*",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
+      "accept-encoding": "gzip,deflate,sdch",
+      "accept-language": "en-US,en;q=0.8,es-419;q=0.6,es;q=0.4",
+      "accept-charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
+      "cookie": "connect.sid=nGspCCSzH1qxwNTWYAoexI23.seE%2B6Whmcwd"
+    },
+    "url": "/",
+    "method": "GET",
+    "originalUrl": "/",
+    "query": {},
+    "body": {
+      "username": "foo",
+      "email": "foo@bar.com",
+      "age": "72"
+    }
+  },
+  "res": {
+    "statusCode": 200
+  },
+  "responseTime" : 12,
+  "level": "info",
+  "message": "HTTP GET /favicon.ico"
+}
+</code></pre>
+
+<h2>
+<a name="tests" class="anchor" href="#tests"><span class="octicon octicon-link"></span></a>Tests</h2>
+
+<pre><code>npm test
+</code></pre>
+
+<h2>
+<a name="issues-and-collaboration" class="anchor" href="#issues-and-collaboration"><span class="octicon octicon-link"></span></a>Issues and Collaboration</h2>
+
+<ul>
+<li>Implement a chain of requestFilters. Currently only one requestFilter is allowed in the options.</li>
+</ul><p>We are accepting pull-request for these features.</p>
+
+<p>If you ran into any problems, please use the project <a href="https://github.com/bithavoc/express-winston/issues">Issues section</a> to search or post any bug.</p>
+
+<h2>
+<a name="contributors" class="anchor" href="#contributors"><span class="octicon octicon-link"></span></a>Contributors</h2>
+
+<ul>
+<li>
+<a href="https://github.com/bithavoc">Johan Hernandez</a> (<a href="https://github.com/bithavoc">https://github.com/bithavoc</a>)</li>
+<li>
+<a href="https://github.com/jaclar">Lars Jacob</a> (<a href="https://github.com/jaclar">https://github.com/jaclar</a>)</li>
+<li>
+<a href="https://github.com/floatingLomas">Jonathan Lomas</a> (<a href="https://github.com/floatingLomas">https://github.com/floatingLomas</a>)</li>
+</ul><p>Also see AUTHORS file, add yourself if you are missing.</p>
+
+<h2>
+<a name="mit-license" class="anchor" href="#mit-license"><span class="octicon octicon-link"></span></a>MIT License</h2>
+
+<p>Copyright (c) 2012-2014 Bithavoc.io and Contributors - <a href="http://www.bithavoc.io">http://www.bithavoc.io</a></p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/bithavoc/express-winston/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/bithavoc/express-winston/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/bithavoc/express-winston"></a> is maintained by <a href="https://github.com/bithavoc">bithavoc</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-54890957-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
