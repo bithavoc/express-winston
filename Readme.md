@@ -55,11 +55,14 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 
 ``` js
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
+    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored
     level: String, // log level to use, the default is "info".
     statusLevels: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
 ```
 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
+
+Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the `winstonInstance` option. The `transports` option is then ignored.
 
 ### Request Logging
 
@@ -75,7 +78,9 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
         })
       ],
       meta: true, // optional: control whether you want to log the meta data about the request (default to true)
-      msg: "HTTP {{req.method}} {{req.url}}" // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
+      msg: "HTTP {{req.method}} {{req.url}}", // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
+      expressFormat: true, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
+      colorStatus: true // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
     }));
     app.use(app.router); // notice how the router goes after the logger.
 ```

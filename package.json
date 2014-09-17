@@ -1,5 +1,9 @@
 {
-  "author": "Heapsource.com <npm@heapsource.com> (http://www.heapsource.com)",
+  "author": {
+    "name": "Heapsource.com",
+    "email": "npm@heapsource.com",
+    "url": "http://www.heapsource.com"
+  },
   "name": "express-winston",
   "description": "express.js middleware for flatiron/winston",
   "keywords": [
@@ -10,9 +14,10 @@
     "log",
     "error",
     "handler",
-    "middleware"
+    "middleware",
+    "colors"
   ],
-  "version": "0.2.6",
+  "version": "0.2.7",
   "repository": {
     "url": "https://github.com/heapsource/express-winston.git"
   },
@@ -21,8 +26,9 @@
     "test": "node_modules/.bin/vows --spec"
   },
   "dependencies": {
-    "winston": "0.7.x",
-    "underscore": "~1.5.2"
+    "chalk": "^0.5.1",
+    "underscore": "~1.5.2",
+    "winston": "0.7.x"
   },
   "devDependencies": {
     "vows": "0.7.x"
@@ -30,5 +36,33 @@
   "engines": {
     "node": "*"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Heapsource",
+      "email": "npm@heapsource.com",
+      "url": "http://www.heapsource.com"
+    },
+    {
+      "name": "Lars Jacob",
+      "url": "http://jaclar.net"
+    },
+    {
+      "name": "Jonathan Lomas",
+      "url": "http://feedbackular.com"
+    },
+    {
+      "name": "Xavier Damman",
+      "url": "http://xdamman.com"
+    },
+    {
+      "name": "Quentin Rossetti",
+      "email": "quentin.rossetti@gmail.com"
+    },
+    {
+      "name": "Robbie Trencheny",
+      "email": "me@robbiet.us",
+      "url": "http://robbie.io"
+    }
+  ]
 }

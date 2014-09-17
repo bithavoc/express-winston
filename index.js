@@ -20,6 +20,7 @@
 //
 var winston = require('winston');
 var util = require('util');
+var chalk = require('chalk');
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
 delete require.cache[require.resolve('underscore')];
@@ -41,6 +42,12 @@ var requestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl'
  * @type {Array}
  */
 var bodyWhitelist = [];
+
+/**
+ * A default list of properties in the request body that are not allowed to be logged.
+ * @type {Array}
+ */
+var bodyBlacklist = [];
 
 /**
  * A default list of properties in the response object that are allowed to be logged.
@@ -97,6 +104,7 @@ function errorLogger(options) {
     ensureValidOptions(options);
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
+    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
 
     return function (err, req, res, next) {
 
@@ -105,12 +113,9 @@ function errorLogger(options) {
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        for(var i = 0; i < options.transports.length; i++) {
-            var transport = options.transports[i];
-            transport.logException('middlewareError', exceptionMeta, function () {
-                // Nothing to do here
-            });
-        }
+        options.winstonInstance.log('error', 'middlewareError', exceptionMeta, function () {
+            // Nothing to do here
+        });
 
         next(err);
     };
@@ -128,9 +133,12 @@ function logger(options) {
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.responseFilter = options.responseFilter || defaultResponseFilter;
+    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
+    options.colorStatus = options.colorStatus || false;
+    options.expressFormat = options.expressFormat || false;
 
     return function (req, res, next) {
 
@@ -142,6 +150,10 @@ function logger(options) {
             body: []
         };
 
+        req._routeBlacklists = {
+            body: []
+        };
+
         // Manage to get information from the response too, just like Connect.logger does:
         var end = res.end;
         res.end = function(chunk, encoding) {
@@ -149,47 +161,63 @@ function logger(options) {
 
             res.end = end;
             res.end(chunk, encoding);
-            
+
             if (options.statusLevels) {
-                if (res.statusCode >= 100) { options.level = "info"; }
-                if (res.statusCode >= 400) { options.level = "warn"; }
-                if (res.statusCode >= 500) { options.level = "error"; }
-            };       
+              if (res.statusCode >= 100) { options.level = "info"; }
+              if (res.statusCode >= 400) { options.level = "warn"; }
+              if (res.statusCode >= 500) { options.level = "error"; }
+            };
+
+            if ((options.colorStatus) || (options.expressFormat)) {
+              // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
+              var statusColor = 'green';
+              if (res.statusCode >= 500) statusColor = 'red';
+              else if (res.statusCode >= 400) statusColor = 'yellow';
+              else if (res.statusCode >= 300) statusColor = 'cyan';
+              var coloredStatusCode = chalk[statusColor](res.statusCode);
+            }
 
             var meta = {};
-            
+
             if(options.meta !== false) {
-              var bodyWhitelist;
+              var bodyWhitelist, blacklist;
 
               requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
               responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
               meta.req = filterObject(req, requestWhitelist, options.requestFilter);
               meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              if (_.contains(responseWhitelist, 'body')) {
+                  meta.res.body = res._headers['content-type'].indexOf('json') >= 0 ? JSON.parse(chunk) : chunk;
+              }
 
               bodyWhitelist = req._routeWhitelists.body || [];
+              blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
 
-              if (bodyWhitelist) {
-                  meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
-              };
+              if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                var whitelist = _.difference(_.keys(req.body), blacklist);
+                meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
+              } else {
+                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+              }
 
               meta.responseTime = res.responseTime;
             }
 
-            // Using mustache style templating
-            _.templateSettings = {
-              interpolate: /\{\{(.+?)\}\}/g
-            };
-            var template = _.template(options.msg);
-            var msg = template({req: req, res: res});
-
-            // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            for(var i = 0; i < options.transports.length; i++) {
-                var transport = options.transports[i];
-                transport.log(options.level, msg, meta, function () {
-                    // Nothing to do here
-                });
+            if(options.expressFormat) {
+              var msg = chalk.grey(req.method+" "+req.url)+" "+chalk[statusColor](res.statusCode)+" "+chalk.grey(res.responseTime+"ms");
+            } else {
+              // Using mustache style templating
+              _.templateSettings = {
+                interpolate: /\{\{(.+?)\}\}/g
+              };
+              var template = _.template(options.msg);
+              var msg = template({req: req, res: res});
             }
+            // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
+            options.winstonInstance.log(options.level, msg, meta, function () {
+                // Nothing to do here
+            });
         };
 
         next();
@@ -198,13 +226,15 @@ function logger(options) {
 
 function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
-    if(!options.transports || !(options.transports.length > 0)) throw new Error("transports are required by express-winston middleware");
+    if(!((options.transports && (options.transports.length > 0)) || options.winstonInstance))
+        throw new Error("transports or a winstonInstance are required by express-winston middleware");
 };
 
 module.exports.errorLogger = errorLogger;
 module.exports.logger = logger;
 module.exports.requestWhitelist = requestWhitelist;
 module.exports.bodyWhitelist = bodyWhitelist;
+module.exports.bodyBlacklist = bodyBlacklist;
 module.exports.responseWhitelist = responseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
