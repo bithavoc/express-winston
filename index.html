@@ -280,13 +280,15 @@
 </code></pre>
 
 <h2>
-<a name="global-whitelists" class="anchor" href="#global-whitelists"><span class="octicon octicon-link"></span></a>Global Whitelists</h2>
+<a name="global-whitelists-and-blacklists" class="anchor" href="#global-whitelists-and-blacklists"><span class="octicon octicon-link"></span></a>Global Whitelists and Blacklists</h2>
 
 <p>Express-winston exposes three whitelists that control which properties of the <code>request</code>, <code>body</code>, and <code>response</code> are logged:</p>
 
 <ul>
 <li><code>requestWhitelist</code></li>
-<li><code>bodyWhitelist</code></li>
+<li>
+<code>bodyWhitelist</code>, <code>bodyBlacklist</code>
+</li>
 <li><code>responseWhitelist</code></li>
 </ul><p>For example, <code>requestWhitelist</code> defaults to:</p>
 
@@ -300,8 +302,16 @@
 <pre><code>expressWinston.requestWhitelist.push('session');
 </code></pre>
 
+<p>The blacklisting excludes certain properties and keeps all others. If both <code>bodyWhitelist</code> and <code>bodyBlacklist</code> are set
+the properties excluded by the blacklist are not included even if they are listed in the whitelist!</p>
+
+<p>Example:</p>
+
+<pre><code>expressWinston.bodyBlacklist.push('secretid', 'secretproperty');
+</code></pre>
+
 <h2>
-<a name="route-specific-whitelists" class="anchor" href="#route-specific-whitelists"><span class="octicon octicon-link"></span></a>Route-Specific Whitelists</h2>
+<a name="route-specific-whitelists-and-blacklists" class="anchor" href="#route-specific-whitelists-and-blacklists"><span class="octicon octicon-link"></span></a>Route-Specific Whitelists and Blacklists</h2>
 
 <p>New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a <code>_routeWhitelists</code> object to the <code>req</code>uest, containing <code>.body</code>, <code>.req</code> and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:</p>
 
@@ -344,6 +354,18 @@
   "message": "HTTP GET /favicon.ico"
 }
 </code></pre>
+
+<p>Blacklisting supports only the <code>body</code> property.</p>
+
+<div class="highlight highlight-js"><pre>    <span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">'/user/register'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'age'</span><span class="p">];</span> <span class="c1">// But not 'password' or 'confirm-password' or 'top-secret'</span>
+      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeBlacklists</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">,</span> <span class="s1">'confirm-password'</span><span class="p">,</span> <span class="s1">'top-secret'</span><span class="p">];</span> 
+      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">res</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'_headers'</span><span class="p">];</span>
+    <span class="p">});</span>
+</pre></div>
+
+<p>If both <code>req._bodyWhitelist.body</code> and <code>req._bodyBlacklist.body</code> are set the result will be the white listed properties
+excluding any black listed ones. In the above example, only 'email' and 'age' would be included.</p>
 
 <h2>
 <a name="tests" class="anchor" href="#tests"><span class="octicon octicon-link"></span></a>Tests</h2>
