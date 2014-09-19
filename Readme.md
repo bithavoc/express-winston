@@ -242,12 +242,12 @@ Browse `/error` will show you how express-winston handles and logs the errors in
       "message": "middlewareError"
     }
 
-## Global Whitelists
+## Global Whitelists and Blacklists
 
 Express-winston exposes three whitelists that control which properties of the `request`, `body`, and `response` are logged:
 
 * `requestWhitelist`
-* `bodyWhitelist`
+* `bodyWhitelist`, `bodyBlacklist`
 * `responseWhitelist`
 
 For example, `requestWhitelist` defaults to:
@@ -259,8 +259,16 @@ Only those properties of the request object will be logged. Set or modify the wh
 For example, to include the session property (the session data), add the following during logger setup:
 
     expressWinston.requestWhitelist.push('session');
+    
+The blacklisting excludes certain properties and keeps all others. If both `bodyWhitelist` and `bodyBlacklist` are set
+the properties excluded by the blacklist are not included even if they are listed in the whitelist!
 
-## Route-Specific Whitelists
+Example:
+
+    expressWinston.bodyBlacklist.push('secretid', 'secretproperty');
+
+
+## Route-Specific Whitelists and Blacklists
 
 New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
 
@@ -303,6 +311,21 @@ Post to `/user/register` would give you something like the following:
       "level": "info",
       "message": "HTTP GET /favicon.ico"
     }
+    
+Blacklisting supports only the `body` property.
+
+
+``` js
+    app.post('/user/register', function(req, res, next) {
+      req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
+      req._routeBlacklists.body = ['username', 'password', 'confirm-password', 'top-secret']; 
+      req._routeWhitelists.res = ['_headers'];
+    });
+```
+
+If both `req._bodyWhitelist.body` and `req._bodyBlacklist.body` are set the result will be the white listed properties
+excluding any black listed ones. In the above example, only 'email' and 'age' would be included.
+
 
 ## Tests
 
