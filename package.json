@@ -31,7 +31,7 @@
     "test": "node_modules/.bin/vows --spec"
   },
   "dependencies": {
-    "chalk": "~0.5.1",
+    "chalk": "~0.4.0",
     "underscore": "~1.5.2",
     "winston": "0.7.x"
   },
@@ -39,7 +39,7 @@
     "vows": "0.7.x"
   },
   "engines": {
-    "node": "*"
+    "node": ">=0.6.0"
   },
   "license": "MIT",
   "contributors": [
@@ -49,7 +49,7 @@
     },
     {
       "name": "Jonathan Lomas",
-      "url": "http://feedbackular.com"
+      "url": "http://floatinglomas.ca"
     },
     {
       "name": "Xavier Damman",
