@@ -31,7 +31,7 @@
     "test": "node_modules/.bin/vows --spec"
   },
   "dependencies": {
-    "chalk": "^0.5.1",
+    "chalk": "~0.5.1",
     "underscore": "~1.5.2",
     "winston": "0.7.x"
   },
