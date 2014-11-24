@@ -120,9 +120,7 @@ function errorLogger(options) {
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log('error', 'middlewareError', exceptionMeta, function () {
-            // Nothing to do here
-        });
+        options.winstonInstance.log('error', 'middlewareError', exceptionMeta);
 
         next(err);
     };
@@ -227,9 +225,7 @@ function logger(options) {
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            options.winstonInstance.log(options.level, msg, meta, function () {
-                // Nothing to do here
-            });
+            options.winstonInstance.log(options.level, msg, meta);
         };
 
         next();
