@@ -57,6 +57,13 @@ var bodyBlacklist = [];
 var responseWhitelist = ['statusCode'];
 
 /**
+ * A list of request routes that will be skipped instead of being logged. This would be useful if routes for health checks or pings would otherwise pollute
+ * your log files.
+ * @type {Array}
+ */
+var ignoredRoutes = [];
+
+/**
  * A default function to filter the properties of the req object.
  * @param req
  * @param propName
@@ -141,6 +148,11 @@ function logger(options) {
     options.expressFormat = options.expressFormat || false;
 
     return function (req, res, next) {
+
+        if (_.contains(ignoredRoutes, _.isObject(req._parsedUrl) && req._parsedUrl.pathname)) {
+          return next();
+        }
+
 
         req._startTime = (new Date);
 
@@ -238,3 +250,4 @@ module.exports.bodyBlacklist = bodyBlacklist;
 module.exports.responseWhitelist = responseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
+module.exports.ignoredRoutes = ignoredRoutes;
