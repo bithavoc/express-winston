@@ -202,11 +202,14 @@ function logger(options) {
                 bodyWhitelist = req._routeWhitelists.body || [];
                 blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
 
-                if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                    var whitelist = _.difference(_.keys(req.body), blacklist);
-                    meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
-                } else {
-                    meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                if( typeof (req.body) !== 'undefined') {
+
+                    if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                        var whitelist = _.difference(_.keys(req.body), blacklist);
+                        meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
+                    } else {
+                        meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                    }
                 }
 
                 meta.responseTime = res.responseTime;
