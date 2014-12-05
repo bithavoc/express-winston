@@ -163,7 +163,6 @@ function logger(options) {
             res.end(chunk, encoding);
 
             if (options.statusLevels) {
-              if (res.statusCode >= 100) { options.level = "info"; }
               if (res.statusCode >= 400) { options.level = "warn"; }
               if (res.statusCode >= 500) { options.level = "error"; }
             }
