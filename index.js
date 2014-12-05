@@ -173,10 +173,9 @@ function logger(options) {
             res.end(chunk, encoding);
 
             if (options.statusLevels) {
-              if (res.statusCode >= 100) { options.level = "info"; }
               if (res.statusCode >= 400) { options.level = "warn"; }
               if (res.statusCode >= 500) { options.level = "error"; }
-            };
+            }
 
             if ((options.colorStatus) || (options.expressFormat)) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
@@ -190,28 +189,39 @@ function logger(options) {
             var meta = {};
 
             if(options.meta !== false) {
-              var bodyWhitelist, blacklist;
+                var bodyWhitelist, blacklist;
 
-              requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
-              responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
+                requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
+                responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
-              meta.req = filterObject(req, requestWhitelist, options.requestFilter);
-              meta.res = filterObject(res, responseWhitelist, options.responseFilter);
-              if (_.contains(responseWhitelist, 'body')) {
-                  meta.res.body = res._headers['content-type'].indexOf('json') >= 0 ? JSON.parse(chunk) : chunk;
-              }
+                meta.req = filterObject(req, requestWhitelist, options.requestFilter);
+                meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+                if (_.contains(responseWhitelist, 'body') && chunk != null) {
+                    var contentHeader = res._headers['content-type'];
+                    if( contentHeader && contentHeader.indexOf('json') >= 0)
+                        meta.res.body = JSON.parse(chunk);
+                    else if(_.isString( chunk))
+                        meta.res.body = chunk;
+                    else if( contentHeader && contentHeader.indexOf('text') >= 0)
+                        meta.res.body = chunk.toString();
+                    else
+                        meta.res.body = util.inspect( chunk.slice(-100)) + chunk.length>100 ? '...' : '';
+                }
 
-              bodyWhitelist = req._routeWhitelists.body || [];
-              blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
+                bodyWhitelist = req._routeWhitelists.body || [];
+                blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
 
-              if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                var whitelist = _.difference(_.keys(req.body), blacklist);
-                meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
-              } else {
-                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
-              }
+                if( typeof (req.body) !== 'undefined') {
 
-              meta.responseTime = res.responseTime;
+                    if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                        var whitelist = _.difference(_.keys(req.body), blacklist);
+                        meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
+                    } else {
+                        meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                    }
+                }
+
+                meta.responseTime = res.responseTime;
             }
 
             if(options.expressFormat) {
