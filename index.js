@@ -162,9 +162,10 @@ function logger(options) {
             res.end = end;
             res.end(chunk, encoding);
 
+            var level = options.level;
             if (options.statusLevels) {
-              if (res.statusCode >= 400) { options.level = "warn"; }
-              if (res.statusCode >= 500) { options.level = "error"; }
+              if (res.statusCode >= 400) { level = "warn"; }
+              if (res.statusCode >= 500) { level = "error"; }
             }
 
             if ((options.colorStatus) || (options.expressFormat)) {
@@ -225,7 +226,7 @@ function logger(options) {
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            options.winstonInstance.log(options.level, msg, meta, function () {
+            options.winstonInstance.log(level, msg, meta, function () {
                 // Nothing to do here
             });
         };
