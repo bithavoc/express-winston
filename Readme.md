@@ -38,7 +38,9 @@ var winston = require('winston'),
 Use `expressWinston.errorLogger(options)` to create a middleware that log the errors of the pipeline.
 
 ``` js
-    app.use(app.router); // notice how the router goes first.
+    var router = require('./my-express-router');
+
+    app.use(router); // notice how the router goes first.
     app.use(expressWinston.errorLogger({
       transports: [
         new winston.transports.Console({
@@ -69,6 +71,7 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
 Use `expressWinston.logger(options)` to create a middleware to log your HTTP requests.
 
 ``` js
+    var router = require('./my-express-router');
 
     app.use(expressWinston.logger({
       transports: [
@@ -82,7 +85,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
       expressFormat: true, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
       colorStatus: true // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
     }));
-    app.use(app.router); // notice how the router goes after the logger.
+
+    app.use(router); // notice how the router goes after the logger.
 ```
 
 ## Examples
@@ -96,6 +100,18 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     app.use(express.bodyParser());
     app.use(express.methodOverride());
 
+    // Let's make our express `Router` first.
+    var router = express.Router();
+    router.get('/error', function(req, res, next) {
+      // here we cause an error in the pipeline so we see express-winston in action.
+      return next(new Error("This is an error and it should be logged to the console"));
+    });
+
+    app.get('/', function(req, res, next) {
+      res.write('This is a normal request, it should be logged to the console too');
+      res.end();
+    });
+
     // express-winston logger makes sense BEFORE the router.
     app.use(expressWinston.logger({
       transports: [
@@ -106,7 +122,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
       ]
     }));
 
-    app.use(app.router);
+    // Now we can tell the app to use our routing code:
+    app.use(router);
 
     // express-winston errorLogger makes sense AFTER the router.
     app.use(expressWinston.errorLogger({
@@ -123,16 +140,6 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
       dumpExceptions: true,
       showStack: true
     }));
-
-    app.get('/error', function(req, res, next) {
-      // here we cause an error in the pipeline so we see express-winston in action.
-      return next(new Error("This is an error and it should be logged to the console"));
-    });
-
-    app.get('/', function(req, res, next) {
-      res.write('This is a normal request, it should be logged to the console too');
-      res.end();
-    });
 
     app.listen(3000, function(){
       console.log("express-winston demo listening on port %d in %s mode", this.address().port, app.settings.env);
@@ -273,7 +280,7 @@ Example:
 New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
 
 ``` js
-    app.post('/user/register', function(req, res, next) {
+    router.post('/user/register', function(req, res, next) {
       req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
       req._routeWhitelists.res = ['_headers'];
     });
@@ -316,7 +323,7 @@ Blacklisting supports only the `body` property.
 
 
 ``` js
-    app.post('/user/register', function(req, res, next) {
+    router.post('/user/register', function(req, res, next) {
       req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
       req._routeBlacklists.body = ['username', 'password', 'confirm-password', 'top-secret']; 
       req._routeWhitelists.res = ['_headers'];
