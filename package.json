@@ -17,9 +17,9 @@
     "middleware",
     "colors"
   ],
-  "version": "0.2.9",
+  "version": "0.2.10",
   "repository": {
-    "type" : "git",
+    "type": "git",
     "url": "https://github.com/bithavoc/express-winston.git"
   },
   "bugs": {
@@ -36,6 +36,7 @@
     "winston": "0.7.x"
   },
   "devDependencies": {
+    "node-mocks-http": "~1.2.3",
     "vows": "0.7.x"
   },
   "engines": {

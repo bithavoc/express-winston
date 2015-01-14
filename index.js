@@ -147,10 +147,7 @@ function logger(options) {
 
     return function (req, res, next) {
 
-        if (_.contains(ignoredRoutes, _.isObject(req._parsedUrl) && req._parsedUrl.pathname)) {
-          return next();
-        }
-
+        if (req.route && req.route.path && _.contains(ignoredRoutes, req.route.path)) return next();
 
         req._startTime = (new Date);
 
