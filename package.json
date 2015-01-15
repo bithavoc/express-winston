@@ -28,7 +28,17 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/vows --spec"
+    "test": "node_modules/.bin/mocha -R spec",
+    "posttest": "node_modules/.bin/mocha -r blanket -R travis-cov && ( node_modules/.bin/mocha -r blanket -R travis-cov >| coverage.html )"
+  },
+  "config": {
+    "blanket": {
+      "pattern": "index.js",
+      "data-cover-never": "node_modules"
+    },
+    "travis-cov": {
+      "threshold" : 80
+    }
   },
   "dependencies": {
     "chalk": "~0.4.0",
@@ -36,8 +46,11 @@
     "winston": "0.7.x"
   },
   "devDependencies": {
+    "blanket": "~1.1.6",
+    "mocha": "~2.1.0",
     "node-mocks-http": "~1.2.3",
-    "vows": "0.7.x"
+    "should": "~4.6.0",
+    "travis-cov": "^0.2.5"
   },
   "engines": {
     "node": ">=0.6.0"
