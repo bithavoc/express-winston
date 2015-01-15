@@ -4,6 +4,7 @@ var winston = require('winston');
 var expressWinston = require('../index');
 var util = require('util');
 var events = require('events');
+var mocks = require('node-mocks-http');
 
 expressWinston.ignoredRoutes.push('/ignored');
 
@@ -11,6 +12,7 @@ var MockTransport = function(test, options) {
   test.transportInvoked = false;
 
   winston.Transport.call(this, options || {});
+
   this.log = function(level, msg, meta, cb) {
     test.transportInvoked = true;
     test.log.level = level;
@@ -28,61 +30,38 @@ var res = {};
 var setUp = function(options) {
   options = options || {};
 
-  req = {
-    url: "/hello?val=1",
+  var reqSpec = {
+    method: 'GET',
+    url: '/hello',
     headers: {
       'header-1': 'value 1'
     },
-    method: 'GET',
     query: {
       val: '1'
     },
-    _parsedUrl: {
-      protocol: null,
-      slashes: null,
-      auth: null,
-      host: null,
-      port: null,
-      hostname: null,
-      hash: null,
-      search: '?val=1',
-      query: 'val=1',
-      pathname: '/hello',
-      path: '/hello?val=1',
-      href: '/hello?val=1',
-      _raw: '/hello?val=1'
-    },
-    originalUrl: "/hello?val=1",
     params: {
       id: 20
     },
-    nonWhitelistedProperty: "value that should not be logged"
   };
 
-  if (options.ignoreRoute) {
-    req.url = "/ignored?val=1";
-    req.originalUrl = "/ignored?val=1";
-    req._parsedUrl = {
-      protocol: null,
-      slashes: null,
-      auth: null,
-      host: null,
-      port: null,
-      hostname: null,
-      hash: null,
-      search: '?val=1',
-      query: 'val=1',
-      pathname: '/ignored',
-      path: '/ignored?val=1',
-      href: '/ignored?val=1',
-      _raw: '/ignored?val=1'
-    };
-  }
+  if (options.body) reqSpec.body = options.body;
 
-  res = {
-    statusCode: 200,
-    end: function(chunk, encoding) {}
+  if (options.ignoreRoute) reqSpec.url = "/ignored";
+  if (options.url) reqSpec.url = options.url;
+
+  req = mocks.createRequest(reqSpec);
+
+  req.route = {
+    path: reqSpec.url,
+    methods: {
+      get: true
+    }
   };
+
+  if (options.routePath) req.route.path = options.routePath;
+
+  res = mocks.createResponse();
+  res.status(200);
 };
 
 vows.describe("exports").addBatch({
@@ -139,12 +118,14 @@ vows.describe("errorLogger").addBatch({
     "with an empty list of transports": {
       "an error should be raised": function(factory) {
         assert.throws(function() {
-          factory({transports:[]});
+          factory({
+            transports: []
+          });
         }, Error);
       }
     },
     "with proper options": {
-      "the result should be a function with four arguments that fit err, req, res, next": function (factory) {
+      "the result should be a function with four arguments that fit err, req, res, next": function(factory) {
         var middleware = factory({
           transports: [new MockTransport({})]
         });
@@ -175,22 +156,22 @@ vows.describe("errorLogger").addBatch({
         transports: [new MockTransport(test)]
       });
       middleware(originalError, req, res, next);
-    }
-    , "then the transport should be invoked": function(result){
+    },
+    "then the transport should be invoked": function(result) {
       assert.isTrue(result.transportInvoked);
-    }
-    , "the error level should be error": function(result){
+    },
+    "the error level should be error": function(result) {
       assert.equal(result.log.level, "error");
-    }
-    , "the msg should be middlewareError": function(result){
+    },
+    "the msg should be middlewareError": function(result) {
       assert.equal(result.log.msg, "middlewareError");
-    }
-    , "the meta should contain a filtered request": function(result){
+    },
+    "the meta should contain a filtered request": function(result) {
       assert.isTrue(!!result.log.meta.req, "req should be defined in meta");
       assert.isNotNull(result.log.meta.req);
       assert.equal(result.log.meta.req.method, "GET");
       assert.deepEqual(result.log.meta.req.query, {
-                      val: '1'
+        val: '1'
       });
       assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
     },
@@ -223,12 +204,14 @@ vows.describe("logger 0.1.x").addBatch({
     "with an empty list of transports": {
       "an error should be raised": function(factory) {
         assert.throws(function() {
-          factory({transports:[]});
+          factory({
+            transports: []
+          });
         }, Error);
       }
     },
     "with proper options": {
-      "the result should be a function with three arguments that fit req, res, next": function (factory) {
+      "the result should be a function with three arguments that fit req, res, next": function(factory) {
         var middleware = factory({
           transports: [new MockTransport({})]
         });
@@ -256,23 +239,25 @@ vows.describe("logger 0.1.x").addBatch({
         transports: [new MockTransport(test)]
       });
       middleware(req, res, next);
-    }
-    , "then the transport should be invoked": function(result){
+    },
+    "then the transport should be invoked": function(result) {
       assert.isTrue(result.transportInvoked);
-    }
-    , "the meta should contain a filtered request": function(result){
+    },
+    "the meta should contain a filtered request": function(result) {
       assert.isTrue(!!result.log.meta.req, "req should be defined in meta");
       assert.isNotNull(result.log.meta.req);
       assert.equal(result.log.meta.req.method, "GET");
       assert.deepEqual(result.log.meta.req.query, {
-                      val: '1'
+        val: '1'
       });
       assert.isUndefined(result.log.meta.req.filteredProperty);
     }
   },
   "When the express-winston middleware is invoked in pipeline on a route that should be ignored": {
     topic: function() {
-      setUp({ ignoreRoute : true });
+      setUp({
+        ignoreRoute: true
+      });
       var factory = expressWinston.logger;
       var callback = this.callback;
 
@@ -290,11 +275,11 @@ vows.describe("logger 0.1.x").addBatch({
         transports: [new MockTransport(test)]
       });
       middleware(req, res, next);
-    }
-    , "then the transport should be invoked": function(result){
+    },
+    "then the transport should not be invoked": function(result) {
       assert.isFalse(result.transportInvoked);
-    }
-    , "the meta should not be defined": function(result){
+    },
+    "the meta should not be defined": function(result) {
       assert.isUndefined(result.log.meta);
     }
   }
@@ -322,12 +307,14 @@ vows.describe("logger 0.2.x").addBatch({
     "with an empty list of transports": {
       "an error should be raised": function(factory) {
         assert.throws(function() {
-          factory({transports:[]});
+          factory({
+            transports: []
+          });
         }, Error);
       }
     },
     "with proper options": {
-      "the result should be a function with three arguments that fit req, res, next": function (factory) {
+      "the result should be a function with three arguments that fit req, res, next": function(factory) {
         var middleware = factory({
           transports: [new MockTransport({})]
         });
@@ -336,17 +323,18 @@ vows.describe("logger 0.2.x").addBatch({
     }
   },
   "When the express-winston middleware is invoked in pipeline": {
-    topic: function () {
-      setUp();
+    topic: function() {
+      setUp({
+        body: {
+          username: "bobby",
+          password: "top-secret"
+        }
+      });
 
       var factory = expressWinston.logger;
       var callback = this.callback;
 
       req.routeLevelAddedProperty = "value that should be logged";
-      req.body = {
-        username: "bobby",
-        password: "top-secret"
-      };
 
       res.nonWhitelistedProperty = "value that should not be logged";
       res.routeLevelAddedProperty = "value that should be logged";
@@ -359,8 +347,8 @@ vows.describe("logger 0.2.x").addBatch({
       var next = function(_req, _res, next) {
         req._startTime = (new Date) - 125;
 
-        req._routeWhitelists.req = [ 'routeLevelAddedProperty' ];
-        req._routeWhitelists.body = [ 'username' ];
+        req._routeWhitelists.req = ['routeLevelAddedProperty'];
+        req._routeWhitelists.body = ['username'];
 
         res.end();
         return callback(null, test);
@@ -371,50 +359,52 @@ vows.describe("logger 0.2.x").addBatch({
         statusLevels: true
       });
       middleware(req, res, next);
-    }
-    , "then the transport should be invoked": function(result){
+    },
+    "then the transport should be invoked": function(result) {
       assert.isTrue(result.transportInvoked);
-    }
-    , "the meta should contain a filtered request": function(result){
+    },
+    "the meta should contain a filtered request": function(result) {
       assert.isTrue(!!result.log.meta.req, "req should be defined in meta");
       assert.isNotNull(result.log.meta.req);
       assert.equal(result.log.meta.req.method, "GET");
-      assert.deepEqual(result.log.meta.req.query, { val: '1' });
+      assert.deepEqual(result.log.meta.req.query, {
+        val: '1'
+      });
       assert.isUndefined(result.log.meta.req.nonWhitelistedProperty);
 
       assert.isNotNull(result.log.meta.req.routeLevelAddedProperty);
-    }
-    , "the meta should contain a filtered request body": function(result) {
-      assert.deepEqual(result.log.meta.req.body, {username: 'bobby'});
+    },
+    "the meta should contain a filtered request body": function(result) {
+      assert.deepEqual(result.log.meta.req.body, {
+        username: 'bobby'
+      });
       assert.isUndefined(result.log.meta.req.body.password);
-    }
-    , "the meta should contain a filtered response": function(result){
+    },
+    "the meta should contain a filtered response": function(result) {
       assert.isTrue(!!result.log.meta.res, "res should be defined in meta");
       assert.isNotNull(result.log.meta.res);
       assert.equal(result.log.meta.res.statusCode, 200);
       assert.isNotNull(result.log.meta.res.routeLevelAddedProperty);
-    }
-    , "the meta should contain a response time": function(result){
+    },
+    "the meta should contain a response time": function(result) {
       assert.isTrue(!!result.log.meta.responseTime, "responseTime should be defined in meta");
       assert.isNotNull(result.log.meta.responseTime);
       assert.isTrue(result.log.meta.responseTime > 120);
       assert.isTrue(result.log.meta.responseTime < 130);
-    }
-    , "the log level should be info": function (result) {
+    },
+    "the log level should be info": function(result) {
       assert.equal(result.log.level, "info");
     }
   },
   "When the express-winston middleware is invoked in pipeline with an empty response body": {
-    topic: function () {
-      setUp();
+    topic: function() {
+      setUp({
+        url: '/hello',
+        body: {}
+      });
 
       var factory = expressWinston.logger;
       var callback = this.callback;
-      req = {
-        url: "/hello",
-        body: {
-        }
-      };
 
       var test = {
         req: req,
@@ -431,22 +421,20 @@ vows.describe("logger 0.2.x").addBatch({
         statusLevels: true
       });
       middleware(req, res, next);
-    }
-    , "the empty body should not be present in req meta": function (result) {
+    },
+    "the empty body should not be present in req meta": function(result) {
       assert.equal(typeof result.log.meta.req.body, "undefined");
     }
   },
   "When the express-winston middleware is invoked in pipeline and transport level is 'error'": {
-    topic: function () {
-      setUp();
+    topic: function() {
+      setUp({
+        url: "/hello",
+        body: {}
+      });
 
       var factory = expressWinston.logger;
       var callback = this.callback;
-      req = {
-        url: "/hello",
-        body: {
-        }
-      };
 
       var test = {
         req: req,
@@ -459,14 +447,15 @@ vows.describe("logger 0.2.x").addBatch({
       };
 
       var middleware = factory({
-        transports: [new MockTransport(test, { level: 'error' })],
+        transports: [new MockTransport(test, {
+          level: 'error'
+        })],
         statusLevels: true
       });
       middleware(req, res, next);
-    }
-    , "then the transport should not be invoked": function(result) {
+    },
+    "then the transport should not be invoked": function(result) {
       assert.isFalse(result.transportInvoked);
     }
   }
 }).export(module);
-

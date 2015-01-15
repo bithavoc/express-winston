@@ -147,10 +147,7 @@ function logger(options) {
 
     return function (req, res, next) {
 
-        if (_.contains(ignoredRoutes, _.isObject(req._parsedUrl) && req._parsedUrl.pathname)) {
-          return next();
-        }
-
+        if (req.route && req.route.path && _.contains(ignoredRoutes, req.route.path)) return next();
 
         req._startTime = (new Date);
 
@@ -198,7 +195,7 @@ function logger(options) {
               meta.req = filterObject(req, requestWhitelist, options.requestFilter);
               meta.res = filterObject(res, responseWhitelist, options.responseFilter);
               if (_.contains(responseWhitelist, 'body')) {
-                  meta.res.body = res._headers['content-type'].indexOf('json') >= 0 ? JSON.parse(chunk) : chunk;
+                  meta.res.body = (res._headers['content-type'] && res._headers['content-type'].indexOf('json') >= 0) ? JSON.parse(chunk) : chunk;
               }
 
               bodyWhitelist = req._routeWhitelists.body || [];
