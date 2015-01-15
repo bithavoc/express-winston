@@ -195,18 +195,26 @@ function logger(options) {
               meta.req = filterObject(req, requestWhitelist, options.requestFilter);
               meta.res = filterObject(res, responseWhitelist, options.responseFilter);
               if (_.contains(responseWhitelist, 'body')) {
-                  meta.res.body = (res._headers['content-type'] && res._headers['content-type'].indexOf('json') >= 0) ? JSON.parse(chunk) : chunk;
+                if (chunk) {
+                  var isJson = (res._headers['content-type'] && res._headers['content-type'].indexOf('json') >= 0);
+                  
+                  meta.res.body =  isJson ? JSON.parse(chunk) : chunk.toString();
+                }
               }
 
               bodyWhitelist = req._routeWhitelists.body || [];
               blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
 
+              var filteredBody = null;
+
               if (blacklist.length > 0 && bodyWhitelist.length === 0) {
                 var whitelist = _.difference(_.keys(req.body), blacklist);
-                meta.req.body = filterObject(req.body, whitelist, options.requestFilter);
+                filteredBody = filterObject(req.body, whitelist, options.requestFilter);
               } else {
-                meta.req.body = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
               }
+
+              if (filteredBody) meta.req.body = filteredBody;
 
               meta.responseTime = res.responseTime;
             }
