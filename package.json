@@ -28,7 +28,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/vows --spec"
+    "test": "node_modules/.bin/mocha -R spec"
   },
   "dependencies": {
     "chalk": "~0.4.0",
@@ -36,8 +36,9 @@
     "winston": "0.7.x"
   },
   "devDependencies": {
+    "mocha": "~2.1.0",
     "node-mocks-http": "~1.2.3",
-    "vows": "0.7.x"
+    "should": "~4.6.0"
   },
   "engines": {
     "node": ">=0.6.0"
