@@ -220,7 +220,7 @@ function logger(options) {
             }
 
             if(options.expressFormat) {
-              var msg = chalk.grey(req.method+" "+req.url)+" "+chalk[statusColor](res.statusCode)+" "+chalk.grey(res.responseTime+"ms");
+              var msg = chalk.grey(req.method+" "+req.originalUrl || req.url)+" "+chalk[statusColor](res.statusCode)+" "+chalk.grey(res.responseTime+"ms");
             } else {
               // Using mustache style templating
               _.templateSettings = {
