@@ -1,70 +1,82 @@
 {
-  "author": {
-    "name": "bithavoc",
-    "email": "im@bithavoc.io",
-    "url": "http://bithavoc.io"
-  },
-  "name": "express-winston",
-  "description": "express.js middleware for flatiron/winston",
-  "keywords": [
-    "winston",
-    "flatiron",
-    "logging",
-    "express",
-    "log",
-    "error",
-    "handler",
-    "middleware",
-    "colors"
-  ],
-  "version": "0.2.12",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bithavoc/express-winston.git"
-  },
-  "bugs": {
-    "url": "http://github.com/bithavoc/express-winston/issues",
-    "email": "im@bithavoc.io"
-  },
-  "main": "index.js",
-  "scripts": {
-    "test": "node_modules/.bin/mocha -R spec"
-  },
-  "dependencies": {
-    "chalk": "~0.4.0",
-    "underscore": "~1.5.2",
-    "winston": "0.7.x"
-  },
-  "devDependencies": {
-    "mocha": "~2.1.0",
-    "node-mocks-http": "~1.2.3",
-    "should": "~4.6.0"
-  },
-  "engines": {
-    "node": ">=0.6.0"
-  },
-  "license": "MIT",
-  "contributors": [
-    {
-      "name": "Lars Jacob",
-      "url": "http://jaclar.net"
+    "author": {
+        "name": "bithavoc",
+        "email": "im@bithavoc.io",
+        "url": "http://bithavoc.io"
     },
-    {
-      "name": "Jonathan Lomas",
-      "url": "http://floatinglomas.ca"
+    "name": "express-winston",
+    "description": "express.js middleware for flatiron/winston",
+    "keywords": [
+        "winston",
+        "flatiron",
+        "logging",
+        "express",
+        "log",
+        "error",
+        "handler",
+        "middleware",
+        "colors"
+    ],
+    "version": "0.2.12",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bithavoc/express-winston.git"
     },
-    {
-      "name": "Xavier Damman",
-      "url": "http://xdamman.com"
+    "bugs": {
+        "url": "http://github.com/bithavoc/express-winston/issues",
+        "email": "im@bithavoc.io"
     },
-    {
-      "name": "Quentin Rossetti",
-      "email": "quentin.rossetti@gmail.com"
+    "main": "index.js",
+    "scripts": {
+        "test": "node_modules/.bin/mocha --reporter spec",
+        "test-travis": "node_modules/.bin/mocha --require blanket --reporter travis-cov",
+        "test-coverage": "node_modules/.bin/mocha --require blanket --reporter html-cov >| coverage.html || true"
     },
-    {
-      "name": "Robbie Trencheny",
-      "email": "me@robbiet.us",
-      "url": "http://robbie.io"
-    }
-  ]
+    "config": {
+        "travis-cov": {
+            "threshold": 100
+        },
+        "blanket": {
+            "pattern": [
+                "index.js"
+            ],
+            "data-cover-never": [
+                "node_modules",
+                "test"
+            ]
+        }
+    },
+    "dependencies": {
+        "chalk": "~0.4.0",
+        "underscore": "~1.5.2",
+        "winston": "0.7.x"
+    },
+    "devDependencies": {
+        "blanket": "~1.1.6",
+        "mocha": "~2.1.0",
+        "node-mocks-http": "~1.2.3",
+        "should": "~4.6.0",
+        "travis-cov": "~0.2.5"
+    },
+    "engines": {
+        "node": ">=0.6.0"
+    },
+    "license": "MIT",
+    "contributors": [{
+        "name": "Lars Jacob",
+        "url": "http://jaclar.net"
+    }, {
+        "name": "Jonathan Lomas",
+        "url": "http://floatinglomas.ca"
+    }, {
+        "name": "Xavier Damman",
+        "url": "http://xdamman.com"
+    }, {
+        "name": "Quentin Rossetti",
+        "email": "quentin.rossetti@gmail.com"
+    }, {
+        "name": "Robbie Trencheny",
+        "email": "me@robbiet.us",
+        "url": "http://robbie.io"
+    }]
 }

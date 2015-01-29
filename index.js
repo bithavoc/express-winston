@@ -145,6 +145,11 @@ function logger(options) {
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
 
+    // Using mustache style templating
+    var template = _.template(options.msg, null, {
+      interpolate: /\{\{(.+?)\}\}/g
+    });
+
     return function (req, res, next) {
 
         if (req.route && req.route.path && _.contains(ignoredRoutes, req.route.path)) return next();
@@ -175,7 +180,7 @@ function logger(options) {
               if (res.statusCode >= 500) { options.level = "error"; }
             };
 
-            if ((options.colorStatus) || (options.expressFormat)) {
+            if (options.colorStatus || options.expressFormat) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
               var statusColor = 'green';
               if (res.statusCode >= 500) statusColor = 'red';
@@ -194,10 +199,12 @@ function logger(options) {
 
               meta.req = filterObject(req, requestWhitelist, options.requestFilter);
               meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+
               if (_.contains(responseWhitelist, 'body')) {
                 if (chunk) {
-                  var isJson = (res._headers['content-type'] && res._headers['content-type'].indexOf('json') >= 0);
-                  
+                  var isJson = (res._headers && res._headers['content-type']
+                    && res._headers['content-type'].indexOf('json') >= 0);
+
                   meta.res.body =  isJson ? JSON.parse(chunk) : chunk.toString();
                 }
               }
@@ -220,13 +227,10 @@ function logger(options) {
             }
 
             if(options.expressFormat) {
-              var msg = chalk.grey(req.method+" "+req.url)+" "+chalk[statusColor](res.statusCode)+" "+chalk.grey(res.responseTime+"ms");
+              var msg = chalk.grey(req.method + " " + req.url)
+                + " " + chalk[statusColor](res.statusCode)
+                + " " + chalk.grey(res.responseTime+"ms");
             } else {
-              // Using mustache style templating
-              _.templateSettings = {
-                interpolate: /\{\{(.+?)\}\}/g
-              };
-              var template = _.template(options.msg);
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
