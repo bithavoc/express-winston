@@ -266,7 +266,7 @@ Only those properties of the request object will be logged. Set or modify the wh
 For example, to include the session property (the session data), add the following during logger setup:
 
     expressWinston.requestWhitelist.push('session');
-    
+
 The blacklisting excludes certain properties and keeps all others. If both `bodyWhitelist` and `bodyBlacklist` are set
 the properties excluded by the blacklist are not included even if they are listed in the whitelist!
 
@@ -318,14 +318,14 @@ Post to `/user/register` would give you something like the following:
       "level": "info",
       "message": "HTTP GET /favicon.ico"
     }
-    
+
 Blacklisting supports only the `body` property.
 
 
 ``` js
     router.post('/user/register', function(req, res, next) {
       req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
-      req._routeBlacklists.body = ['username', 'password', 'confirm-password', 'top-secret']; 
+      req._routeBlacklists.body = ['username', 'password', 'confirm-password', 'top-secret'];
       req._routeWhitelists.res = ['_headers'];
     });
 ```
@@ -336,13 +336,19 @@ excluding any black listed ones. In the above example, only 'email' and 'age' wo
 
 ## Tests
 
+Run the basic Mocha tests:
+
     npm test
 
+Run the Travis-CI tests (which will fail with < 100% coverage):
+
+    npm test-travis
+
+Generate the `coverage.html` coverage report:
+
+    npm test-coverage
+
 ## Issues and Collaboration
-
-* Implement a chain of requestFilters. Currently only one requestFilter is allowed in the options.
-
-We are accepting pull-request for these features.
 
 If you ran into any problems, please use the project [Issues section](https://github.com/bithavoc/express-winston/issues) to search or post any bug.
 

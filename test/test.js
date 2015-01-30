@@ -7,6 +7,9 @@ var winston = require('winston');
 var expressWinston = require('../index.js');
 
 expressWinston.ignoredRoutes.push('/ignored');
+expressWinston.responseWhitelist.push('body');
+
+expressWinston.bodyBlacklist.push('potato');
 
 var MockTransport = function (test, options) {
   test.transportInvoked = false;
@@ -176,7 +179,8 @@ describe('expressWinston', function () {
           result.log.meta.req.query.should.eql({
             val: '1'
           });
-          (result.log.meta.req.nonWhitelistedProperty === undefined).should.eql(true);
+
+          result.log.meta.req.should.not.have.property('nonWhitelistedProperty');
         });
 
         it('should not swallow the pipline error', function () {
@@ -235,7 +239,7 @@ describe('expressWinston', function () {
             };
 
             function next(_req, _res, next) {
-              res.end();
+              res.end('{ "message": "Hi!  I\'m a chunk!" }');
               result = test;
               return done();
             };
@@ -257,7 +261,8 @@ describe('expressWinston', function () {
             result.log.meta.req.query.should.eql({
               val: '1'
             });
-            (result.log.meta.req.nonWhitelistedProperty === undefined).should.eql(true);
+
+            result.log.meta.req.should.not.have.property('nonWhitelistedProperty');
           });
         });
 
@@ -276,7 +281,7 @@ describe('expressWinston', function () {
             };
 
             function next(_req, _res, next) {
-              res.end();
+              res.end('{ "message": "Hi!  I\'m a chunk!" }');
               result = test;
               return done();
             };
@@ -293,7 +298,7 @@ describe('expressWinston', function () {
           });
 
           it('should contain a filtered request', function () {
-            (result.log.meta === undefined).should.eql(true);
+            result.log.should.be.empty;
           });
         });
       });
@@ -306,7 +311,9 @@ describe('expressWinston', function () {
             setUp({
               body: {
                 username: "bobby",
-                password: "top-secret"
+                password: "top-secret",
+                age: 42,
+                potato: 'Russet'
               }
             });
 
@@ -325,9 +332,12 @@ describe('expressWinston', function () {
               req._startTime = (new Date) - 125;
 
               req._routeWhitelists.req = ['routeLevelAddedProperty'];
-              req._routeWhitelists.body = ['username'];
+              req._routeWhitelists.res = ['routeLevelAddedProperty'];
 
-              res.end();
+              req._routeWhitelists.body = ['username'];
+              req._routeBlacklists.body = ['age'];
+
+              res.end('{ "message": "Hi!  I\'m a chunk!" }');
 
               result = test;
 
@@ -351,20 +361,22 @@ describe('expressWinston', function () {
             result.log.meta.req.query.should.eql({
               val: '1'
             });
-            (result.log.meta.req.nonWhitelistedProperty === undefined).should.eql(true);
+
+            result.log.meta.req.body.should.not.have.property('age');
+            result.log.meta.req.body.should.not.have.property('potato');
           });
 
           it('should contain a filtered response', function () {
-            result.log.meta.req.should.be.ok;
-            result.log.meta.req.method.should.eql('GET');
-            result.log.meta.req.query.should.eql({
-              val: '1'
-            });
-            (result.log.meta.req.filteredProperty === undefined).should.eql(true);
+            result.log.meta.res.should.be.ok;
 
-            (result.log.meta.req.nonWhitelistedProperty === undefined).should.eql(true);
+            result.log.meta.res.statusCode.should.eql(200);
+            result.log.meta.res.routeLevelAddedProperty.should.be.ok;
 
-            result.log.meta.req.routeLevelAddedProperty.should.be.ok;
+            result.log.meta.res.should.not.have.property('nonWhitelistedProperty');
+          });
+
+          it('should contain a response time', function () {
+            result.log.meta.responseTime.should.be.within(120, 130);
           });
         });
 
@@ -379,9 +391,6 @@ describe('expressWinston', function () {
 
             req.routeLevelAddedProperty = 'value that should be logged';
 
-            res.nonWhitelistedProperty = 'value that should not be logged';
-            res.routeLevelAddedProperty = 'value that should be logged';
-
             var test = {
               req: req,
               res: res,
@@ -390,7 +399,9 @@ describe('expressWinston', function () {
 
             function next(_req, _res, next) {
               res.end();
+
               result = test;
+
               return done();
             };
 
@@ -402,7 +413,7 @@ describe('expressWinston', function () {
           });
 
           it('should not have an empty body in meta.req', function () {
-            Object.keys(result.log.meta.req).indexOf('body').should.eql(-1);
+            result.log.meta.res.should.not.have.property('body');
           });
         });
 
@@ -427,7 +438,10 @@ describe('expressWinston', function () {
             };
 
             function next(_req, _res, next) {
-              res.end();
+              req._routeWhitelists.req = ['routeLevelAddedProperty'];
+              req._routeWhitelists.res = ['routeLevelAddedProperty'];
+
+              res.end('{ "message": "Hi!  I\'m a chunk!" }');
               result = test;
               return done();
             };
@@ -444,6 +458,80 @@ describe('expressWinston', function () {
 
           it('should not invoke the transport', function () {
             result.transportInvoked.should.eql(false);
+          });
+        });
+      });
+
+      describe('log.msg', function () {
+        var result;
+
+        function logMsgSetup(url, msg, expressFormat, done) {
+          setUp({
+            url: url || '/an-url'
+          });
+
+          var test = {
+            req: req,
+            res: res,
+            log: {}
+          };
+
+          function next(_req, _res, next) {
+            res.end('{ "message": "Hi!  I\'m a chunk!" }');
+
+            result = test;
+
+            return done();
+          };
+
+          var loggerOptions = {
+            transports: [new MockTransport(test)]
+          };
+
+          if (msg) {
+            loggerOptions.msg = msg;
+          }
+
+          if (expressFormat) {
+            delete loggerOptions.msg;
+            loggerOptions.expressFormat = true;
+          }
+
+          var middleware = expressWinston.logger(loggerOptions);
+
+          middleware(req, res, next);
+        }
+
+        describe('when default', function () {
+
+          before(function (done) {
+            logMsgSetup('/url-of-sandwich', null, false, done);
+          });
+
+          it('should match the custom format', function () {
+            result.log.msg.should.eql('HTTP GET /url-of-sandwich');
+          });
+        });
+
+        describe('using Express format', function () {
+          before(function (done) {
+            logMsgSetup('/all-the-things', null, true, done);
+          });
+
+          it('should match the Express format', function () {
+            var resultMsg = result.log.msg;
+            resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
+            resultMsg.should.endWith('ms\u001b[39m');
+          });
+        });
+
+        describe('when customized', function () {
+          before(function (done) {
+            logMsgSetup('/all-the-things', 'Foo {{ req.method }} {{ req.url }}', false, done);
+          });
+
+          it('should match the custom format', function () {
+            result.log.msg.should.eql('Foo GET /all-the-things');
           });
         });
       });
