@@ -135,6 +135,7 @@ function errorLogger(options) {
 function logger(options) {
 
     ensureValidOptions(options);
+    ensureValidLoggerOptions(options);
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.responseFilter = options.responseFilter || defaultResponseFilter;
@@ -144,6 +145,7 @@ function logger(options) {
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
+    options.ignoreRoute = options.ignoreRoute || function () { return false; };
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -151,8 +153,9 @@ function logger(options) {
     });
 
     return function (req, res, next) {
-
-        if (req.route && req.route.path && _.contains(ignoredRoutes, req.route.path)) return next();
+        var currentUrl = req.originalUrl || req.url;
+        if (currentUrl && _.contains(ignoredRoutes, currentUrl)) return next();
+        if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
 
@@ -245,7 +248,13 @@ function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
     if(!((options.transports && (options.transports.length > 0)) || options.winstonInstance))
         throw new Error("transports or a winstonInstance are required by express-winston middleware");
-};
+}
+
+function ensureValidLoggerOptions(options) {
+    if (options.ignoreRoute && !_.isFunction(options.ignoreRoute)) {
+        throw new Error("`ignoreRoute` express-winston option should be a function");
+    }
+}
 
 module.exports.errorLogger = errorLogger;
 module.exports.logger = logger;

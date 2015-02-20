@@ -1,5 +1,6 @@
 var should = require('should');
 var util = require('util');
+var _ = require('underscore');
 
 var mocks = require('node-mocks-http');
 var winston = require('winston');
@@ -212,6 +213,15 @@ describe('expressWinston', function () {
       (function () {
         expressWinston.logger({
           transports: []
+        });
+      }).should.throwError();
+    });
+
+    it('should throw an error if ignoreRoute option is not a function', function () {
+      (function () {
+        expressWinston.logger({
+          transports: [new MockTransport({})],
+          ignoreRoute: 'not a function'
         });
       }).should.throwError();
     });
@@ -458,6 +468,45 @@ describe('expressWinston', function () {
 
           it('should not invoke the transport', function () {
             result.transportInvoked.should.eql(false);
+          });
+        });
+
+        describe('when invoked on a route that should be ignored (options.ignoreRoute)', function () {
+          var result;
+
+          before(function (done) {
+            setUp({
+              url: '/is-not-logged'
+            });
+            req.skip = true;
+            var test = {
+              req: req,
+              res: res,
+              log: {}
+            };
+
+            function next(_req, _res, next) {
+              res.end('{ "message": "Hi!  I\'m a chunk!" }');
+              result = test;
+              return done();
+            };
+
+            var middleware = expressWinston.logger({
+              transports: [new MockTransport(test)],
+              ignoreRoute: function (req, res) {
+                return req.skip === true && req.url.match(/^\/is-not-log/);
+              }
+            });
+
+            middleware(req, res, next);
+          });
+
+          it('should not invoke the transport', function () {
+            result.transportInvoked.should.eql(false);
+          });
+
+          it('should contain a filtered request', function () {
+            result.log.should.be.empty;
           });
         });
       });
