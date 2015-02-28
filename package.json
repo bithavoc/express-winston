@@ -47,15 +47,15 @@
         }
     },
     "dependencies": {
-        "chalk": "~0.4.0",
-        "underscore": "~1.5.2",
+        "chalk": "~1.0.0",
+        "underscore": "~1.8.2",
         "winston": "~0.9.0"
     },
     "devDependencies": {
         "blanket": "~1.1.6",
         "mocha": "~2.1.0",
         "node-mocks-http": "~1.2.3",
-        "should": "~4.6.0",
+        "should": "~5.0.1",
         "travis-cov": "~0.2.5"
     },
     "engines": {
