@@ -79,8 +79,8 @@ var defaultRequestFilter = function (req, propName) {
  * @param propName
  * @return {*}
  */
-var defaultResponseFilter = function (req, propName) {
-    return req[propName];
+var defaultResponseFilter = function (res, propName) {
+    return res[propName];
 };
 
 function filterObject(originalObj, whiteList, initialFilter) {
