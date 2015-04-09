@@ -227,7 +227,7 @@ function logger(options) {
             }
 
             if(options.expressFormat) {
-              var msg = chalk.grey(req.method + " " + req.url)
+              var msg = chalk.grey(req.method + " " + req.url || req.url)
                 + " " + chalk[statusColor](res.statusCode)
                 + " " + chalk.grey(res.responseTime+"ms");
             } else {
