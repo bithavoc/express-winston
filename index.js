@@ -83,6 +83,14 @@ var defaultResponseFilter = function (req, propName) {
     return req[propName];
 };
 
+/**
+ * A default function to decide whether skip logging of particular request. Doesn't skip anything (i.e. log all requests).
+ * @return always false
+ */
+var defaultSkip = function() {
+  return false;
+};
+
 function filterObject(originalObj, whiteList, initialFilter) {
 
     var obj = {};
@@ -146,6 +154,7 @@ function logger(options) {
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
+    options.skip = options.skip || defaultSkip;
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -237,7 +246,9 @@ function logger(options) {
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            options.winstonInstance.log(options.level, msg, meta);
+            if (!options.skip(req, res)) {
+              options.winstonInstance.log(options.level, msg, meta);
+            }
         };
 
         next();
@@ -264,4 +275,5 @@ module.exports.bodyBlacklist = bodyBlacklist;
 module.exports.responseWhitelist = responseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
+module.exports.defaultSkip = defaultSkip;
 module.exports.ignoredRoutes = ignoredRoutes;

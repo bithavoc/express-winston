@@ -93,6 +93,10 @@ describe('expressWinston', function () {
     expressWinston.defaultResponseFilter.should.be.a.Function;
   });
 
+  it('should contain a default skip function', function () {
+    expressWinston.defaultSkip.should.be.a.Function;
+  });
+
   it('should export a function for the creation of request logger middlewares', function () {
     expressWinston.logger.should.be.a.Function;
   });
@@ -581,6 +585,73 @@ describe('expressWinston', function () {
 
           it('should match the custom format', function () {
             result.log.msg.should.eql('Foo GET /all-the-things');
+          });
+        });
+      });
+      
+      describe('log.skip', function () {
+        var result;
+
+        function logSkipSetup(url, skip, done) {
+          setUp({
+            url: url || '/an-url'
+          });
+
+          var test = {
+            req: req,
+            res: res,
+            log: {}
+          };
+
+          function next(_req, _res, next) {
+            res.end('{ "message": "Hi!  I\'m a chunk!" }');
+
+            result = test;
+
+            return done();
+          };
+
+          var loggerOptions = {
+            transports: [new MockTransport(test)]
+          };
+
+          if (skip) {
+            loggerOptions.skip = skip;
+          }
+
+          var middleware = expressWinston.logger(loggerOptions);
+
+          middleware(req, res, next);
+        }
+
+        describe('when default', function () {
+
+          before(function (done) {
+            logSkipSetup('/url-of-sandwich', null, done);
+          });
+
+          it('should be logged', function () {
+            result.log.msg.should.eql('HTTP GET /url-of-sandwich');
+          });
+        });
+
+        describe('when using custom function returning true', function () {
+          before(function (done) {
+            logSkipSetup('/url-of-sandwich', function(req, res) { return req.url.indexOf('sandwich') != -1 }, done);
+          });
+
+          it('should not be logged', function () {
+            should.not.exist(result.log.msg);
+          });
+        });
+
+        describe('when using custom function returning false', function () {
+          before(function (done) {
+            logSkipSetup('/hello', function(req, res) { return req.url.indexOf('sandwich') != -1 }, done);
+          });
+
+          it('should be logged', function () {
+            result.log.msg.should.eql('HTTP GET /hello');
           });
         });
       });
