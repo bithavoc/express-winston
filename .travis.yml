@@ -4,6 +4,9 @@ node_js:
   - "0.8"
   - "0.10"
   - "0.11"
+  - "0.12"
+  - "iojs"
+
 script:
   - "test $TRAVIS_NODE_VERSION  = '0.6' || npm test"
   - "test $TRAVIS_NODE_VERSION != '0.6' || npm run-script test-coverage"
