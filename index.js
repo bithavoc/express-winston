@@ -21,6 +21,7 @@
 var winston = require('winston');
 var util = require('util');
 var chalk = require('chalk');
+var auth = require('basic-auth');
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
 delete require.cache[require.resolve('underscore')];
@@ -146,6 +147,22 @@ function logger(options) {
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
+    options.nginxFormat = options.nginxFormat || false;
+    if(options.nginxFormat){
+        //combined mode: ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :responseTime'
+        options.msg = [
+            '{{req.ip || req._remoteAddress || (req.connection && req.connection.remoteAddress) || "-"}}',
+            '-',
+            '{{req._httpAuthInfo && req._httpAuthInfo.name || "-"}}',
+            '[{{req._clfDate || "-"}}]',
+            '"{{req.method}} {{req.originalUrl || req.url}} HTTP/{{req.httpVersion}}"',
+            '{{res.statusCode || "-"}}',
+            '{{res._headers && res._headers["content-length"] || "-"}}',
+            '"{{req.headers.referer || req.headers.referrer || "-"}}"',
+            '"{{req.headers["user-agent"] || "-"}}"',
+            '{{res.responseTime || "-"}}ms'
+        ].join(' ');
+    }
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -158,6 +175,10 @@ function logger(options) {
         if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
+
+        req._httpAuthInfo = auth(req) || {};
+
+        req._clfDate = clfdate(new Date());
 
         req._routeWhitelists = {
             req: [],
@@ -181,9 +202,9 @@ function logger(options) {
               if (res.statusCode >= 100) { options.level = "info"; }
               if (res.statusCode >= 400) { options.level = "warn"; }
               if (res.statusCode >= 500) { options.level = "error"; }
-            };
+            }
 
-            if (options.colorStatus || options.expressFormat) {
+            if (options.colorStatus || options.expressFormat || options.nginxFormat) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
               var statusColor = 'green';
               if (res.statusCode >= 500) statusColor = 'red';
@@ -254,6 +275,37 @@ function ensureValidLoggerOptions(options) {
     if (options.ignoreRoute && !_.isFunction(options.ignoreRoute)) {
         throw new Error("`ignoreRoute` express-winston option should be a function");
     }
+}
+
+/**
+ * Array of CLF month names.
+ * @private
+ */
+
+var clfmonth = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
+
+/**
+ * Format a Date in the common log format.
+ *
+ * @private
+ * @param {Date} dateTime
+ * @return {string}
+ */
+function clfdate(dateTime) {
+    var date = dateTime.getUTCDate();
+    var hour = dateTime.getUTCHours();
+    var mins = dateTime.getUTCMinutes();
+    var secs = dateTime.getUTCSeconds();
+    var year = dateTime.getUTCFullYear();
+
+    var month = clfmonth[dateTime.getUTCMonth()];
+
+    return pad2(date) + '/' + month + '/' + year + ':' + pad2(hour) + ':' + pad2(mins) + ':' + pad2(secs) + ' +0000';
+}
+
+function pad2(num) {
+    var str = String(num);
+    return (str.length === 1 ? '0' : '') + str;
 }
 
 module.exports.errorLogger = errorLogger;
