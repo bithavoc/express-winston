@@ -186,6 +186,8 @@ function logger(options) {
             res.end = end;
             res.end(chunk, encoding);
 
+            req.url = req.originalUrl || req.url;
+
             if (options.statusLevels) {
               if (res.statusCode >= 100) { options.level = "info"; }
               if (res.statusCode >= 400) { options.level = "warn"; }
