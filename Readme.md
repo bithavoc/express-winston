@@ -276,6 +276,10 @@ Example:
 
     expressWinston.bodyBlacklist.push('secretid', 'secretproperty');
 
+Note that you can log the whole request and/or response body:
+
+    expressWinston.requestWhitelist.push('body');
+    expressWinston.responseWhitelist.push('body');
 
 ## Route-Specific Whitelists and Blacklists
 
