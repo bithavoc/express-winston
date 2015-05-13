@@ -518,7 +518,7 @@ describe('expressWinston', function () {
       describe('log.msg', function () {
         var result;
 
-        function logMsgSetup(url, msg, expressFormat, done) {
+        function logMsgSetup(url, msg, expressFormat, clfFormat, done) {
           setUp({
             url: url || '/an-url'
           });
@@ -549,6 +549,10 @@ describe('expressWinston', function () {
             delete loggerOptions.msg;
             loggerOptions.expressFormat = true;
           }
+          if (clfFormat) {
+            delete loggerOptions.msg;
+            loggerOptions.clfFormat = true;
+          }
 
           var middleware = expressWinston.logger(loggerOptions);
 
@@ -558,7 +562,7 @@ describe('expressWinston', function () {
         describe('when default', function () {
 
           before(function (done) {
-            logMsgSetup('/url-of-sandwich', null, false, done);
+            logMsgSetup('/url-of-sandwich', null, false, false, done);
           });
 
           it('should match the custom format', function () {
@@ -568,7 +572,7 @@ describe('expressWinston', function () {
 
         describe('using Express format', function () {
           before(function (done) {
-            logMsgSetup('/all-the-things', null, true, done);
+            logMsgSetup('/all-the-things', null, true, false, done);
           });
 
           it('should match the Express format', function () {
@@ -578,9 +582,23 @@ describe('expressWinston', function () {
           });
         });
 
+        describe('using CLF format', function () {
+          before(function (done) {
+            logMsgSetup('/all-the-things', null, false, true, done);
+          });
+
+          it('should match the CLF format', function () {
+            var resultMsg = result.log.msg;
+
+            // timestamp in the middle
+            resultMsg.should.startWith('- - - [');
+            resultMsg.should.endWith('] "GET /all-the-things HTTP/" 200 - "-" "-" -ms');
+          });
+        });
+
         describe('when customized', function () {
           before(function (done) {
-            logMsgSetup('/all-the-things', 'Foo {{ req.method }} {{ req.url }}', false, done);
+            logMsgSetup('/all-the-things', 'Foo {{ req.method }} {{ req.url }}', false, false, done);
           });
 
           it('should match the custom format', function () {
@@ -588,7 +606,7 @@ describe('expressWinston', function () {
           });
         });
       });
-      
+
       describe('log.skip', function () {
         var result;
 

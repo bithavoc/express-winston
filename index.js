@@ -21,6 +21,8 @@
 var winston = require('winston');
 var util = require('util');
 var chalk = require('chalk');
+var auth = require('basic-auth');
+var clfdate = require('./clf-date');
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
 delete require.cache[require.resolve('underscore')];
@@ -155,6 +157,23 @@ function logger(options) {
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || defaultSkip;
+    options.clfFormat = options.clfFormat || false;
+
+    if (options.clfFormat) {
+        //combined mode: ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :responseTime'
+        options.msg = [
+            '{{req.ip || req._remoteAddress || (req.connection && req.connection.remoteAddress) || "-"}}',
+            '-',
+            '{{req._httpAuthInfo && req._httpAuthInfo.name || "-"}}',
+            '[{{req._clfDate || "-"}}]',
+            '"{{req.method}} {{req.originalUrl || req.url}} HTTP/{{req.httpVersion}}"',
+            '{{res.statusCode || "-"}}',
+            '{{res._headers && res._headers["content-length"] || "-"}}',
+            '"{{req.headers.referer || req.headers.referrer || "-"}}"',
+            '"{{req.headers["user-agent"] || "-"}}"',
+            '{{res.responseTime || "-"}}ms'
+        ].join(' ');
+    }
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -167,6 +186,10 @@ function logger(options) {
         if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
+
+        req._httpAuthInfo = auth(req) || {};
+
+        req._clfDate = clfdate(new Date());
 
         req._routeWhitelists = {
             req: [],
@@ -192,9 +215,9 @@ function logger(options) {
               if (res.statusCode >= 100) { options.level = "info"; }
               if (res.statusCode >= 400) { options.level = "warn"; }
               if (res.statusCode >= 500) { options.level = "error"; }
-            };
+            }
 
-            if (options.colorStatus || options.expressFormat) {
+            if (options.colorStatus || options.expressFormat || options.clfFormat) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
               var statusColor = 'green';
               if (res.statusCode >= 500) statusColor = 'red';
