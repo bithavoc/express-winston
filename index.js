@@ -228,13 +228,15 @@ function logger(options) {
 
               var filteredBody = null;
 
-              if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                var whitelist = _.difference(_.keys(req.body), blacklist);
-                filteredBody = filterObject(req.body, whitelist, options.requestFilter);
-              } else {
-                filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
+              if ( req.body !== undefined ) {
+                  if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                    var whitelist = _.difference(_.keys(req.body), blacklist);
+                    filteredBody = filterObject(req.body, whitelist, options.requestFilter);
+                  } else {
+                    filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                  }
               }
-
+              
               if (filteredBody) meta.req.body = filteredBody;
 
               meta.responseTime = res.responseTime;
