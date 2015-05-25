@@ -5,7 +5,13 @@
 
 ## Installation
 
+Newcomers should start with the latest branch which makes use of winston 1.x.x:
+
     npm install express-winston
+
+If you're already using express-winston, and want to stick with the stable version based on winston 0.9.x, you should instead do:
+
+    npm install express-winston@0.3.x --save
 
 ## Usage
 
