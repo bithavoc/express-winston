@@ -120,6 +120,12 @@ function errorLogger(options) {
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
+    options.msg = options.msg || 'middlewareError';
+
+    // Using mustache style templating
+    var template = _.template(options.msg, null, {
+      interpolate: /\{\{(.+?)\}\}/g
+    });
 
     return function (err, req, res, next) {
 
@@ -128,7 +134,7 @@ function errorLogger(options) {
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log('error', 'middlewareError', exceptionMeta);
+        options.winstonInstance.log('error', template({err: err, req: req, res: res}), exceptionMeta);
 
         next(err);
     };
