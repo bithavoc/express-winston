@@ -211,6 +211,8 @@ function logger(options) {
               requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
               responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
+              meta.res = res;
+
               if (_.contains(responseWhitelist, 'body')) {
                 if (chunk) {
                   var isJson = (res._headers && res._headers['content-type']
