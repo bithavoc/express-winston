@@ -23,9 +23,9 @@ var util = require('util');
 var chalk = require('chalk');
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
-delete require.cache[require.resolve('underscore')];
-var _ = require('underscore');
-delete require.cache[require.resolve('underscore')];
+delete require.cache[require.resolve('lodash')];
+var _ = require('lodash');
+delete require.cache[require.resolve('lodash')];
 
 /**
  * A default list of properties in the request object that are allowed to be logged.
@@ -70,7 +70,7 @@ var ignoredRoutes = [];
  * @return {*}
  */
 var defaultRequestFilter = function (req, propName) {
-    return req[propName];
+    return _.result(req, propName);
 };
 
 /**
@@ -80,7 +80,7 @@ var defaultRequestFilter = function (req, propName) {
  * @return {*}
  */
 var defaultResponseFilter = function (res, propName) {
-    return res[propName];
+    return _.result(res, propName);
 };
 
 /**
@@ -92,7 +92,6 @@ var defaultSkip = function() {
 };
 
 function filterObject(originalObj, whiteList, initialFilter) {
-
     var obj = {};
     var fieldsSet = false;
 
@@ -100,12 +99,12 @@ function filterObject(originalObj, whiteList, initialFilter) {
         var value = initialFilter(originalObj, propName);
 
         if(typeof (value) !== 'undefined') {
-            obj[propName] = value;
+            _.set(obj, propName, value);
             fieldsSet = true;
         };
     });
 
-    return fieldsSet?obj:undefined;
+    return fieldsSet ? obj : undefined;
 }
 
 //
