@@ -118,6 +118,7 @@ function errorLogger(options) {
     ensureValidOptions(options);
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
+    options.responseFilter = options.responseFilter || defaultResponseFilter;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
 
     return function (err, req, res, next) {
@@ -125,9 +126,15 @@ function errorLogger(options) {
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
+        var end = res.end;
+        res.end = function(chunk, encoding) {
+            res.end = end;
+            res.end(chunk, encoding);
 
-        // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log('error', 'middlewareError', exceptionMeta);
+            exceptionMeta.res = filterObject(res, responseWhitelist, options.responseFilter);
+            // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
+            options.winstonInstance.log('error', 'middlewareError', exceptionMeta);
+        }
 
         next(err);
     };
