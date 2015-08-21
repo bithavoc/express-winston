@@ -164,7 +164,6 @@ function logger(options) {
     return function (req, res, next) {
         var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.contains(ignoredRoutes, currentUrl)) return next();
-        if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
 
@@ -181,6 +180,7 @@ function logger(options) {
         // Manage to get information from the response too, just like Connect.logger does:
         var end = res.end;
         res.end = function(chunk, encoding) {
+            if (options.ignoreRoute(req, res)) { return };
             res.responseTime = (new Date) - req._startTime;
 
             res.end = end;
@@ -236,7 +236,7 @@ function logger(options) {
                     filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
                   }
               }
-              
+
               if (filteredBody) meta.req.body = filteredBody;
 
               meta.responseTime = res.responseTime;
