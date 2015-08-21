@@ -1,6 +1,6 @@
 var should = require('should');
 var util = require('util');
-var _ = require('underscore');
+var _ = require('lodash');
 
 var mocks = require('node-mocks-http');
 var winston = require('winston');
@@ -588,7 +588,7 @@ describe('expressWinston', function () {
           });
         });
       });
-      
+
       describe('log.skip', function () {
         var result;
 

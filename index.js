@@ -23,9 +23,9 @@ var util = require('util');
 var chalk = require('chalk');
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
-delete require.cache[require.resolve('underscore')];
-var _ = require('underscore');
-delete require.cache[require.resolve('underscore')];
+delete require.cache[require.resolve('lodash')];
+var _ = require('lodash');
+delete require.cache[require.resolve('lodash')];
 
 /**
  * A default list of properties in the request object that are allowed to be logged.
@@ -70,7 +70,7 @@ var ignoredRoutes = [];
  * @return {*}
  */
 var defaultRequestFilter = function (req, propName) {
-    return req[propName];
+    return _.result(req, propName);
 };
 
 /**
@@ -80,7 +80,7 @@ var defaultRequestFilter = function (req, propName) {
  * @return {*}
  */
 var defaultResponseFilter = function (res, propName) {
-    return res[propName];
+    return _.result(res, propName);
 };
 
 /**
@@ -92,7 +92,6 @@ var defaultSkip = function() {
 };
 
 function filterObject(originalObj, whiteList, initialFilter) {
-
     var obj = {};
     var fieldsSet = false;
 
@@ -100,12 +99,12 @@ function filterObject(originalObj, whiteList, initialFilter) {
         var value = initialFilter(originalObj, propName);
 
         if(typeof (value) !== 'undefined') {
-            obj[propName] = value;
+            _.set(obj, propName, value);
             fieldsSet = true;
         };
     });
 
-    return fieldsSet?obj:undefined;
+    return fieldsSet ? obj : undefined;
 }
 
 //
@@ -119,6 +118,7 @@ function errorLogger(options) {
     ensureValidOptions(options);
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
+    options.responseFilter = options.responseFilter || defaultResponseFilter;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
 
     return function (err, req, res, next) {
@@ -126,9 +126,15 @@ function errorLogger(options) {
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
+        var end = res.end;
+        res.end = function(chunk, encoding) {
+            res.end = end;
+            res.end(chunk, encoding);
 
-        // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log('error', 'middlewareError', exceptionMeta);
+            exceptionMeta.res = filterObject(res, responseWhitelist, options.responseFilter);
+            // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
+            options.winstonInstance.log('error', 'middlewareError', exceptionMeta);
+        }
 
         next(err);
     };
@@ -164,7 +170,6 @@ function logger(options) {
     return function (req, res, next) {
         var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.contains(ignoredRoutes, currentUrl)) return next();
-        if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
 
@@ -236,7 +241,7 @@ function logger(options) {
                     filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
                   }
               }
-              
+
               if (filteredBody) meta.req.body = filteredBody;
 
               meta.responseTime = res.responseTime;
@@ -250,7 +255,7 @@ function logger(options) {
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            if (!options.skip(req, res)) {
+            if (!options.skip(req, res) && !options.ignoreRoute(req, res)) {
               options.winstonInstance.log(options.level, msg, meta);
             }
         };
