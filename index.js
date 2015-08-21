@@ -180,7 +180,6 @@ function logger(options) {
         // Manage to get information from the response too, just like Connect.logger does:
         var end = res.end;
         res.end = function(chunk, encoding) {
-            if (options.ignoreRoute(req, res)) { return };
             res.responseTime = (new Date) - req._startTime;
 
             res.end = end;
@@ -250,7 +249,7 @@ function logger(options) {
               var msg = template({req: req, res: res});
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-            if (!options.skip(req, res)) {
+            if (!options.skip(req, res) && !options.ignoreRoute(req, res)) {
               options.winstonInstance.log(options.level, msg, meta);
             }
         };
