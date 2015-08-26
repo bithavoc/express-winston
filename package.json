@@ -49,7 +49,7 @@
   "dependencies": {
     "chalk": "~0.4.0",
     "underscore": "~1.5.2",
-    "winston": "~0.9.0"
+    "winston": "~1.0.0"
   },
   "devDependencies": {
     "blanket": "~1.1.6",
