@@ -211,8 +211,7 @@ function logger(options) {
               requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
               responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
-              meta.req = filterObject(req, requestWhitelist, options.requestFilter);
-              meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              meta.res = res;
 
               if (_.contains(responseWhitelist, 'body')) {
                 if (chunk) {
@@ -222,6 +221,9 @@ function logger(options) {
                   meta.res.body =  isJson ? JSON.parse(chunk) : chunk.toString();
                 }
               }
+
+              meta.req = filterObject(req, requestWhitelist, options.requestFilter);
+              meta.res = filterObject(res, responseWhitelist, options.responseFilter);
 
               bodyWhitelist = req._routeWhitelists.body || [];
               blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
