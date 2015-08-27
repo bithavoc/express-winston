@@ -7,6 +7,10 @@
 
     npm install express-winston
 
+If you're already using express-winston, and want to stick with the stable version based on winston 0.9.x, you should instead do:
+
+    npm install express-winston@0.x.x --save
+
 ## Usage
 
 express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.
