@@ -39,40 +39,6 @@ var winston = require('winston'),
     expressWinston = require('express-winston');
 ```
 
-### Error Logging
-
-Use `expressWinston.errorLogger(options)` to create a middleware that log the errors of the pipeline.
-
-``` js
-    var router = require('./my-express-router');
-
-    app.use(router); // notice how the router goes first.
-    app.use(expressWinston.errorLogger({
-      transports: [
-        new winston.transports.Console({
-          json: true,
-          colorize: true
-        })
-      ]
-    }));
-```
-
-The logger needs to be added AFTER the express router(`app.router)`) and BEFORE any of your custom error handlers(`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
-
-### Options
-
-``` js
-    transports: [<WinstonTransport>], // list of all winston transports instances to use.
-    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored
-    level: String, // log level to use, the default is "info".
-    statusLevels: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
-    skip: function(req, res) // function to determine if logging is skipped, defaults to false
-```
-
-To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
-
-Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the `winstonInstance` option. The `transports` option is then ignored.
-
 ### Request Logging
 
 Use `expressWinston.logger(options)` to create a middleware to log your HTTP requests.
@@ -96,6 +62,57 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
 
     app.use(router); // notice how the router goes after the logger.
 ```
+
+#### Options
+
+``` js
+    transports: [<WinstonTransport>], // list of all winston transports instances to use.
+    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored.
+    level: String, // log level to use, the default is "info".
+    msg: String // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".
+    expressFormat: Boolean, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
+    colorStatus: Boolean, // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
+    meta: Boolean, // control whether you want to log the meta data about the request (default to true).
+    baseMeta: Object, // default meta data to be added to log, this will be merged with the meta data.
+    metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
+    statusLevels: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
+    ignoreRoute: function (req, res) { return false; } // allows to skip some log messages based on request and/or response.
+    skip: function(req, res) { return false; } // function to determine if logging is skipped, defaults to false.
+```
+
+### Error Logging
+
+Use `expressWinston.errorLogger(options)` to create a middleware that log the errors of the pipeline.
+
+``` js
+    var router = require('./my-express-router');
+
+    app.use(router); // notice how the router goes first.
+    app.use(expressWinston.errorLogger({
+      transports: [
+        new winston.transports.Console({
+          json: true,
+          colorize: true
+        })
+      ]
+    }));
+```
+
+The logger needs to be added AFTER the express router(`app.router)`) and BEFORE any of your custom error handlers(`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
+
+#### Options
+
+``` js
+    transports: [<WinstonTransport>], // list of all winston transports instances to use.
+    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored
+    msg: String // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".
+    baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
+    metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
+```
+
+To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
+
+Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the `winstonInstance` option. The `transports` option is then ignored.
 
 ## Examples
 
@@ -354,11 +371,11 @@ Run the basic Mocha tests:
 
 Run the Travis-CI tests (which will fail with < 100% coverage):
 
-    npm test-travis
+    npm run test-travis
 
 Generate the `coverage.html` coverage report:
 
-    npm test-coverage
+    npm run test-coverage
 
 ## Issues and Collaboration
 

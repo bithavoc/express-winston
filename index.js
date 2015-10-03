@@ -121,6 +121,8 @@ function errorLogger(options) {
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.msg = options.msg || 'middlewareError';
+    options.baseMeta = options.baseMeta || {};
+    options.metaField = options.metaField || null;
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -132,6 +134,14 @@ function errorLogger(options) {
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
+
+        if (options.metaField) {
+            var newMeta = {};
+            newMeta[options.metaField] = exceptionMeta;
+            exceptionMeta = newMeta;
+        }
+
+        exceptionMeta = _.extend(exceptionMeta, options.baseMeta);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
         options.winstonInstance.log('error', template({err: err, req: req, res: res}), exceptionMeta);
@@ -157,6 +167,8 @@ function logger(options) {
     options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
+    options.baseMeta = options.baseMeta || {};
+    options.metaField = options.metaField || null;
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
@@ -212,24 +224,25 @@ function logger(options) {
             var meta = {};
 
             if(options.meta !== false) {
+              var logData = {};
               var bodyWhitelist, blacklist;
 
               requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
               responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
 
-              meta.res = res;
+              logData.res = res;
 
               if (_.contains(responseWhitelist, 'body')) {
                 if (chunk) {
                   var isJson = (res._headers && res._headers['content-type']
                     && res._headers['content-type'].indexOf('json') >= 0);
 
-                  meta.res.body =  isJson ? JSON.parse(chunk) : chunk.toString();
+                  logData.res.body =  isJson ? JSON.parse(chunk) : chunk.toString();
                 }
               }
 
-              meta.req = filterObject(req, requestWhitelist, options.requestFilter);
-              meta.res = filterObject(res, responseWhitelist, options.responseFilter);
+              logData.req = filterObject(req, requestWhitelist, options.requestFilter);
+              logData.res = filterObject(res, responseWhitelist, options.responseFilter);
 
               bodyWhitelist = req._routeWhitelists.body || [];
               blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
@@ -244,11 +257,20 @@ function logger(options) {
                     filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
                   }
               }
-              
-              if (filteredBody) meta.req.body = filteredBody;
 
-              meta.responseTime = res.responseTime;
+              if (filteredBody) logData.req.body = filteredBody;
+
+              logData.responseTime = res.responseTime;
+
+              if (options.metaField) {
+                  var newMeta = {}
+                  newMeta[options.metaField] = logData;
+                  logData = newMeta;
+              }
+              meta = _.extend(meta, logData);
             }
+
+            meta = _.extend(meta, options.baseMeta);
 
             if(options.expressFormat) {
               var msg = chalk.grey(req.method + " " + req.url || req.url)

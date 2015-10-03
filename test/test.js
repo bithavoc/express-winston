@@ -194,6 +194,46 @@ describe('expressWinston', function () {
         });
       });
     });
+
+    describe('log.metaField', function (done) {
+      var result;
+
+      before(function (done) {
+        setUp();
+
+        var originalError = new Error('This is the Error');
+
+        var test = {
+          req: req,
+          res: res,
+          log: {},
+          originalError: originalError,
+          pipelineError: null
+        };
+
+        function next(pipelineError) {
+          test.pipelineError = pipelineError;
+
+          result = test;
+
+          return done();
+        };
+
+        var middleware = expressWinston.errorLogger({
+          transports: [new MockTransport(test)],
+          metaField: 'metaField'
+        });
+
+        middleware(originalError, req, res, next);
+      });
+
+      describe('when using custom metaField', function () {
+
+        it('should be logged', function () {
+          result.log.meta.metaField.req.should.be.ok;
+        });
+      });
+    });
   });
 
   describe('.logger()', function () {
@@ -588,7 +628,7 @@ describe('expressWinston', function () {
           });
         });
       });
-      
+
       describe('log.skip', function () {
         var result;
 
@@ -652,6 +692,64 @@ describe('expressWinston', function () {
 
           it('should be logged', function () {
             result.log.msg.should.eql('HTTP GET /hello');
+          });
+        });
+      });
+
+      describe('log.metaField', function () {
+        var result;
+
+        function logMetaFieldSetup(url, metaField, done) {
+          setUp({
+            url: url || '/an-url'
+          });
+
+          var test = {
+            req: req,
+            res: res,
+            log: {}
+          };
+
+          function next(_req, _res, next) {
+            res.end('{ "message": "Hi!  I\'m a chunk!" }');
+
+            result = test;
+
+            return done();
+          };
+
+          var loggerOptions = {
+            transports: [new MockTransport(test)]
+          };
+
+          if (metaField) {
+            loggerOptions.metaField = metaField;
+          }
+
+          var middleware = expressWinston.logger(loggerOptions);
+
+          middleware(req, res, next);
+        }
+
+        describe('when default', function () {
+
+          before(function (done) {
+            logMetaFieldSetup('/url-of-sandwich', null, done);
+          });
+
+          it('should be logged', function () {
+            result.log.meta.req.should.be.ok;
+          });
+        });
+
+        describe('when using custom metaField', function () {
+
+          before(function (done) {
+            logMetaFieldSetup('/url-of-sandwich', 'metaField', done);
+          });
+
+          it('should be logged', function () {
+            result.log.meta.metaField.req.should.be.ok;
           });
         });
       });
