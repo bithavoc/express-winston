@@ -30,7 +30,7 @@
   "scripts": {
     "test": "node_modules/.bin/mocha --reporter spec",
     "test-travis": "node_modules/.bin/mocha --require blanket --reporter travis-cov",
-    "test-coverage": "node_modules/.bin/mocha --require blanket --reporter html-cov >| coverage.html || true"
+    "test-coverage": "node_modules/.bin/mocha --require blanket --reporter html-cov > coverage.html || true"
   },
   "config": {
     "travis-cov": {
