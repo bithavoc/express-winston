@@ -78,6 +78,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     statusLevels: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
     ignoreRoute: function (req, res) { return false; } // allows to skip some log messages based on request and/or response.
     skip: function(req, res) { return false; } // function to determine if logging is skipped, defaults to false.
+    requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
+    responseFilter: function (res, propName) { return res[propName]; } // A function to filter/return response values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
 ```
 
 ### Error Logging
@@ -108,6 +110,7 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     msg: String // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
+    requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
 ```
 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
