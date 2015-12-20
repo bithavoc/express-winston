@@ -5,7 +5,7 @@
 
 ## Installation
 
-Newcomers should start with the latest branch which makes use of winston 1.x.x:
+Newcomers should start with the latest branch which makes use of winston 1.x.x and supports node >= 0.10:
 
     npm install express-winston
 
