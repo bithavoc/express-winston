@@ -93,6 +93,10 @@ describe('expressWinston', function () {
     expressWinston.defaultResponseFilter.should.be.a.Function;
   });
 
+  it('should contain a default error transform function', function () {
+    expressWinston.defaultErrorTransform.should.be.a.Function;
+  });
+
   it('should contain a default skip function', function () {
     expressWinston.defaultSkip.should.be.a.Function;
   });
@@ -188,6 +192,18 @@ describe('expressWinston', function () {
           result.log.meta.req.should.not.have.property('nonWhitelistedProperty');
         });
 
+        it('should contain an error property with enumerable own properties', function() {
+          Object.keys(result.originalError).should.eql([]);
+
+          result.log.meta.error.should.be.ok;
+          Object.keys(result.log.meta.error).should.containEql('message');
+        });
+
+        it('should contain an error property without the stack', function() {
+          result.log.meta.error.should.be.ok;
+          result.log.meta.error.should.not.have.property('stack');
+        });
+
         it('should not swallow the pipline error', function () {
           result.pipelineError.should.be.ok;
           result.pipelineError.should.eql(result.originalError);
@@ -232,6 +248,48 @@ describe('expressWinston', function () {
         it('should be logged', function () {
           result.log.meta.metaField.req.should.be.ok;
         });
+      });
+    });
+
+    describe('log.error', function (done) {
+      var result;
+
+      before(function (done) {
+        setUp();
+
+        var originalError = new Error('This is the Error');
+
+        var test = {
+          req: req,
+          res: res,
+          log: {},
+          originalError: originalError,
+          pipelineError: null
+        };
+
+        function next(pipelineError) {
+          test.pipelineError = pipelineError;
+
+          result = test;
+
+          return done();
+        };
+
+        var middleware = expressWinston.errorLogger({
+          transports: [new MockTransport(test)],
+          errorTransform: function(err) {
+            return new Error('my custom error');
+          }
+        });
+
+        middleware(originalError, req, res, next);
+      });
+
+      it('should use custom errorTransform', function () {
+        result.originalError.message.should.equal('This is the Error');
+
+        result.log.meta.error.should.be.ok;
+        result.log.meta.error.message.should.equal('my custom error');
       });
     });
   });
