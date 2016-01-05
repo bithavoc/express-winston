@@ -84,12 +84,39 @@ var defaultResponseFilter = function (res, propName) {
 };
 
 /**
+ * A default function to customize the error object exposed in the log.
+ * @param err
+ * @return {*}
+ */
+var defaultErrorTransform = function (err) {
+    return err;
+};
+
+/**
  * A default function to decide whether skip logging of particular request. Doesn't skip anything (i.e. log all requests).
  * @return always false
  */
 var defaultSkip = function() {
   return false;
 };
+
+/**
+ * A function to convert an error to a plain old JavaScript object. Returns an
+ * object with all own properties (both enumerable and not) of the error as
+ * enumerable properties, so that things like util.inspect() and
+ * JSON.stringify() "just work".
+ * @param err
+ * @return {Object}
+ */
+function objectifyError(err) {
+    return Object.getOwnPropertyNames(err).reduce(function (object, propName) {
+        // Exclude `stack` since it is already included on the exception meta
+        if (propName !== 'stack') {
+            object[propName] = err[propName];
+        }
+        return object;
+    }, {});
+}
 
 function filterObject(originalObj, whiteList, initialFilter) {
 
@@ -119,6 +146,7 @@ function errorLogger(options) {
     ensureValidOptions(options);
 
     options.requestFilter = options.requestFilter || defaultRequestFilter;
+    options.errorTransform = options.errorTransform || defaultErrorTransform;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
@@ -134,6 +162,7 @@ function errorLogger(options) {
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
         exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
+        exceptionMeta.error = objectifyError(options.errorTransform(err));
 
         if (options.metaField) {
             var newMeta = {};
@@ -309,5 +338,6 @@ module.exports.bodyBlacklist = bodyBlacklist;
 module.exports.responseWhitelist = responseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
+module.exports.defaultErrorTransform = defaultErrorTransform;
 module.exports.defaultSkip = defaultSkip;
 module.exports.ignoredRoutes = ignoredRoutes;
