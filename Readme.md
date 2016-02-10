@@ -75,7 +75,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
     baseMeta: Object, // default meta data to be added to log, this will be merged with the meta data.
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
-    statusLevels: Boolean // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false
+    statusLevels: Boolean or Object // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false. Use an object to control the levels various status codes are logged at.
     ignoreRoute: function (req, res) { return false; } // allows to skip some log messages based on request and/or response.
     skip: function(req, res) { return false; } // function to determine if logging is skipped, defaults to false.
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
@@ -365,6 +365,17 @@ Blacklisting supports only the `body` property.
 If both `req._bodyWhitelist.body` and `req._bodyBlacklist.body` are set the result will be the white listed properties
 excluding any black listed ones. In the above example, only 'email' and 'age' would be included.
 
+
+## Custom Status Levels
+
+If you set statusLevels to true express-winston will log sub 400 responses at info level, sub 500 responses as warnings and 500+ responses as errors. To chagne these levels specify an object as follows
+```json
+  "statusLevels": {
+    "success": "debug",
+    "warn": "debug",
+    "error": "info"
+  }
+```
 
 ## Tests
 

@@ -207,9 +207,9 @@ function logger(options) {
             req.url = req.originalUrl || req.url;
 
             if (options.statusLevels) {
-              if (res.statusCode >= 100) { options.level = "info"; }
-              if (res.statusCode >= 400) { options.level = "warn"; }
-              if (res.statusCode >= 500) { options.level = "error"; }
+              if (res.statusCode >= 100) { options.level = options.statusLevels.success || "info"; }
+              if (res.statusCode >= 400) { options.level = options.statusLevels.warn || "warn"; }
+              if (res.statusCode >= 500) { options.level = options.statusLevels.error || "error"; }
             };
 
             if (options.colorStatus || options.expressFormat) {
