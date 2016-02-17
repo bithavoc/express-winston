@@ -753,6 +753,125 @@ describe('expressWinston', function () {
           });
         });
       });
+
+      describe('log.statusLevels', function () {
+        var result;
+
+        function logStatusLevelsSetup(url, statusLevels, statusCode, done) {
+          setUp({
+            url: url || '/an-url'
+          });
+
+          var test = {
+            req: req,
+            res: res,
+            log: {}
+          };
+
+          function next(_req, _res, next) {
+            res.status(statusCode).end('{ "message": "Hi!  I\'m a chunk!" }');
+
+            result = test;
+
+            return done();
+          };
+
+          var loggerOptions = {
+            transports: [new MockTransport(test, {level: 'silly'})]
+          };
+
+          if (statusLevels) {
+            loggerOptions.statusLevels = statusLevels;
+          }
+
+          var middleware = expressWinston.logger(loggerOptions);
+
+          middleware(req, res, next);
+        }
+
+        describe('when default', function () {
+
+          before(function (done) {
+            logStatusLevelsSetup('/url-of-sandwich', false, 403, done);
+          });
+
+          it('should have status level of "info"', function () {
+            result.log.level.should.equal('info');
+          });
+        });
+
+        describe('when statusLevels set to true', function () {
+
+          describe('when 100 <= statusCode < 400', function () {
+
+            before(function (done) {
+              logStatusLevelsSetup('/url-of-sandwich', true, 200, done);
+            });
+
+            it('should have status level of "info"', function () {
+              result.log.level.should.equal('info');
+            });
+          });
+
+          describe('when 400 <= statusCode < 500', function () {
+
+            before(function (done) {
+              logStatusLevelsSetup('/url-of-sandwich', true, 403, done);
+            });
+
+            it('should have status level of "warn"', function () {
+              result.log.level.should.equal('warn');
+            });
+          });
+
+          describe('when statusCode >= 500', function () {
+
+            before(function (done) {
+              logStatusLevelsSetup('/url-of-sandwich', true, 500, done);
+            });
+
+            it('should have status level of "error"', function () {
+              result.log.level.should.equal('error');
+            });
+          });
+        });
+
+        describe('when statusLevels set to an object', function () {
+
+          describe('when 100 <= statusCode < 400', function () {
+
+            before(function (done) {
+              logStatusLevelsSetup('/url-of-sandwich', {success: 'silly'}, 200, done);
+            });
+
+            it('should have status level provided by "success" key of object', function () {
+              result.log.level.should.equal('silly');
+            });
+          });
+
+          describe('when 400 <= statusCode < 500', function () {
+
+            before(function (done) {
+              logStatusLevelsSetup('/url-of-sandwich', {warn: 'debug'}, 403, done);
+            });
+
+            it('should have status level provided by "warn" key of object', function () {
+              result.log.level.should.equal('debug');
+            });
+          });
+
+          describe('when statusCode >= 500', function () {
+
+            before(function (done) {
+              logStatusLevelsSetup('/url-of-sandwich', {error: 'verbose'}, 500, done);
+            });
+
+            it('should have status level provided by "error" key of object', function () {
+              result.log.level.should.equal('verbose');
+            });
+          });
+        });
+      });
     });
   });
 });
