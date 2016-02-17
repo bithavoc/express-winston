@@ -68,6 +68,7 @@ var setUp = function (options) {
   res.status(200);
 };
 
+
 describe('expressWinston', function () {
   it('should contain an array with all the properties whitelisted in the req object', function () {
     expressWinston.requestWhitelist.should.be.an.Array;
@@ -874,4 +875,83 @@ describe('expressWinston', function () {
       });
     });
   });
+  
+  describe('.uuidLogger()', function () {
+        it('should be a function', function () {
+          expressWinston.uuidLogger.should.be.a.Function;
+        });
+        it('should have log function', function () {
+          var loggerWrapper = expressWinston.uuidLogger(winston);
+          loggerWrapper.log.should.be.a.Function;
+        });
+        it('should have profile function', function () {
+          var loggerWrapper = expressWinston.uuidLogger(winston);
+          loggerWrapper.profile.should.be.a.Function;
+        });
+        it('should have request Id function', function () {
+          var loggerWrapper = expressWinston.uuidLogger(winston);
+          loggerWrapper.id.should.be.defined;
+        });
+        it('should have unique request Id', function () {
+          var wrapper1 = expressWinston.uuidLogger(winston);
+          var wrapper2 = expressWinston.uuidLogger(winston);
+          should(wrapper1.id).not.be.equal(wrapper2.id);
+        });
+        describe('req._logger', function() {
+          var result;
+
+          before(function (done) {
+            setUp();
+
+            var test = {
+              req: req,
+              res: res,
+              log: {}
+            };
+
+            function next(_req, _res, next) {
+              result = test;
+              return done();
+            };
+
+            var middleware = expressWinston.logger({
+              transports: [new MockTransport(test)],
+              setRequestIdHeader: true
+            });
+
+            middleware(req, res, next);
+          });
+          
+          it('should have a logger', function() {
+              result.req._logger.should.be.defined;
+          });
+          it('should profile', function() {
+            req._logger.profile('profile');
+            req._logger.profile('profile');
+            result.log.msg.should.be.equal('profile');
+            result.log.meta.requestId.should.be.defined;
+            result.log.meta.durationMs.should.be.defined;
+          });
+          it('should handle optional parameters', function() {
+            req._logger.info('should handle optional %s', 'parameters', {textMeta: 'textMeta'}, null);
+            result.log.msg.should.be.equal('should handle optional parameters');
+            result.log.meta.requestId.should.be.defined;
+            result.log.meta.textMeta.should.be.equal('textMeta')
+          });
+          it('should log with an uuid', function() {
+            req._logger.info("should log with an uuid", {textMeta: 'textMeta'});
+            result.log.msg.should.be.equal("should log with an uuid");
+            result.log.meta.requestId.should.be.defined;
+            result.log.meta.textMeta.should.be.equal('textMeta')
+          });
+          it('should add HTTP X-Request-Id header', function() {
+            req._logger.info("should add HTTP X-Request-Id header", {textMeta: 'textMeta'});
+            result.log.msg.should.be.equal("should add HTTP X-Request-Id header");
+            result.log.meta.requestId.should.be.defined;
+            result.res.get('X-Request-Id').should.be.defined;
+            result.log.meta.requestId.should.be.equal(result.res.get('X-Request-Id'));
+          });
+          
+        })
+      });
 });

@@ -21,6 +21,7 @@
 var winston = require('winston');
 var util = require('util');
 var chalk = require('chalk');
+var uuid = require("node-uuid");
 
 //Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
 delete require.cache[require.resolve('underscore')];
@@ -109,6 +110,39 @@ function filterObject(originalObj, whiteList, initialFilter) {
 }
 
 //
+// ### function uuidLogger(logger, baseMeta)
+// #### @options {Object} options to initialize the middleware.
+//
+
+function uuidLogger(logger) {
+  var wrapper = {profilers: {}};
+  // Extend to get the generated request id
+  wrapper.id = uuid.v4();
+  // Extends the this object with profile and startTimer
+  wrapper.profile = function() {
+    return logger.profile.apply(wrapper, arguments);
+  };
+  // along with a method for log and each level in logger instance.
+  ['log'].concat(Object.keys(logger.levels)).forEach(function(method) {
+    wrapper[method] = function() {
+      var args = Array.prototype.slice.call(arguments);
+      while (args[args.length - 1] === null) {
+        args.pop();
+      }
+      var callback = typeof args[args.length - 1] === 'function' ? args.pop() : null;
+      var meta = typeof args[args.length - 1] === 'object' && Object.prototype.toString.call(args[args.length - 1]) !== '[object RegExp]' ? args.pop() : {};
+      meta = _.extend(meta, {
+        requestId: wrapper.id
+      });
+      return logger[method].apply(logger, args.concat(meta).concat(callback));
+    };
+  });
+  return wrapper;
+}
+
+
+
+//
 // ### function errorLogger(options)
 // #### @options {Object} options to initialize the middleware.
 //
@@ -130,6 +164,7 @@ function errorLogger(options) {
     });
 
     return function (err, req, res, next) {
+        var actualLogger = req._logger || options.winstonInstance;
 
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
@@ -144,11 +179,12 @@ function errorLogger(options) {
         exceptionMeta = _.extend(exceptionMeta, options.baseMeta);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log('error', template({err: err, req: req, res: res}), exceptionMeta);
+        actualLogger.log('error', template({err: err, req: req, res: res}), exceptionMeta);
 
         next(err);
     };
 }
+
 
 //
 // ### function logger(options)
@@ -173,6 +209,7 @@ function logger(options) {
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || defaultSkip;
+    options.setRequestIdHeader = options.setRequestIdHeader || true;
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -183,6 +220,11 @@ function logger(options) {
         var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.contains(ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
+        
+        req._logger = uuidLogger(options.winstonInstance);
+        if (options.setRequestIdHeader) {
+            res.setHeader('X-Request-Id', req._logger.id);
+        }
 
         req._startTime = (new Date);
 
@@ -281,7 +323,7 @@ function logger(options) {
             }
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
-              options.winstonInstance.log(options.level, msg, meta);
+              req._logger.log(options.level, msg, meta);
             }
         };
 
@@ -301,6 +343,7 @@ function ensureValidLoggerOptions(options) {
     }
 }
 
+
 module.exports.errorLogger = errorLogger;
 module.exports.logger = logger;
 module.exports.requestWhitelist = requestWhitelist;
@@ -311,3 +354,4 @@ module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
 module.exports.defaultSkip = defaultSkip;
 module.exports.ignoredRoutes = ignoredRoutes;
+module.exports.uuidLogger = uuidLogger;

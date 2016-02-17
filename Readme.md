@@ -80,6 +80,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     skip: function(req, res) { return false; } // function to determine if logging is skipped, defaults to false.
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
     responseFilter: function (res, propName) { return res[propName]; } // A function to filter/return response values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
+    setRequestIdHeader: Boolean //Set 'X-Request-Id' to the response header with the unique id assigned to the request, default is true.
 ```
 
 ### Error Logging
@@ -121,12 +122,22 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
 
 ``` js
     var express = require('express');
+    var bodyParser = require('body-parser');
+    var methodOverride = require('method-override');
     var expressWinston = require('express-winston');
     var winston = require('winston'); // for transports.Console
     var app = module.exports = express();
 
-    app.use(express.bodyParser());
-    app.use(express.methodOverride());
+    // parse application/json
+    app.use(bodyParser.json());
+
+    // parse application/x-www-form-urlencoded
+    app.use(bodyParser.urlencoded({
+    extended: true
+    }));
+
+    // override with the X-HTTP-Method-Override header in the request
+    app.use(methodOverride('X-HTTP-Method-Override'));
 
     // Let's make our express `Router` first.
     var router = express.Router();
@@ -135,8 +146,10 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
       return next(new Error("This is an error and it should be logged to the console"));
     });
 
-    app.get('/', function(req, res, next) {
+    router.get('/', function(req, res, next) {
+      req._logger.info('begin: %s', 'start', {data: 'data'});
       res.write('This is a normal request, it should be logged to the console too');
+      req._logger.info('end: %s', 'finish', {data: 'data'});
       res.end();
     });
 
@@ -177,29 +190,42 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
 Browse `/` to see a regular HTTP logging like this:
 
     {
-      "req": {
-        "httpVersion": "1.1",
-        "headers": {
-          "host": "localhost:3000",
-          "connection": "keep-alive",
-          "accept": "*/*",
-          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
-          "accept-encoding": "gzip,deflate,sdch",
-          "accept-language": "en-US,en;q=0.8,es-419;q=0.6,es;q=0.4",
-          "accept-charset": "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
-          "cookie": "connect.sid=nGspCCSzH1qxwNTWYAoexI23.seE%2B6Whmcwd"
-        },
-        "url": "/",
-        "method": "GET",
-        "originalUrl": "/",
-        "query": {}
-      },
+      "data": "data",
+      "requestId": "0e7e58bd-4be8-47f1-b68b-d040a8d03c90",
+      "level": "info",
+      "message": "begin: start"
+    }
+    {
+      "data": "data",
+      "requestId": "0e7e58bd-4be8-47f1-b68b-d040a8d03c90",
+      "level": "info",
+      "message": "end: finish"
+    }
+    {
       "res": {
         "statusCode": 200
       },
-      "responseTime" : 12,
+      "req": {
+        "url": "/",
+        "headers": {
+          "host": "localhost:3000",
+          "connection": "keep-alive",
+          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+          "upgrade-insecure-requests": "1",
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36",
+          "dnt": "1",
+          "accept-encoding": "gzip, deflate, sdch",
+          "accept-language": "es,en-GB;q=0.8,en;q=0.6,en-US;q=0.4,de;q=0.2"
+        },
+        "method": "GET",
+        "httpVersion": "1.1",
+        "originalUrl": "/",
+        "query": {}
+      },
+      "responseTime": 18,
+      "requestId": "0e7e58bd-4be8-47f1-b68b-d040a8d03c90",
       "level": "info",
-      "message": "HTTP GET /favicon.ico"
+      "message": "HTTP GET /"
     }
 
 Browse `/error` will show you how express-winston handles and logs the errors in the express pipeline like this:
@@ -274,7 +300,8 @@ Browse `/error` will show you how express-winston handles and logs the errors in
         "query": {}
       },
       "level": "error",
-      "message": "middlewareError"
+      "message": "middlewareError",
+      "requestId": "d018a4ef-7c30-45cf-8545-62007820f004"
     }
 
 ## Global Whitelists and Blacklists
@@ -348,7 +375,8 @@ Post to `/user/register` would give you something like the following:
       },
       "responseTime" : 12,
       "level": "info",
-      "message": "HTTP GET /favicon.ico"
+      "message": "HTTP GET /favicon.ico",
+      "requestId": "d018a4ef-7c30-45cf-8545-62007820f004"
     }
 
 Blacklisting supports only the `body` property.
@@ -365,6 +393,20 @@ Blacklisting supports only the `body` property.
 If both `req._bodyWhitelist.body` and `req._bodyBlacklist.body` are set the result will be the white listed properties
 excluding any black listed ones. In the above example, only 'email' and 'age' would be included.
 
+## Tracing log messages with an UUID
+
+The express request object have a logger you can use like a winston logger:
+
+```js
+exports.controller = function(req, res) {
+    [...]
+    req._logger.info('Doing something');
+    [...]
+}
+```
+Logger will add a unique id per request to the log message metadata so you can trace all log messages that belongs 
+to the same reques. Additionally, the response will have also a header 'X-Request-Id' so trazability can be made also
+in the client.
 
 ## Custom Status Levels
 
