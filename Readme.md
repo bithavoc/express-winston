@@ -368,7 +368,7 @@ excluding any black listed ones. In the above example, only 'email' and 'age' wo
 
 ## Custom Status Levels
 
-If you set statusLevels to true express-winston will log sub 400 responses at info level, sub 500 responses as warnings and 500+ responses as errors. To chagne these levels specify an object as follows
+If you set statusLevels to true express-winston will log sub 400 responses at info level, sub 500 responses as warnings and 500+ responses as errors. To change these levels specify an object as follows
 ```json
   "statusLevels": {
     "success": "debug",
