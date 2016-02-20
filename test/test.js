@@ -1,15 +1,15 @@
-var should = require('should');
 var util = require('util');
-var _ = require('underscore');
 
 var mocks = require('node-mocks-http');
+var Promise = require('promise/lib/es6-extensions');
+var should = require('should');
+var _ = require('underscore');
 var winston = require('winston');
 
 var expressWinston = require('../index.js');
 
 expressWinston.ignoredRoutes.push('/ignored');
 expressWinston.responseWhitelist.push('body');
-
 expressWinston.bodyBlacklist.push('potato');
 
 var MockTransport = function (test, options) {
@@ -28,13 +28,8 @@ var MockTransport = function (test, options) {
 };
 util.inherits(MockTransport, winston.Transport);
 
-var req = {};
-var res = {};
-
-var setUp = function (options) {
-  options = options || {};
-
-  var reqSpec = {
+function mockReq(reqMock) {
+  var reqSpec = _.extend({
     method: 'GET',
     url: '/hello',
     headers: {
@@ -46,84 +41,104 @@ var setUp = function (options) {
     params: {
       id: 20
     },
-  };
+  }, reqMock);
 
-  if (options.body) reqSpec.body = options.body;
+  return mocks.createRequest(reqSpec);
+}
 
-  if (options.ignoreRoute) reqSpec.url = '/ignored';
-  if (options.url) reqSpec.url = options.url;
-
-  req = mocks.createRequest(reqSpec);
-
-  req.route = {
-    path: reqSpec.url,
-    methods: {
-      get: true
-    }
-  };
-
-  if (options.routePath) req.route.path = options.routePath;
-
-  res = mocks.createResponse();
+function mockRes() {
+  var res = mocks.createResponse();
   res.status(200);
-};
+  return res;
+}
 
-describe('expressWinston', function () {
-  it('should contain an array with all the properties whitelisted in the req object', function () {
-    expressWinston.requestWhitelist.should.be.an.Array;
+function loggerTestHelper(providedOptions) {
+  var options = _.extend({
+    loggerOptions: null,
+    req: null,
+    res: null,
+    transportOptions: null,
+    next: function (req, res, next) {
+      res.end('{ "message": "Hi!  I\'m a chunk!" }');
+    }
+  }, providedOptions);
+
+  var req = mockReq(options.req);
+  var res = _.extend(mockRes(), options.res);
+
+  var result = {
+    req: req,
+    res: res,
+    log: {}
+  };
+
+  return new Promise(function (resolve, reject) {
+    var middleware = expressWinston.logger(_.extend({
+      transports: [new MockTransport(result, options.transportOptions)]
+    }, options.loggerOptions));
+
+    middleware(req, res, function (_req, _res, next) {
+      options.next(req, res, next);
+      resolve(result);
+    });
   });
+}
 
-  it('should contain an array with all the properties whitelisted in the res object', function () {
-    expressWinston.responseWhitelist.should.be.an.Array;
+function errorLoggerTestHelper(providedOptions) {
+  var options = _.extend({
+    loggerOptions: null,
+    originalError: new Error('This is the Error'),
+    req: null,
+    res: null,
+    transportOptions: null,
+    next: function () {}
+  }, providedOptions);
+
+  var req = mockReq(options.req);
+  var res = _.extend(mockRes(), options.res);
+
+  var result = {
+    req: req,
+    res: res,
+    log: {},
+    originalError: options.originalError,
+    pipelineError: null
+  };
+
+  return new Promise(function (resolve, reject) {
+    var middleware = expressWinston.errorLogger(_.extend({
+      transports: [new MockTransport(result, options.transportOptions)]
+    }, options.loggerOptions));
+
+    middleware(options.originalError, req, res, function (pipelineError) {
+      options.next(pipelineError);
+      result.pipelineError = pipelineError;
+      resolve(result);
+    });
   });
+}
 
-  it('should contain an array for all the ignored routes', function () {
-    expressWinston.ignoredRoutes.should.be.an.Array;
-  });
-
-  it('should contain an array with all the properties whitelisted in the body object', function () {
-    expressWinston.bodyWhitelist.should.be.an.Array;
-  });
-
-  it('should contain a default request filter function', function () {
-    expressWinston.defaultRequestFilter.should.be.a.Function;
-  });
-
-  it('should contain a default response filter function', function () {
-    expressWinston.defaultResponseFilter.should.be.a.Function;
-  });
-
-  it('should contain a default skip function', function () {
-    expressWinston.defaultSkip.should.be.a.Function;
-  });
-
-  it('should export a function for the creation of request logger middlewares', function () {
-    expressWinston.logger.should.be.a.Function;
-  });
-
+describe('express-winston', function () {
   describe('.errorLogger()', function () {
     it('should be a function', function () {
-      expressWinston.errorLogger.should.be.a.Function;
+      expressWinston.errorLogger.should.be.a.Function();
     });
 
-    it('should throw an error without options', function () {
-      (function () {
-        expressWinston.errorLogger();
-      }).should.throwError();
+    it('should throw an error when no options are provided', function () {
+      var errorLoggerFn = expressWinston.errorLogger.bind(expressWinston);
+      errorLoggerFn.should.throw();
     });
 
-    it('should throw an error without any transport specified', function () {
-      (function () {
-        expressWinston.errorLogger({});
-      }).should.throwError();
+    it('should throw an error when no transport is specified', function () {
+      var errorLoggerFn = expressWinston.errorLogger.bind(expressWinston, {});
+      errorLoggerFn.should.throw();
     });
 
-    it('should throw an error with an empty list of transports', function () {
-      (function () {
-        expressWinston.errorLogger({
-          transports: []
-        });
-      }).should.throwError();
+    it('should throw an error when provided with an empty list of transports', function () {
+      var errorLoggerFn = expressWinston.errorLogger.bind(expressWinston, {
+        transports: []
+      });
+      errorLoggerFn.should.throw();
     });
 
     it('should return a middleware function with four arguments that fit (err, req, res, next)', function () {
@@ -134,52 +149,28 @@ describe('expressWinston', function () {
       middleware.length.should.eql(4);
     });
 
-    describe('errorLogger() middleware()', function () {
-      var result;
-
-      before(function (done) {
-        setUp();
-
-        var originalError = new Error('This is the Error');
-
-        var test = {
-          req: req,
-          res: res,
-          log: {},
-          originalError: originalError,
-          pipelineError: null
-        };
-
-        function next(pipelineError) {
-          test.pipelineError = pipelineError;
-
-          result = test;
-
-          return done();
-        };
-
-        var middleware = expressWinston.errorLogger({
-          transports: [new MockTransport(test)]
-        });
-
-        middleware(originalError, req, res, next);
-      });
-
-      describe('encountering an error in the pipeline', function () {
-        it('should invoke the transport', function () {
+    describe('when middleware function encounters an error in the pipeline', function () {
+      it('should invoke the transport', function () {
+        return errorLoggerTestHelper().then(function (result) {
           result.transportInvoked.should.eql(true);
         });
+      });
 
-        it('should find an error level of "error"', function () {
+      it('should find an error level of "error"', function () {
+        return errorLoggerTestHelper().then(function (result) {
           result.log.level.should.eql('error');
         });
+      });
 
-        it('should find a message of "middlewareError"', function () {
+      it('should find a message of "middlewareError"', function () {
+        return errorLoggerTestHelper().then(function (result) {
           result.log.msg.should.eql('middlewareError');
         });
+      });
 
-        it('should contain a filtered request', function () {
-          result.log.meta.req.should.be.ok;
+      it('should contain a filtered request', function () {
+        return errorLoggerTestHelper().then(function (result) {
+          result.log.meta.req.should.be.ok();
           result.log.meta.req.method.should.eql('GET');
           result.log.meta.req.query.should.eql({
             val: '1'
@@ -187,50 +178,21 @@ describe('expressWinston', function () {
 
           result.log.meta.req.should.not.have.property('nonWhitelistedProperty');
         });
+      });
 
-        it('should not swallow the pipline error', function () {
-          result.pipelineError.should.be.ok;
+      it('should not swallow the pipeline error', function () {
+        return errorLoggerTestHelper().then(function (result) {
+          result.pipelineError.should.be.ok();
           result.pipelineError.should.eql(result.originalError);
         });
       });
     });
 
-    describe('log.metaField', function (done) {
-      var result;
-
-      before(function (done) {
-        setUp();
-
-        var originalError = new Error('This is the Error');
-
-        var test = {
-          req: req,
-          res: res,
-          log: {},
-          originalError: originalError,
-          pipelineError: null
-        };
-
-        function next(pipelineError) {
-          test.pipelineError = pipelineError;
-
-          result = test;
-
-          return done();
-        };
-
-        var middleware = expressWinston.errorLogger({
-          transports: [new MockTransport(test)],
-          metaField: 'metaField'
-        });
-
-        middleware(originalError, req, res, next);
-      });
-
-      describe('when using custom metaField', function () {
-
-        it('should be logged', function () {
-          result.log.meta.metaField.req.should.be.ok;
+    describe('metaField option', function () {
+      it('should, when using a custom metaField, log the custom metaField', function () {
+        var testHelperOptions = {loggerOptions: {metaField: 'metaField'}};
+        return errorLoggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.metaField.req.should.be.ok();
         });
       });
     });
@@ -238,36 +200,24 @@ describe('expressWinston', function () {
 
   describe('.logger()', function () {
     it('should be a function', function () {
-      expressWinston.logger.should.be.a.Function;
+      expressWinston.logger.should.be.a.Function();
     });
 
-    it('should throw an error without options', function () {
-      (function () {
-        expressWinston.logger();
-      }).should.throwError();
+    it('should throw an error when no options are provided', function () {
+      var loggerFn = expressWinston.logger.bind(expressWinston);
+      loggerFn.should.throw();
     });
 
-    it('should throw an error without any transport specified', function () {
-      (function () {
-        expressWinston.logger({});
-      }).should.throwError();
+    it('should throw an error when no transport is specified', function () {
+      var loggerFn = expressWinston.logger.bind(expressWinston, {});
+      loggerFn.should.throw();
     });
 
-    it('should throw an error with an empty list of transports', function () {
-      (function () {
-        expressWinston.logger({
-          transports: []
-        });
-      }).should.throwError();
-    });
-
-    it('should throw an error if ignoreRoute option is not a function', function () {
-      (function () {
-        expressWinston.logger({
-          transports: [new MockTransport({})],
-          ignoreRoute: 'not a function'
-        });
-      }).should.throwError();
+    it('should throw an error when provided with an empty list of transports', function () {
+      var loggerFn = expressWinston.logger.bind(expressWinston, {
+        transports: []
+      });
+      loggerFn.should.throw();
     });
 
     it('should return a middleware function with three arguments that fit (req, res, next)', function () {
@@ -278,600 +228,426 @@ describe('expressWinston', function () {
       middleware.length.should.eql(3);
     });
 
-    describe('logger() middleware()', function () {
-      describe('v0.1.x API', function () {
-        describe('when invoked on a route', function () {
-          var result;
+    it('should not have an empty body in meta.req when invoked on a route with an empty response body', function () {
+      function next(req, res, next) {
+        res.end();
+      }
+      var testHelperOptions = {
+        next: next,
+        req: {
+          body: {},
+          routeLevelAddedProperty: 'value that should be logged',
+          url: '/hello'
+        },
+      };
+      return loggerTestHelper(testHelperOptions).then(function (result) {
+        Object.keys(result.log.meta.req).indexOf('body').should.eql(-1);
+      });
+    });
 
-          before(function (done) {
-            setUp();
+    it('should not invoke the transport when invoked on a route with transport level of "error"', function () {
+      function next(req, res, next) {
+        req._routeWhitelists.req = ['routeLevelAddedProperty'];
+        req._routeWhitelists.res = ['routeLevelAddedProperty'];
 
-            var test = {
-              req: req,
-              res: res,
-              log: {}
-            };
+        res.end('{ "message": "Hi!  I\'m a chunk!" }');
+      }
+      var testHelperOptions = {
+        next: next,
+        loggerOptions: {
+          statusLevels: true
+        },
+        req: {
+          body: {},
+          routeLevelAddedProperty: 'value that should be logged',
+          url: '/hello',
+        },
+        res: {
+          nonWhitelistedProperty: 'value that should not be logged',
+          routeLevelAddedProperty: 'value that should be logged'
+        },
+        transportOptions: {
+          level: 'error'
+        }
+      };
+      return loggerTestHelper(testHelperOptions).then(function (result) {
+        result.transportInvoked.should.eql(false);
+      });
+    });
 
-            function next(_req, _res, next) {
-              res.end('{ "message": "Hi!  I\'m a chunk!" }');
-              result = test;
-              return done();
-            };
+    describe('when middleware function is invoked on a route', function () {
+      function next(req, res, next) {
+        req._startTime = (new Date()) - 125;
 
-            var middleware = expressWinston.logger({
-              transports: [new MockTransport(test)]
-            });
+        req._routeWhitelists.req = ['routeLevelAddedProperty'];
+        req._routeWhitelists.res = ['routeLevelAddedProperty'];
 
-            middleware(req, res, next);
-          });
+        req._routeWhitelists.body = ['username'];
+        req._routeBlacklists.body = ['age'];
 
-          it('should invoke the transport', function () {
-            result.transportInvoked.should.eql(true);
-          });
+        res.end('{ "message": "Hi!  I\'m a chunk!" }');
+      }
+      var testHelperOptions = {
+        next: next,
+        req: {
+          body: {
+            username: "bobby",
+            password: "top-secret",
+            age: 42,
+            potato: 'Russet'
+          },
+          routeLevelAddedProperty: 'value that should be logged'
+        },
+        res: {
+          nonWhitelistedProperty: 'value that should not be logged',
+          routeLevelAddedProperty: 'value that should be logged'
+        },
+      };
 
-          it('should contain a filtered request', function () {
-            result.log.meta.req.should.be.ok;
-            result.log.meta.req.method.should.eql('GET');
-            result.log.meta.req.query.should.eql({
-              val: '1'
-            });
-
-            result.log.meta.req.should.not.have.property('nonWhitelistedProperty');
-          });
-        });
-
-        describe('when invoked on a route that should be ignored', function () {
-          var result;
-
-          before(function (done) {
-            setUp({
-              ignoreRoute: true
-            });
-
-            var test = {
-              req: req,
-              res: res,
-              log: {}
-            };
-
-            function next(_req, _res, next) {
-              res.end('{ "message": "Hi!  I\'m a chunk!" }');
-              result = test;
-              return done();
-            };
-
-            var middleware = expressWinston.logger({
-              transports: [new MockTransport(test)]
-            });
-
-            middleware(req, res, next);
-          });
-
-          it('should not invoke the transport', function () {
-            result.transportInvoked.should.eql(false);
-          });
-
-          it('should contain a filtered request', function () {
-            result.log.should.be.empty;
-          });
+      it('should invoke the transport', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.transportInvoked.should.eql(true);
         });
       });
 
-      describe('v0.2.x API', function () {
-        describe('when invoked on a route', function () {
-          var result;
-
-          before(function (done) {
-            setUp({
-              body: {
-                username: "bobby",
-                password: "top-secret",
-                age: 42,
-                potato: 'Russet'
-              }
-            });
-
-            req.routeLevelAddedProperty = 'value that should be logged';
-
-            res.nonWhitelistedProperty = 'value that should not be logged';
-            res.routeLevelAddedProperty = 'value that should be logged';
-
-            var test = {
-              req: req,
-              res: res,
-              log: {}
-            };
-
-            function next(_req, _res, next) {
-              req._startTime = (new Date) - 125;
-
-              req._routeWhitelists.req = ['routeLevelAddedProperty'];
-              req._routeWhitelists.res = ['routeLevelAddedProperty'];
-
-              req._routeWhitelists.body = ['username'];
-              req._routeBlacklists.body = ['age'];
-
-              res.end('{ "message": "Hi!  I\'m a chunk!" }');
-
-              result = test;
-
-              return done();
-            };
-
-            var middleware = expressWinston.logger({
-              transports: [new MockTransport(test)]
-            });
-
-            middleware(req, res, next);
+      it('should contain a filtered request', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.req.should.be.ok();
+          result.log.meta.req.method.should.eql('GET');
+          result.log.meta.req.query.should.eql({
+            val: '1'
           });
 
-          it('should invoke the transport', function () {
-            result.transportInvoked.should.eql(true);
-          });
-
-          it('should contain a filtered request', function () {
-            result.log.meta.req.should.be.ok;
-            result.log.meta.req.method.should.eql('GET');
-            result.log.meta.req.query.should.eql({
-              val: '1'
-            });
-
-            result.log.meta.req.body.should.not.have.property('age');
-            result.log.meta.req.body.should.not.have.property('potato');
-          });
-
-          it('should contain a filtered response', function () {
-            result.log.meta.res.should.be.ok;
-
-            result.log.meta.res.statusCode.should.eql(200);
-            result.log.meta.res.routeLevelAddedProperty.should.be.ok;
-
-            result.log.meta.res.should.not.have.property('nonWhitelistedProperty');
-          });
-
-          it('should contain a response time', function () {
-            result.log.meta.responseTime.should.be.within(120, 130);
-          });
+          result.log.meta.req.body.should.not.have.property('age');
+          result.log.meta.req.body.should.not.have.property('potato');
         });
+      });
 
-        describe('when invoked on a route with an empty response body', function () {
-          var result;
+      it('should contain a filtered response', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.res.should.be.ok();
 
-          before(function (done) {
-            setUp({
-              url: '/hello',
-              body: {}
-            });
+          result.log.meta.res.statusCode.should.eql(200);
+          result.log.meta.res.routeLevelAddedProperty.should.be.ok();
 
-            req.routeLevelAddedProperty = 'value that should be logged';
-
-            var test = {
-              req: req,
-              res: res,
-              log: {}
-            };
-
-            function next(_req, _res, next) {
-              res.end();
-
-              result = test;
-
-              return done();
-            };
-
-            var middleware = expressWinston.logger({
-              transports: [new MockTransport(test)]
-            });
-
-            middleware(req, res, next);
-          });
-
-          it('should not have an empty body in meta.req', function () {
-            result.log.meta.res.should.not.have.property('body');
-          });
+          result.log.meta.res.should.not.have.property('nonWhitelistedProperty');
         });
+      });
 
-        describe('when invoked on a route with transport level of "error"', function () {
-          var result;
+      it('should contain a response time', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.responseTime.should.be.within(120, 130);
+        });
+      });
+    });
 
-          before(function (done) {
-            setUp({
-              url: "/hello",
-              body: {}
-            });
+    describe('when middleware function is invoked on a route that should be ignored (by .ignoredRoutes)', function () {
+      var testHelperOptions = {
+        req: {url: '/ignored'}
+      };
 
-            req.routeLevelAddedProperty = 'value that should be logged';
+      it('should not invoke the transport', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.transportInvoked.should.eql(false);
+        });
+      });
 
-            res.nonWhitelistedProperty = 'value that should not be logged';
-            res.routeLevelAddedProperty = 'value that should be logged';
+      it('should contain a filtered request', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.should.be.empty();
+        });
+      });
+    });
 
-            var test = {
-              req: req,
-              res: res,
-              log: {}
-            };
+    describe('expressFormat option', function () {
+      it('should match the Express format when logging', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            expressFormat: true
+          },
+          req: {
+            url: '/all-the-things'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          var resultMsg = result.log.msg;
+          resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
+          resultMsg.should.endWith('ms\u001b[39m');
+        });
+      });
+    });
 
-            function next(_req, _res, next) {
-              req._routeWhitelists.req = ['routeLevelAddedProperty'];
-              req._routeWhitelists.res = ['routeLevelAddedProperty'];
+    describe('msg option', function () {
+      it('should have a default log msg', function () {
+        var testHelperOptions = {
+          req: {
+            url: '/url-of-sandwich'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.msg.should.eql('HTTP GET /url-of-sandwich');
+        });
+      });
 
-              res.end('{ "message": "Hi!  I\'m a chunk!" }');
-              result = test;
-              return done();
-            };
+      it('should match the custom format when a custom format is provided', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            msg: 'Foo {{ req.method }} {{ req.url }}'
+          },
+          req: {
+            url: '/all-the-things'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.msg.should.eql('Foo GET /all-the-things');
+        });
+      });
+    });
 
-            var middleware = expressWinston.logger({
-              transports: [new MockTransport(test, {
-                level: 'error'
-              })],
+    describe('ignoreRoute option', function () {
+      var testHelperOptions = {
+        req: {
+          shouldSkip: true,
+          url: '/is-not-logged'
+        },
+        loggerOptions: {
+          ignoreRoute: function (req, res) {
+            return req.shouldSkip === true && req.url.match(/^\/is-not-log/);
+          }
+        }
+      };
+
+      it('should throw an error if ignoreRoute option is provided but not a function', function () {
+        var loggerFn = expressWinston.logger.bind(expressWinston, {
+          transports: [new MockTransport({})],
+          ignoreRoute: 'not a function'
+        });
+        loggerFn.should.throw();
+      });
+
+      it('should not invoke the transport when invoked on a route that should be ignored', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.transportInvoked.should.eql(false);
+        });
+      });
+
+      it('should contain a filtered request when invoked on a route that should be ignored', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.should.be.empty();
+        });
+      });
+    });
+
+    describe('metaField option', function () {
+      it('should have a default meta field', function () {
+        return loggerTestHelper().then(function (result) {
+          result.log.meta.req.should.be.ok();
+        });
+      });
+
+      it('should use provided custom metaField', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            metaField: 'foobar'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.foobar.req.should.be.ok();
+        });
+      });
+    });
+
+    describe('skip option', function () {
+      it('should not be logged when using custom function returning true', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            skip: function (req, res) {
+              return req.url.indexOf('sandwich') != -1
+            }
+          },
+          req: {
+            url: '/url-of-sandwich'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          should.not.exist(result.log.msg);
+        });
+      });
+
+      it('should be logged when using custom function returning false', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            skip: function (req, res) {
+              return req.url.indexOf('sandwich') != -1
+            }
+          },
+          req: {
+            url: '/hello'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.msg.should.eql('HTTP GET /hello');
+        });
+      });
+    });
+
+    describe('statusLevels option', function () {
+      it('should have status level of "info" by default', function () {
+        var testHelperOptions = {
+          next: function (req, res, next) {
+            res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.level.should.equal('info');
+        });
+      });
+
+      describe('when statusLevels set to true', function () {
+        it('should have status level of "info" when 100 <= statusCode < 400', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(200).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
               statusLevels: true
-            });
-
-            middleware(req, res, next);
-          });
-
-          it('should not invoke the transport', function () {
-            result.transportInvoked.should.eql(false);
-          });
-        });
-
-        describe('when invoked on a route that should be ignored (options.ignoreRoute)', function () {
-          var result;
-
-          before(function (done) {
-            setUp({
-              url: '/is-not-logged'
-            });
-            req.skip = true;
-            var test = {
-              req: req,
-              res: res,
-              log: {}
-            };
-
-            function next(_req, _res, next) {
-              res.end('{ "message": "Hi!  I\'m a chunk!" }');
-              result = test;
-              return done();
-            };
-
-            var middleware = expressWinston.logger({
-              transports: [new MockTransport(test)],
-              ignoreRoute: function (req, res) {
-                return req.skip === true && req.url.match(/^\/is-not-log/);
-              }
-            });
-
-            middleware(req, res, next);
-          });
-
-          it('should not invoke the transport', function () {
-            result.transportInvoked.should.eql(false);
-          });
-
-          it('should contain a filtered request', function () {
-            result.log.should.be.empty;
-          });
-        });
-      });
-
-      describe('log.msg', function () {
-        var result;
-
-        function logMsgSetup(url, msg, expressFormat, done) {
-          setUp({
-            url: url || '/an-url'
-          });
-
-          var test = {
-            req: req,
-            res: res,
-            log: {}
+            },
+            req: {
+              url: '/url-of-sandwich'
+            }
           };
-
-          function next(_req, _res, next) {
-            res.end('{ "message": "Hi!  I\'m a chunk!" }');
-
-            result = test;
-
-            return done();
-          };
-
-          var loggerOptions = {
-            transports: [new MockTransport(test)]
-          };
-
-          if (msg) {
-            loggerOptions.msg = msg;
-          }
-
-          if (expressFormat) {
-            delete loggerOptions.msg;
-            loggerOptions.expressFormat = true;
-          }
-
-          var middleware = expressWinston.logger(loggerOptions);
-
-          middleware(req, res, next);
-        }
-
-        describe('when default', function () {
-
-          before(function (done) {
-            logMsgSetup('/url-of-sandwich', null, false, done);
-          });
-
-          it('should match the custom format', function () {
-            result.log.msg.should.eql('HTTP GET /url-of-sandwich');
-          });
-        });
-
-        describe('using Express format', function () {
-          before(function (done) {
-            logMsgSetup('/all-the-things', null, true, done);
-          });
-
-          it('should match the Express format', function () {
-            var resultMsg = result.log.msg;
-            resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
-            resultMsg.should.endWith('ms\u001b[39m');
-          });
-        });
-
-        describe('when customized', function () {
-          before(function (done) {
-            logMsgSetup('/all-the-things', 'Foo {{ req.method }} {{ req.url }}', false, done);
-          });
-
-          it('should match the custom format', function () {
-            result.log.msg.should.eql('Foo GET /all-the-things');
-          });
-        });
-      });
-
-      describe('log.skip', function () {
-        var result;
-
-        function logSkipSetup(url, skip, done) {
-          setUp({
-            url: url || '/an-url'
-          });
-
-          var test = {
-            req: req,
-            res: res,
-            log: {}
-          };
-
-          function next(_req, _res, next) {
-            res.end('{ "message": "Hi!  I\'m a chunk!" }');
-
-            result = test;
-
-            return done();
-          };
-
-          var loggerOptions = {
-            transports: [new MockTransport(test)]
-          };
-
-          if (skip) {
-            loggerOptions.skip = skip;
-          }
-
-          var middleware = expressWinston.logger(loggerOptions);
-
-          middleware(req, res, next);
-        }
-
-        describe('when default', function () {
-
-          before(function (done) {
-            logSkipSetup('/url-of-sandwich', null, done);
-          });
-
-          it('should be logged', function () {
-            result.log.msg.should.eql('HTTP GET /url-of-sandwich');
-          });
-        });
-
-        describe('when using custom function returning true', function () {
-          before(function (done) {
-            logSkipSetup('/url-of-sandwich', function(req, res) { return req.url.indexOf('sandwich') != -1 }, done);
-          });
-
-          it('should not be logged', function () {
-            should.not.exist(result.log.msg);
-          });
-        });
-
-        describe('when using custom function returning false', function () {
-          before(function (done) {
-            logSkipSetup('/hello', function(req, res) { return req.url.indexOf('sandwich') != -1 }, done);
-          });
-
-          it('should be logged', function () {
-            result.log.msg.should.eql('HTTP GET /hello');
-          });
-        });
-      });
-
-      describe('log.metaField', function () {
-        var result;
-
-        function logMetaFieldSetup(url, metaField, done) {
-          setUp({
-            url: url || '/an-url'
-          });
-
-          var test = {
-            req: req,
-            res: res,
-            log: {}
-          };
-
-          function next(_req, _res, next) {
-            res.end('{ "message": "Hi!  I\'m a chunk!" }');
-
-            result = test;
-
-            return done();
-          };
-
-          var loggerOptions = {
-            transports: [new MockTransport(test)]
-          };
-
-          if (metaField) {
-            loggerOptions.metaField = metaField;
-          }
-
-          var middleware = expressWinston.logger(loggerOptions);
-
-          middleware(req, res, next);
-        }
-
-        describe('when default', function () {
-
-          before(function (done) {
-            logMetaFieldSetup('/url-of-sandwich', null, done);
-          });
-
-          it('should be logged', function () {
-            result.log.meta.req.should.be.ok;
-          });
-        });
-
-        describe('when using custom metaField', function () {
-
-          before(function (done) {
-            logMetaFieldSetup('/url-of-sandwich', 'metaField', done);
-          });
-
-          it('should be logged', function () {
-            result.log.meta.metaField.req.should.be.ok;
-          });
-        });
-      });
-
-      describe('log.statusLevels', function () {
-        var result;
-
-        function logStatusLevelsSetup(url, statusLevels, statusCode, done) {
-          setUp({
-            url: url || '/an-url'
-          });
-
-          var test = {
-            req: req,
-            res: res,
-            log: {}
-          };
-
-          function next(_req, _res, next) {
-            res.status(statusCode).end('{ "message": "Hi!  I\'m a chunk!" }');
-
-            result = test;
-
-            return done();
-          };
-
-          var loggerOptions = {
-            transports: [new MockTransport(test, {level: 'silly'})]
-          };
-
-          if (statusLevels) {
-            loggerOptions.statusLevels = statusLevels;
-          }
-
-          var middleware = expressWinston.logger(loggerOptions);
-
-          middleware(req, res, next);
-        }
-
-        describe('when default', function () {
-
-          before(function (done) {
-            logStatusLevelsSetup('/url-of-sandwich', false, 403, done);
-          });
-
-          it('should have status level of "info"', function () {
+          return loggerTestHelper(testHelperOptions).then(function (result) {
             result.log.level.should.equal('info');
           });
         });
 
-        describe('when statusLevels set to true', function () {
-
-          describe('when 100 <= statusCode < 400', function () {
-
-            before(function (done) {
-              logStatusLevelsSetup('/url-of-sandwich', true, 200, done);
-            });
-
-            it('should have status level of "info"', function () {
-              result.log.level.should.equal('info');
-            });
-          });
-
-          describe('when 400 <= statusCode < 500', function () {
-
-            before(function (done) {
-              logStatusLevelsSetup('/url-of-sandwich', true, 403, done);
-            });
-
-            it('should have status level of "warn"', function () {
-              result.log.level.should.equal('warn');
-            });
-          });
-
-          describe('when statusCode >= 500', function () {
-
-            before(function (done) {
-              logStatusLevelsSetup('/url-of-sandwich', true, 500, done);
-            });
-
-            it('should have status level of "error"', function () {
-              result.log.level.should.equal('error');
-            });
+        it('should have status level of "warn" when 400 <= statusCode < 500', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              statusLevels: true
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('warn');
           });
         });
 
-        describe('when statusLevels set to an object', function () {
-
-          describe('when 100 <= statusCode < 400', function () {
-
-            before(function (done) {
-              logStatusLevelsSetup('/url-of-sandwich', {success: 'silly'}, 200, done);
-            });
-
-            it('should have status level provided by "success" key of object', function () {
-              result.log.level.should.equal('silly');
-            });
-          });
-
-          describe('when 400 <= statusCode < 500', function () {
-
-            before(function (done) {
-              logStatusLevelsSetup('/url-of-sandwich', {warn: 'debug'}, 403, done);
-            });
-
-            it('should have status level provided by "warn" key of object', function () {
-              result.log.level.should.equal('debug');
-            });
-          });
-
-          describe('when statusCode >= 500', function () {
-
-            before(function (done) {
-              logStatusLevelsSetup('/url-of-sandwich', {error: 'verbose'}, 500, done);
-            });
-
-            it('should have status level provided by "error" key of object', function () {
-              result.log.level.should.equal('verbose');
-            });
+        it('should have status level of "error" when statusCode >= 500', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(500).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              statusLevels: true
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('error');
           });
         });
       });
+
+      describe('when statusLevels set to an object', function () {
+        it('should have custom status level provided by "success" key of object when 100 <= statusCode < 400', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(200).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              statusLevels: {success: 'silly'}
+            },
+            transportOptions: {
+              level: 'silly'
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('silly');
+          });
+        });
+
+        it('should have status level provided by "warn" key of object when 400 <= statusCode < 500', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              statusLevels: {warn: 'debug'}
+            },
+            transportOptions: {
+              level: 'silly'
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('debug');
+          });
+        });
+
+        it('should have status level provided by "error" key of object when statusCode >= 500', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(500).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              statusLevels: {error: 'verbose'}
+            },
+            transportOptions: {
+              level: 'silly'
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('verbose');
+          });
+        });
+      });
+    });
+  });
+
+  describe('.requestWhitelist', function () {
+    it('should be an array with all the properties whitelisted in the req object', function () {
+      expressWinston.requestWhitelist.should.be.an.Array();
+    });
+  });
+
+  describe('.bodyWhitelist', function () {
+    it('should be an array with all the properties whitelisted in the body object', function () {
+      expressWinston.bodyWhitelist.should.be.an.Array();
+    });
+  });
+
+  describe('.bodyBlacklist', function () {
+
+  });
+
+  describe('.responseWhitelist', function () {
+    it('should be an array with all the properties whitelisted in the res object', function () {
+      expressWinston.responseWhitelist.should.be.an.Array();
+    });
+  });
+
+  describe('.defaultRequestFilter', function () {
+    it('should be a function', function () {
+      expressWinston.defaultRequestFilter.should.be.a.Function();
+    });
+  });
+
+  describe('.defaultResponseFilter', function () {
+    it('should be a function', function () {
+      expressWinston.defaultResponseFilter.should.be.a.Function();
+    });
+  });
+
+  describe('.defaultSkip', function () {
+    it('should be a function', function () {
+      expressWinston.defaultSkip.should.be.a.Function();
+    });
+  });
+
+  describe('.ignoredRoutes', function () {
+    it('should be an array for all the ignored routes', function () {
+      expressWinston.ignoredRoutes.should.be.an.Array();
     });
   });
 });

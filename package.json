@@ -52,11 +52,12 @@
     "winston": "~1.0.0"
   },
   "devDependencies": {
-    "blanket": "~1.1.6",
-    "mocha": "~2.1.0",
-    "node-mocks-http": "~1.2.3",
-    "should": "~4.6.0",
-    "travis-cov": "~0.2.5"
+    "blanket": "^1.2.2",
+    "mocha": "^2.4.5",
+    "node-mocks-http": "^1.5.1",
+    "promise": "^7.1.1",
+    "should": "^8.2.2",
+    "travis-cov": "^0.2.5"
   },
   "engines": {
     "node": ">=0.10.0"
