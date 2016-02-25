@@ -400,6 +400,7 @@ If you ran into any problems, please use the project [Issues section](https://gi
 * [Johan Hernandez](https://github.com/bithavoc) (https://github.com/bithavoc)
 * [Lars Jacob](https://github.com/jaclar) (https://github.com/jaclar)
 * [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
+* [Ross Brandes](https://github.com/rosston) (https://github.com/rosston)
 
 Also see AUTHORS file, add yourself if you are missing.
 
