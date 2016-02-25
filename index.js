@@ -34,34 +34,34 @@ delete require.cache[require.resolve('underscore')];
  * TODO: Include 'body' and get the defaultRequestFilter to filter the inner properties like 'password' or 'password_confirmation', etc. Pull requests anyone?
  * @type {Array}
  */
-var requestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
+var globalRequestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
 
 /**
  * A default list of properties in the request body that are allowed to be logged.
  * This will normally be empty here, since it should be done at the route level.
  * @type {Array}
  */
-var bodyWhitelist = [];
+var globalBodyWhitelist = [];
 
 /**
  * A default list of properties in the request body that are not allowed to be logged.
  * @type {Array}
  */
-var bodyBlacklist = [];
+var globalBodyBlacklist = [];
 
 /**
  * A default list of properties in the response object that are allowed to be logged.
  * These properties will be safely included in the meta of the log.
  * @type {Array}
  */
-var responseWhitelist = ['statusCode'];
+var globalResponseWhitelist = ['statusCode'];
 
 /**
  * A list of request routes that will be skipped instead of being logged. This would be useful if routes for health checks or pings would otherwise pollute
  * your log files.
  * @type {Array}
  */
-var ignoredRoutes = [];
+var globalIgnoredRoutes = [];
 
 /**
  * A default function to filter the properties of the req object.
@@ -118,6 +118,7 @@ function errorLogger(options) {
 
     ensureValidOptions(options);
 
+    options.requestWhitelist = options.requestWhitelist || globalRequestWhitelist;
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.msg = options.msg || 'middlewareError';
@@ -133,7 +134,7 @@ function errorLogger(options) {
 
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
-        exceptionMeta.req = filterObject(req, requestWhitelist, options.requestFilter);
+        exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
 
         if (options.metaField) {
             var newMeta = {};
@@ -161,8 +162,13 @@ function logger(options) {
     ensureValidOptions(options);
     ensureValidLoggerOptions(options);
 
+    options.requestWhitelist = options.requestWhitelist || globalRequestWhitelist;
+    options.bodyWhitelist = options.bodyWhitelist || globalBodyWhitelist;
+    options.bodyBlacklist = options.bodyBlacklist || globalBodyBlacklist;
+    options.responseWhitelist = options.responseWhitelist || globalResponseWhitelist;
     options.requestFilter = options.requestFilter || defaultRequestFilter;
     options.responseFilter = options.responseFilter || defaultResponseFilter;
+    options.ignoredRoutes = options.ignoredRoutes || globalIgnoredRoutes;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
@@ -181,7 +187,7 @@ function logger(options) {
 
     return function (req, res, next) {
         var currentUrl = req.originalUrl || req.url;
-        if (currentUrl && _.contains(ignoredRoutes, currentUrl)) return next();
+        if (currentUrl && _.contains(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
@@ -225,10 +231,9 @@ function logger(options) {
 
             if(options.meta !== false) {
               var logData = {};
-              var bodyWhitelist, blacklist;
 
-              requestWhitelist = requestWhitelist.concat(req._routeWhitelists.req || []);
-              responseWhitelist = responseWhitelist.concat(req._routeWhitelists.res || []);
+              var requestWhitelist = options.requestWhitelist.concat(req._routeWhitelists.req || []);
+              var responseWhitelist = options.responseWhitelist.concat(req._routeWhitelists.res || []);
 
               logData.res = res;
 
@@ -244,8 +249,8 @@ function logger(options) {
               logData.req = filterObject(req, requestWhitelist, options.requestFilter);
               logData.res = filterObject(res, responseWhitelist, options.responseFilter);
 
-              bodyWhitelist = req._routeWhitelists.body || [];
-              blacklist = _.union(bodyBlacklist, (req._routeBlacklists.body || []));
+              var bodyWhitelist = _.union(options.bodyWhitelist, (req._routeWhitelists.body || []));
+              var blacklist = _.union(options.bodyBlacklist, (req._routeBlacklists.body || []));
 
               var filteredBody = null;
 
@@ -303,11 +308,11 @@ function ensureValidLoggerOptions(options) {
 
 module.exports.errorLogger = errorLogger;
 module.exports.logger = logger;
-module.exports.requestWhitelist = requestWhitelist;
-module.exports.bodyWhitelist = bodyWhitelist;
-module.exports.bodyBlacklist = bodyBlacklist;
-module.exports.responseWhitelist = responseWhitelist;
+module.exports.requestWhitelist = globalRequestWhitelist;
+module.exports.bodyWhitelist = globalBodyWhitelist;
+module.exports.bodyBlacklist = globalBodyBlacklist;
+module.exports.responseWhitelist = globalResponseWhitelist;
 module.exports.defaultRequestFilter = defaultRequestFilter;
 module.exports.defaultResponseFilter = defaultResponseFilter;
 module.exports.defaultSkip = defaultSkip;
-module.exports.ignoredRoutes = ignoredRoutes;
+module.exports.ignoredRoutes = globalIgnoredRoutes;

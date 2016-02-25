@@ -196,6 +196,30 @@ describe('express-winston', function () {
         });
       });
     });
+
+    describe('requestWhitelist option', function () {
+      it('should default to global requestWhitelist', function () {
+        var options = {
+          req: {foo: "bar"}
+        };
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.not.have.property('foo');
+        });
+      });
+
+      it('should use specified requestWhitelist', function () {
+        var options = {
+          req: {foo: "bar"},
+          loggerOptions: {
+            requestWhitelist: ['foo']
+          }
+        };
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.have.property('foo');
+          result.log.meta.req.should.not.have.property('method');
+        });
+      });
+    });
   });
 
   describe('.logger()', function () {
@@ -600,6 +624,77 @@ describe('express-winston', function () {
           return loggerTestHelper(testHelperOptions).then(function (result) {
             result.log.level.should.equal('verbose');
           });
+        });
+      });
+    });
+
+    describe('requestWhitelist option', function () {
+      it('should default to global requestWhitelist', function () {
+        var options = {
+          req: {foo: "bar"}
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.not.have.property('foo');
+        });
+      });
+
+      it('should use specified requestWhitelist', function () {
+        var options = {
+          req: {foo: "bar"},
+          loggerOptions: {
+            requestWhitelist: ['foo']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.have.property('foo');
+          result.log.meta.req.should.not.have.property('method');
+        });
+      });
+    });
+
+    describe('responseWhitelist option', function () {
+      it('should default to global responseWhitelist', function () {
+        var options = {
+          res: {foo: "bar"}
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.res.should.not.have.property('foo');
+        });
+      });
+
+      it('should use specified responseWhitelist', function () {
+        var options = {
+          res: {foo: "bar"},
+          loggerOptions: {
+            responseWhitelist: ['foo']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.res.should.have.property('foo');
+          result.log.meta.res.should.not.have.property('method');
+        });
+      });
+    });
+
+    describe('ignoredRoutes option', function () {
+      it('should default to global ignoredRoutes', function () {
+        var options = {
+          req: {url: "/ignored"}
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.transportInvoked.should.eql(false);
+        });
+      });
+
+      it('should use specified ignoredRoutes', function () {
+        var options = {
+          req: {url: "/ignored-option"},
+          loggerOptions: {
+            ignoredRoutes: ['/ignored-option']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.transportInvoked.should.eql(false);
         });
       });
     });
