@@ -80,6 +80,12 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     skip: function(req, res) { return false; } // function to determine if logging is skipped, defaults to false.
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
     responseFilter: function (res, propName) { return res[propName]; } // A function to filter/return response values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
+    requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
+    responseWhitelist: [String] // Array of response properties to log. Overrides global responseWhitelist for this instance
+    bodyWhitelist: [String] // Array of body properties to log. Overrides global bodyWhitelist for this instance
+    bodyBlacklist: [String] // Array of body properties to omit from logs. Overrides global bodyBlacklist for this instance
+    ignoredRoutes: [String] // Array of paths to ignore/skip logging. Overrides global ignoredRoutes for this instance
+
 ```
 
 ### Error Logging
@@ -111,6 +117,7 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
+    requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
 ```
 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
