@@ -34,34 +34,34 @@ delete require.cache[require.resolve('underscore')];
  * TODO: Include 'body' and get the defaultRequestFilter to filter the inner properties like 'password' or 'password_confirmation', etc. Pull requests anyone?
  * @type {Array}
  */
-var globalRequestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
+exports.requestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
 
 /**
  * A default list of properties in the request body that are allowed to be logged.
  * This will normally be empty here, since it should be done at the route level.
  * @type {Array}
  */
-var globalBodyWhitelist = [];
+exports.bodyWhitelist = [];
 
 /**
  * A default list of properties in the request body that are not allowed to be logged.
  * @type {Array}
  */
-var globalBodyBlacklist = [];
+exports.bodyBlacklist = [];
 
 /**
  * A default list of properties in the response object that are allowed to be logged.
  * These properties will be safely included in the meta of the log.
  * @type {Array}
  */
-var globalResponseWhitelist = ['statusCode'];
+exports.responseWhitelist = ['statusCode'];
 
 /**
  * A list of request routes that will be skipped instead of being logged. This would be useful if routes for health checks or pings would otherwise pollute
  * your log files.
  * @type {Array}
  */
-var globalIgnoredRoutes = [];
+exports.ignoredRoutes = [];
 
 /**
  * A default function to filter the properties of the req object.
@@ -69,7 +69,7 @@ var globalIgnoredRoutes = [];
  * @param propName
  * @return {*}
  */
-var defaultRequestFilter = function (req, propName) {
+exports.defaultRequestFilter = function (req, propName) {
     return req[propName];
 };
 
@@ -79,7 +79,7 @@ var defaultRequestFilter = function (req, propName) {
  * @param propName
  * @return {*}
  */
-var defaultResponseFilter = function (res, propName) {
+exports.defaultResponseFilter = function (res, propName) {
     return res[propName];
 };
 
@@ -87,7 +87,7 @@ var defaultResponseFilter = function (res, propName) {
  * A default function to decide whether skip logging of particular request. Doesn't skip anything (i.e. log all requests).
  * @return always false
  */
-var defaultSkip = function() {
+exports.defaultSkip = function() {
   return false;
 };
 
@@ -114,12 +114,12 @@ function filterObject(originalObj, whiteList, initialFilter) {
 //
 
 
-function errorLogger(options) {
+exports.errorLogger = function errorLogger(options) {
 
     ensureValidOptions(options);
 
-    options.requestWhitelist = options.requestWhitelist || globalRequestWhitelist;
-    options.requestFilter = options.requestFilter || defaultRequestFilter;
+    options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
+    options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
@@ -149,7 +149,7 @@ function errorLogger(options) {
 
         next(err);
     };
-}
+};
 
 //
 // ### function logger(options)
@@ -157,18 +157,18 @@ function errorLogger(options) {
 //
 
 
-function logger(options) {
+exports.logger = function logger(options) {
 
     ensureValidOptions(options);
     ensureValidLoggerOptions(options);
 
-    options.requestWhitelist = options.requestWhitelist || globalRequestWhitelist;
-    options.bodyWhitelist = options.bodyWhitelist || globalBodyWhitelist;
-    options.bodyBlacklist = options.bodyBlacklist || globalBodyBlacklist;
-    options.responseWhitelist = options.responseWhitelist || globalResponseWhitelist;
-    options.requestFilter = options.requestFilter || defaultRequestFilter;
-    options.responseFilter = options.responseFilter || defaultResponseFilter;
-    options.ignoredRoutes = options.ignoredRoutes || globalIgnoredRoutes;
+    options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
+    options.bodyWhitelist = options.bodyWhitelist || exports.bodyWhitelist;
+    options.bodyBlacklist = options.bodyBlacklist || exports.bodyBlacklist;
+    options.responseWhitelist = options.responseWhitelist || exports.responseWhitelist;
+    options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
+    options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
+    options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
@@ -178,7 +178,7 @@ function logger(options) {
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
-    options.skip = options.skip || defaultSkip;
+    options.skip = options.skip || exports.defaultSkip;
 
     // Using mustache style templating
     var template = _.template(options.msg, null, {
@@ -292,7 +292,7 @@ function logger(options) {
 
         next();
     };
-}
+};
 
 function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
@@ -305,14 +305,3 @@ function ensureValidLoggerOptions(options) {
         throw new Error("`ignoreRoute` express-winston option should be a function");
     }
 }
-
-module.exports.errorLogger = errorLogger;
-module.exports.logger = logger;
-module.exports.requestWhitelist = globalRequestWhitelist;
-module.exports.bodyWhitelist = globalBodyWhitelist;
-module.exports.bodyBlacklist = globalBodyBlacklist;
-module.exports.responseWhitelist = globalResponseWhitelist;
-module.exports.defaultRequestFilter = defaultRequestFilter;
-module.exports.defaultResponseFilter = defaultResponseFilter;
-module.exports.defaultSkip = defaultSkip;
-module.exports.ignoredRoutes = globalIgnoredRoutes;

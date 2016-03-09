@@ -149,6 +149,39 @@ describe('express-winston', function () {
       middleware.length.should.eql(4);
     });
 
+    it('should use the exported requestWhitelist', function() {
+      var originalWhitelist = expressWinston.requestWhitelist;
+      expressWinston.requestWhitelist = ['foo'];
+
+      var options = {
+        req: {foo: "bar"}
+      };
+      return errorLoggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.requestWhitelist = originalWhitelist;
+
+        result.log.meta.req.should.have.property('foo');
+        result.log.meta.req.should.not.have.property('url');
+      });
+    });
+
+    it('should use the exported defaultRequestFilter', function() {
+      var originalRequestFilter = expressWinston.defaultRequestFilter;
+      expressWinston.defaultRequestFilter = function() {
+        return 'foo';
+      };
+
+      var options = {
+        req: {foo: "bar"}
+      };
+      return errorLoggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.defaultRequestFilter = originalRequestFilter;
+
+        result.log.meta.req.url.should.equal('foo');
+      });
+    });
+
     describe('when middleware function encounters an error in the pipeline', function () {
       it('should invoke the transport', function () {
         return errorLoggerTestHelper().then(function (result) {
@@ -295,6 +328,136 @@ describe('express-winston', function () {
         }
       };
       return loggerTestHelper(testHelperOptions).then(function (result) {
+        result.transportInvoked.should.eql(false);
+      });
+    });
+
+    it('should use the exported requestWhitelist', function() {
+      var originalWhitelist = expressWinston.requestWhitelist;
+      expressWinston.requestWhitelist = ['foo'];
+
+      var options = {
+        req: {foo: "bar"}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.requestWhitelist = originalWhitelist;
+
+        result.log.meta.req.should.have.property('foo');
+        result.log.meta.req.should.not.have.property('url');
+      });
+    });
+
+    it('should use the exported bodyWhitelist', function() {
+      var originalWhitelist = expressWinston.bodyWhitelist;
+      expressWinston.bodyWhitelist = ['foo'];
+
+      var options = {
+        req: {body: {foo: 'bar', baz: 'qux'}}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.bodyWhitelist = originalWhitelist;
+
+        result.log.meta.req.body.should.have.property('foo');
+        result.log.meta.req.body.should.not.have.property('baz');
+      });
+    });
+
+    it('should use the exported bodyBlacklist', function() {
+      var originalWhitelist = expressWinston.bodyBlacklist;
+      expressWinston.bodyBlacklist = ['foo'];
+
+      var options = {
+        req: {body: {foo: 'bar', baz: 'qux'}}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.bodyBlacklist = originalWhitelist;
+
+        result.log.meta.req.body.should.not.have.property('foo');
+        result.log.meta.req.body.should.have.property('baz');
+      });
+    });
+
+    it('should use the exported responseWhitelist', function() {
+      var originalWhitelist = expressWinston.responseWhitelist;
+      expressWinston.responseWhitelist = ['foo'];
+
+      var options = {
+        res: {foo: 'bar', baz: 'qux'}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.responseWhitelist = originalWhitelist;
+
+        result.log.meta.res.should.have.property('foo');
+        result.log.meta.res.should.not.have.property('baz');
+      });
+    });
+
+    it('should use the exported defaultRequestFilter', function() {
+      var originalRequestFilter = expressWinston.defaultRequestFilter;
+      expressWinston.defaultRequestFilter = function() {
+        return 'foo';
+      };
+
+      var options = {
+        req: {foo: "bar"}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.defaultRequestFilter = originalRequestFilter;
+
+        result.log.meta.req.url.should.equal('foo');
+      });
+    });
+
+    it('should use the exported defaultResponseFilter', function() {
+      var originalResponseFilter = expressWinston.defaultResponseFilter;
+      expressWinston.defaultResponseFilter = function() {
+        return 'foo';
+      };
+
+      var options = {
+        req: {foo: "bar"}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.defaultResponseFilter = originalResponseFilter;
+
+        result.log.meta.res.statusCode.should.equal('foo');
+      });
+    });
+
+    it('should use the exported defaultSkip', function() {
+      var originalSkip = expressWinston.defaultSkip;
+      expressWinston.defaultSkip = function() {
+        return true;
+      };
+
+      var options = {
+        req: {foo: "bar"}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.defaultSkip = originalSkip;
+
+        result.transportInvoked.should.eql(false);
+      });
+    });
+
+    it('should use the exported ignoredRoutes', function() {
+      var originalIgnoredRoutes = expressWinston.ignoredRoutes;
+      expressWinston.ignoredRoutes = ['/foo-route'];
+
+      var options = {
+        req: {url: '/foo-route'}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.ignoredRoutes = originalIgnoredRoutes;
+
         result.transportInvoked.should.eql(false);
       });
     });
