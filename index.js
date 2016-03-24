@@ -173,17 +173,17 @@ exports.logger = function logger(options) {
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
-    options.colorStatus = options.colorStatus || false;
+    options.colorize = options.colorize || false;
+    options.statusColor = options.statusColor || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || exports.defaultSkip;
 
-    // Using mustache style templating
-    var template = _.template(options.msg, {
-      interpolate: /\{\{(.+?)\}\}/g
-    });
-
     return function (req, res, next) {
+        //to add colors on req / res values
+        var colored_req = {};
+        var colored_res = {};
+
         var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
@@ -216,13 +216,13 @@ exports.logger = function logger(options) {
               if (res.statusCode >= 500) { options.level = options.statusLevels.error || "error"; }
             };
 
-            if (options.colorStatus || options.expressFormat) {
+            if (options.colorize || options.statusColor) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
               var statusColor = 'green';
               if (res.statusCode >= 500) statusColor = 'red';
               else if (res.statusCode >= 400) statusColor = 'yellow';
               else if (res.statusCode >= 300) statusColor = 'cyan';
-              var coloredStatusCode = chalk[statusColor](res.statusCode);
+              colored_res.statusCode = chalk[statusColor](res.statusCode);
             }
 
             var meta = {};
@@ -275,13 +275,20 @@ exports.logger = function logger(options) {
 
             meta = _.extend(meta, options.baseMeta);
 
-            if(options.expressFormat) {
-              var msg = chalk.grey(req.method + " " + req.url || req.url)
-                + " " + chalk[statusColor](res.statusCode)
-                + " " + chalk.grey(res.responseTime+"ms");
-            } else {
-              var msg = template({req: req, res: res});
+
+            var msgFormat = !options.expressFormat ? options.msg : "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
+
+            // Using mustache style templating
+            var template = _.template(msgFormat, {
+              interpolate: /\{\{(.+?)\}\}/g
+            });
+
+            var msg = template({req: _.extend({}, req, colored_req), res: _.extend({}, res, colored_res)});
+
+            if(options.colorize) {
+              msg = chalk.grey(msg);
             }
+
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
               options.winstonInstance.log(options.level, msg, meta);
