@@ -47,16 +47,16 @@
     }
   },
   "dependencies": {
-    "chalk": "~0.4.0",
-    "underscore": "~1.5.2",
-    "winston": "~1.0.0"
+    "chalk": "~1.1.1",
+    "underscore": "~1.8.3",
+    "winston": "~2.2.0"
   },
   "devDependencies": {
-    "blanket": "^1.2.2",
+    "blanket": "^1.2.3",
     "mocha": "^2.4.5",
-    "node-mocks-http": "^1.5.1",
+    "node-mocks-http": "^1.5.2",
     "promise": "^7.1.1",
-    "should": "^8.2.2",
+    "should": "^8.3.0",
     "travis-cov": "^0.2.5"
   },
   "engines": {
