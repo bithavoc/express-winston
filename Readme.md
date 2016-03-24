@@ -55,8 +55,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
       ],
       meta: true, // optional: control whether you want to log the meta data about the request (default to true)
       msg: "HTTP {{req.method}} {{req.url}}", // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
-      expressFormat: true, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
-      colorStatus: true, // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
+      expressFormat: true, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors with colorize set to true
+      colorize: true, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
       ignoreRoute: function (req, res) { return false; } // optional: allows to skip some log messages based on request and/or response
     }));
 
@@ -70,8 +70,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored.
     level: String, // log level to use, the default is "info".
     msg: String // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".
-    expressFormat: Boolean, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true
-    colorStatus: Boolean, // Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true
+    expressFormat: Boolean, // Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg if true. Will only output colors on transports with colorize set to true
+    colorize: Boolean, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
     baseMeta: Object, // default meta data to be added to log, this will be merged with the meta data.
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
