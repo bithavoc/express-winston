@@ -182,9 +182,9 @@ exports.logger = function logger(options) {
     options.skip = options.skip || exports.defaultSkip;
 
     return function (req, res, next) {
-        //to add colors on req / res values
-        var colored_req = {};
-        var colored_res = {};
+        //to add colors on req / res values without modifying the original variable
+        var colored_req = _.clone(req);
+        var colored_res = _.clone(res);
 
         var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
@@ -285,7 +285,7 @@ exports.logger = function logger(options) {
               interpolate: /\{\{(.+?)\}\}/g
             });
 
-            var msg = template({req: _.extend({}, req, colored_req), res: _.extend({}, res, colored_res)});
+            var msg = template({req: colored_req, res: colored_res});
 
             if(options.colorize) {
               msg = chalk.grey(msg);
