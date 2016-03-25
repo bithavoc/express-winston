@@ -22,10 +22,10 @@ var winston = require('winston');
 var util = require('util');
 var chalk = require('chalk');
 
-//Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
-delete require.cache[require.resolve('underscore')];
-var _ = require('underscore');
-delete require.cache[require.resolve('underscore')];
+//Allow this file to get an exclusive copy of lodash so it can change the template settings without affecting others
+delete require.cache[require.resolve('lodash')];
+var _ = require('lodash');
+delete require.cache[require.resolve('lodash')];
 
 /**
  * A default list of properties in the request object that are allowed to be logged.
@@ -126,7 +126,7 @@ exports.errorLogger = function errorLogger(options) {
     options.metaField = options.metaField || null;
 
     // Using mustache style templating
-    var template = _.template(options.msg, null, {
+    var template = _.template(options.msg, {
       interpolate: /\{\{(.+?)\}\}/g
     });
 
@@ -187,7 +187,7 @@ exports.logger = function logger(options) {
         var colored_res = {};
 
         var currentUrl = req.originalUrl || req.url;
-        if (currentUrl && _.contains(options.ignoredRoutes, currentUrl)) return next();
+        if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
@@ -237,7 +237,7 @@ exports.logger = function logger(options) {
 
               logData.res = res;
 
-              if (_.contains(responseWhitelist, 'body')) {
+              if (_.includes(responseWhitelist, 'body')) {
                 if (chunk) {
                   var isJson = (res._headers && res._headers['content-type']
                     && res._headers['content-type'].indexOf('json') >= 0);
@@ -256,7 +256,7 @@ exports.logger = function logger(options) {
 
               if ( req.body !== undefined ) {
                   if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                    var whitelist = _.difference(_.keys(req.body), blacklist);
+                    var whitelist = _.difference(Object.keys(req.body), blacklist);
                     filteredBody = filterObject(req.body, whitelist, options.requestFilter);
                   } else {
                     filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
@@ -281,7 +281,7 @@ exports.logger = function logger(options) {
             var msgFormat = !options.expressFormat ? options.msg : "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
 
             // Using mustache style templating
-            var template = _.template(msgFormat, null, {
+            var template = _.template(msgFormat, {
               interpolate: /\{\{(.+?)\}\}/g
             });
 

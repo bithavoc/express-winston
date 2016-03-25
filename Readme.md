@@ -120,7 +120,7 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
 ```
 
-To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
+To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using lodash: `transports: _.values(winston.default.transports)`.
 
 Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the `winstonInstance` option. The `transports` option is then ignored.
 
