@@ -191,6 +191,7 @@ exports.logger = function logger(options) {
         if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
+        colored_req._startTime = req._startTime;
 
         req._routeWhitelists = {
             req: [],
@@ -206,6 +207,7 @@ exports.logger = function logger(options) {
         var end = res.end;
         res.end = function(chunk, encoding) {
             res.responseTime = (new Date) - req._startTime;
+            colored_res.responseTime = res.responseTime;
 
             res.end = end;
             res.end(chunk, encoding);
