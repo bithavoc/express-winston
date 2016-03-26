@@ -53,11 +53,13 @@
   },
   "devDependencies": {
     "blanket": "^1.2.3",
+    "chalk": "^1.1.1",
     "mocha": "^2.4.5",
     "node-mocks-http": "^1.5.2",
     "promise": "^7.1.1",
     "should": "^8.3.0",
-    "travis-cov": "^0.2.5"
+    "travis-cov": "^0.2.5",
+    "winston": "^2.2.0"
   },
   "engines": {
     "node": ">=0.10.0"
