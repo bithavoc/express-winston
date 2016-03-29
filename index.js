@@ -176,7 +176,7 @@ exports.logger = function logger(options) {
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.colorize = options.colorize || false;
-    options.statusColor = options.statusColor || false;
+    options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || exports.defaultSkip;
@@ -220,13 +220,13 @@ exports.logger = function logger(options) {
               if (res.statusCode >= 500) { options.level = options.statusLevels.error || "error"; }
             };
 
-            if (options.colorize || options.statusColor) {
+            if (options.colorize || options.colorStatus) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
-              var statusColor = 'green';
-              if (res.statusCode >= 500) statusColor = 'red';
-              else if (res.statusCode >= 400) statusColor = 'yellow';
-              else if (res.statusCode >= 300) statusColor = 'cyan';
-              colored_res.statusCode = chalk[statusColor](res.statusCode);
+              var colorStatus = 'green';
+              if (res.statusCode >= 500) colorStatus = 'red';
+              else if (res.statusCode >= 400) colorStatus = 'yellow';
+              else if (res.statusCode >= 300) colorStatus = 'cyan';
+              colored_res.statusCode = chalk[colorStatus](res.statusCode);
             }
 
             var meta = {};
