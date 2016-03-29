@@ -17,7 +17,7 @@
     "middleware",
     "colors"
   ],
-  "version": "1.3.0",
+  "version": "1.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/bithavoc/express-winston.git"
@@ -47,17 +47,19 @@
     }
   },
   "dependencies": {
-    "chalk": "~0.4.0",
-    "underscore": "~1.5.2",
-    "winston": "~1.0.0"
+    "chalk": "~1.1.1",
+    "lodash": "^4.6.1",
+    "winston": "~2.2.0"
   },
   "devDependencies": {
-    "blanket": "^1.2.2",
+    "blanket": "^1.2.3",
+    "chalk": "^1.1.1",
     "mocha": "^2.4.5",
-    "node-mocks-http": "^1.5.1",
+    "node-mocks-http": "^1.5.2",
     "promise": "^7.1.1",
-    "should": "^8.2.2",
-    "travis-cov": "^0.2.5"
+    "should": "^8.3.0",
+    "travis-cov": "^0.2.5",
+    "winston": "^2.2.0"
   },
   "engines": {
     "node": ">=0.10.0"
@@ -84,6 +86,11 @@
       "name": "Robbie Trencheny",
       "email": "me@robbiet.us",
       "url": "http://robbie.io"
+    },
+    {
+      "name": "Bruno Lemos",
+      "email": "bruno@brunolemos.org",
+      "url": "http://brunolemos.org/"
     }
   ]
 }

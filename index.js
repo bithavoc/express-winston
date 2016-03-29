@@ -22,10 +22,10 @@ var winston = require('winston');
 var util = require('util');
 var chalk = require('chalk');
 
-//Allow this file to get an exclusive copy of underscore so it can change the template settings without affecting others
-delete require.cache[require.resolve('underscore')];
-var _ = require('underscore');
-delete require.cache[require.resolve('underscore')];
+//Allow this file to get an exclusive copy of lodash so it can change the template settings without affecting others
+delete require.cache[require.resolve('lodash')];
+var _ = require('lodash');
+delete require.cache[require.resolve('lodash')];
 
 /**
  * A default list of properties in the request object that are allowed to be logged.
@@ -126,7 +126,7 @@ exports.errorLogger = function errorLogger(options) {
     options.metaField = options.metaField || null;
 
     // Using mustache style templating
-    var template = _.template(options.msg, null, {
+    var template = _.template(options.msg, {
       interpolate: /\{\{(.+?)\}\}/g
     });
 
@@ -175,22 +175,23 @@ exports.logger = function logger(options) {
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
+    options.colorize = options.colorize || false;
     options.colorStatus = options.colorStatus || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || exports.defaultSkip;
 
-    // Using mustache style templating
-    var template = _.template(options.msg, null, {
-      interpolate: /\{\{(.+?)\}\}/g
-    });
-
     return function (req, res, next) {
+        //to add colors on req / res values without modifying the original variable
+        var colored_req = _.clone(req);
+        var colored_res = _.clone(res);
+
         var currentUrl = req.originalUrl || req.url;
-        if (currentUrl && _.contains(options.ignoredRoutes, currentUrl)) return next();
+        if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
 
         req._startTime = (new Date);
+        colored_req._startTime = req._startTime;
 
         req._routeWhitelists = {
             req: [],
@@ -206,6 +207,7 @@ exports.logger = function logger(options) {
         var end = res.end;
         res.end = function(chunk, encoding) {
             res.responseTime = (new Date) - req._startTime;
+            colored_res.responseTime = res.responseTime;
 
             res.end = end;
             res.end(chunk, encoding);
@@ -218,13 +220,13 @@ exports.logger = function logger(options) {
               if (res.statusCode >= 500) { options.level = options.statusLevels.error || "error"; }
             };
 
-            if (options.colorStatus || options.expressFormat) {
+            if (options.colorize || options.colorStatus) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
-              var statusColor = 'green';
-              if (res.statusCode >= 500) statusColor = 'red';
-              else if (res.statusCode >= 400) statusColor = 'yellow';
-              else if (res.statusCode >= 300) statusColor = 'cyan';
-              var coloredStatusCode = chalk[statusColor](res.statusCode);
+              var colorStatus = 'green';
+              if (res.statusCode >= 500) colorStatus = 'red';
+              else if (res.statusCode >= 400) colorStatus = 'yellow';
+              else if (res.statusCode >= 300) colorStatus = 'cyan';
+              colored_res.statusCode = chalk[colorStatus](res.statusCode);
             }
 
             var meta = {};
@@ -237,7 +239,7 @@ exports.logger = function logger(options) {
 
               logData.res = res;
 
-              if (_.contains(responseWhitelist, 'body')) {
+              if (_.includes(responseWhitelist, 'body')) {
                 if (chunk) {
                   var isJson = (res._headers && res._headers['content-type']
                     && res._headers['content-type'].indexOf('json') >= 0);
@@ -256,7 +258,7 @@ exports.logger = function logger(options) {
 
               if ( req.body !== undefined ) {
                   if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                    var whitelist = _.difference(_.keys(req.body), blacklist);
+                    var whitelist = _.difference(Object.keys(req.body), blacklist);
                     filteredBody = filterObject(req.body, whitelist, options.requestFilter);
                   } else {
                     filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
@@ -277,13 +279,20 @@ exports.logger = function logger(options) {
 
             meta = _.extend(meta, options.baseMeta);
 
-            if(options.expressFormat) {
-              var msg = chalk.grey(req.method + " " + req.url || req.url)
-                + " " + chalk[statusColor](res.statusCode)
-                + " " + chalk.grey(res.responseTime+"ms");
-            } else {
-              var msg = template({req: req, res: res});
+
+            var msgFormat = !options.expressFormat ? options.msg : "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
+
+            // Using mustache style templating
+            var template = _.template(msgFormat, {
+              interpolate: /\{\{(.+?)\}\}/g
+            });
+
+            var msg = template({req: colored_req, res: colored_res});
+
+            if(options.colorize) {
+              msg = chalk.grey(msg);
             }
+
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
               options.winstonInstance.log(options.level, msg, meta);

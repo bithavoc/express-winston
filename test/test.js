@@ -3,7 +3,7 @@ var util = require('util');
 var mocks = require('node-mocks-http');
 var Promise = require('promise/lib/es6-extensions');
 var should = require('should');
-var _ = require('underscore');
+var _ = require('lodash');
 var winston = require('winston');
 
 var expressWinston = require('../index.js');
@@ -550,7 +550,8 @@ describe('express-winston', function () {
       it('should match the Express format when logging', function () {
         var testHelperOptions = {
           loggerOptions: {
-            expressFormat: true
+            expressFormat: true,
+            colorize: true
           },
           req: {
             url: '/all-the-things'
@@ -558,7 +559,7 @@ describe('express-winston', function () {
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
           var resultMsg = result.log.msg;
-          resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
+          resultMsg.should.startWith('\u001b[90mGET /all-the-things \u001b[32m200\u001b[90m');
           resultMsg.should.endWith('ms\u001b[39m');
         });
       });
