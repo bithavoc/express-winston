@@ -189,9 +189,16 @@ describe('express-winston', function () {
         });
       });
 
-      it('should find an error level of "error"', function () {
+      it('should find the default level of "error"', function () {
         return errorLoggerTestHelper().then(function (result) {
           result.log.level.should.eql('error');
+        });
+      });
+
+      it('should find a custom level of "warn"', function () {
+        var testHelperOptions = {loggerOptions: {level:'warn'}};
+        return errorLoggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.level.should.eql('warn');
         });
       });
 

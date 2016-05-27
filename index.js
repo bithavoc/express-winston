@@ -121,6 +121,7 @@ exports.errorLogger = function errorLogger(options) {
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
+    options.level = options.level || 'error';
 
     // Using mustache style templating
     var template = _.template(options.msg, {
@@ -142,7 +143,7 @@ exports.errorLogger = function errorLogger(options) {
         exceptionMeta = _.extend(exceptionMeta, options.baseMeta);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log('error', template({err: err, req: req, res: res}), exceptionMeta);
+        options.winstonInstance.log(options.level, template({err: err, req: req, res: res}), exceptionMeta);
 
         next(err);
     };

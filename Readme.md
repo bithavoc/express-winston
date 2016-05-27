@@ -118,6 +118,7 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
     requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
+    level: String // custom log level for errors (default is 'error')
 ```
 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
