@@ -535,6 +535,35 @@ describe('express-winston', function () {
       });
     });
 
+    describe('when middleware function is invoked on a route that returns JSON', function() {
+      it('should parse JSON in response body', function() {
+        var bodyObject = { "message": "Hi!  I\'m a chunk!" };
+        function next(req, res, next) {
+          // Set Content-Type in a couple different case types, just in case.
+          // Seems like the mock response doesn't quite handle the case
+          // translation on these right.
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify(bodyObject));
+        }
+        return loggerTestHelper({next: next}).then(function(result) {
+            result.log.meta.res.body.should.eql(bodyObject);
+        });
+      });
+
+      it('should not blow up when response body is invalid JSON', function() {
+        function next(req, res, next) {
+          // Set Content-Type in a couple different case types, just in case.
+          // Seems like the mock response doesn't quite handle the case
+          // translation on these right.
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('content-type', 'application/json');
+          res.end('}');
+        }
+        return loggerTestHelper({next: next});
+      });
+    });
+
     describe('when middleware function is invoked on a route that should be ignored (by .ignoredRoutes)', function () {
       var testHelperOptions = {
         req: {url: '/ignored'}

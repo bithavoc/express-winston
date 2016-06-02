@@ -240,7 +240,7 @@ exports.logger = function logger(options) {
                   var isJson = (res._headers && res._headers['content-type']
                     && res._headers['content-type'].indexOf('json') >= 0);
 
-                  logData.res.body =  isJson ? JSON.parse(chunk) : chunk.toString();
+                  logData.res.body = bodyToString(chunk, isJson);
                 }
               }
 
@@ -291,6 +291,22 @@ exports.logger = function logger(options) {
         next();
     };
 };
+
+function safeJSONParse(string) {
+    try {
+        return JSON.parse(string);
+    } catch (e) {
+        return undefined;
+    }
+}
+
+function bodyToString(body, isJSON) {
+    var stringBody = body && body.toString();
+    if (isJSON) {
+        return (safeJSONParse(body) || stringBody);
+    }
+    return stringBody;
+}
 
 function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
