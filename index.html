@@ -1,50 +1,57 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <title>Express-winston by bithavoc</title>
 
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-
-    <title>Express-winston by bithavoc</title>
   </head>
-
   <body>
-    <header>
-      <div class="inner">
+    <div class="wrapper">
+      <header>
         <h1>Express-winston</h1>
-        <h2>express.js middleware for flatiron/winston</h2>
-        <a href="https://github.com/bithavoc/express-winston" class="button"><small>View project on</small>GitHub</a>
-      </div>
-    </header>
+        <p>express.js middleware for flatiron/winston</p>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h1>
-<a name="express-winston" class="anchor" href="#express-winston"><span class="octicon octicon-link"></span></a>express-winston</h1>
+        <p class="view"><a href="https://github.com/bithavoc/express-winston">View the Project on GitHub <small>bithavoc/express-winston</small></a></p>
 
-<p><a href="http://travis-ci.org/bithavoc/express-winston"><img src="https://secure.travis-ci.org/bithavoc/express-winston.png" alt="Build Status"></a></p>
+
+        <ul>
+          <li><a href="https://github.com/bithavoc/express-winston/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/bithavoc/express-winston/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/bithavoc/express-winston">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="express-winston" class="anchor" href="#express-winston" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>express-winston</h1>
+
+<p><a href="https://www.npmjs.com/package/express-winston"><img src="https://img.shields.io/npm/dm/express-winston.svg" alt="Monthly Downloads"></a> <a href="http://travis-ci.org/bithavoc/express-winston"><img src="https://secure.travis-ci.org/bithavoc/express-winston.png" alt="Build Status"></a></p>
 
 <blockquote>
 <p><a href="https://github.com/flatiron/winston">winston</a> middleware for express.js</p>
 </blockquote>
 
 <h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Newcomers should start with the latest branch which makes use of winston 1.x.x and supports node &gt;= 0.10:</p>
 
 <pre><code>npm install express-winston
 </code></pre>
 
+<p>If you're already using express-winston, and want to stick with the stable version based on winston 0.9.x, you should instead do:</p>
+
+<pre><code>npm install express-winston@0.x.x --save
+</code></pre>
+
 <h2>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
 
 <p>express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.</p>
 
@@ -69,110 +76,142 @@
 </code></pre>
 
 <h3>
-<a name="error-logging" class="anchor" href="#error-logging"><span class="octicon octicon-link"></span></a>Error Logging</h3>
+<a id="request-logging" class="anchor" href="#request-logging" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Request Logging</h3>
+
+<p>Use <code>expressWinston.logger(options)</code> to create a middleware to log your HTTP requests.</p>
+
+<div class="highlight highlight-source-js"><pre>    <span class="pl-k">var</span> router <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>./my-express-router<span class="pl-pds">'</span></span>);
+
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">expressWinston</span>.<span class="pl-en">logger</span>({
+      transports<span class="pl-k">:</span> [
+        <span class="pl-k">new</span> <span class="pl-en">winston.transports</span>.<span class="pl-en">Console</span>({
+          json<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+          colorize<span class="pl-k">:</span> <span class="pl-c1">true</span>
+        })
+      ],
+      meta<span class="pl-k">:</span> <span class="pl-c1">true</span>, <span class="pl-c">// optional: control whether you want to log the meta data about the request (default to true)</span>
+      msg<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>HTTP {{req.method}} {{req.url}}<span class="pl-pds">"</span></span>, <span class="pl-c">// optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"</span>
+      expressFormat<span class="pl-k">:</span> <span class="pl-c1">true</span>, <span class="pl-c">// Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true</span>
+      colorStatus<span class="pl-k">:</span> <span class="pl-c1">true</span>, <span class="pl-c">// Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true</span>
+      <span class="pl-en">ignoreRoute</span><span class="pl-k">:</span> <span class="pl-k">function</span> (<span class="pl-smi">req</span>, <span class="pl-smi">res</span>) { <span class="pl-k">return</span> <span class="pl-c1">false</span>; } <span class="pl-c">// optional: allows to skip some log messages based on request and/or response</span>
+    }));
+
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(router); <span class="pl-c">// notice how the router goes after the logger.</span></pre></div>
+
+<h4>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Options</h4>
+
+<div class="highlight highlight-source-js"><pre>    transports<span class="pl-k">:</span> [<span class="pl-k">&lt;</span>WinstonTransport<span class="pl-k">&gt;</span>], <span class="pl-c">// list of all winston transports instances to use.</span>
+    winstonInstance<span class="pl-k">:</span> <span class="pl-k">&lt;</span>WinstonLogger<span class="pl-k">&gt;</span>, <span class="pl-c">// a winston logger instance. If this is provided the transports option is ignored.</span>
+    level<span class="pl-k">:</span> <span class="pl-c1">String</span>, <span class="pl-c">// log level to use, the default is "info".</span>
+    msg<span class="pl-k">:</span> <span class="pl-c1">String</span> <span class="pl-c">// customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".</span>
+    expressFormat<span class="pl-k">:</span> <span class="pl-c1">Boolean</span>, <span class="pl-c">// Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true</span>
+    colorStatus<span class="pl-k">:</span> <span class="pl-c1">Boolean</span>, <span class="pl-c">// Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true</span>
+    meta<span class="pl-k">:</span> <span class="pl-c1">Boolean</span>, <span class="pl-c">// control whether you want to log the meta data about the request (default to true).</span>
+    baseMeta<span class="pl-k">:</span> <span class="pl-c1">Object</span>, <span class="pl-c">// default meta data to be added to log, this will be merged with the meta data.</span>
+    metaField<span class="pl-k">:</span> <span class="pl-c1">String</span>, <span class="pl-c">// if defined, the meta data will be added in this field instead of the meta root object.</span>
+    statusLevels<span class="pl-k">:</span> <span class="pl-c1">Boolean</span> or <span class="pl-c1">Object</span> <span class="pl-c">// different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false. Use an object to control the levels various status codes are logged at.</span>
+    <span class="pl-en">ignoreRoute</span><span class="pl-k">:</span> <span class="pl-k">function</span> (<span class="pl-smi">req</span>, <span class="pl-smi">res</span>) { <span class="pl-k">return</span> <span class="pl-c1">false</span>; } <span class="pl-c">// A function to determine if logging is skipped, defaults to returning false. Called _before_ any later middleware.</span>
+    <span class="pl-en">skip</span><span class="pl-k">:</span> <span class="pl-k">function</span>(<span class="pl-smi">req</span>, <span class="pl-smi">res</span>) { <span class="pl-k">return</span> <span class="pl-c1">false</span>; } <span class="pl-c">// A function to determine if logging is skipped, defaults to returning false. Called _after_ response has already been sent.</span>
+    <span class="pl-en">requestFilter</span><span class="pl-k">:</span> <span class="pl-k">function</span> (<span class="pl-smi">req</span>, <span class="pl-smi">propName</span>) { <span class="pl-k">return</span> req[propName]; } <span class="pl-c">// A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.</span>
+    <span class="pl-en">responseFilter</span><span class="pl-k">:</span> <span class="pl-k">function</span> (<span class="pl-smi">res</span>, <span class="pl-smi">propName</span>) { <span class="pl-k">return</span> res[propName]; } <span class="pl-c">// A function to filter/return response values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.</span>
+    requestWhitelist<span class="pl-k">:</span> [<span class="pl-c1">String</span>] <span class="pl-c">// Array of request properties to log. Overrides global requestWhitelist for this instance</span>
+    responseWhitelist<span class="pl-k">:</span> [<span class="pl-c1">String</span>] <span class="pl-c">// Array of response properties to log. Overrides global responseWhitelist for this instance</span>
+    bodyWhitelist<span class="pl-k">:</span> [<span class="pl-c1">String</span>] <span class="pl-c">// Array of body properties to log. Overrides global bodyWhitelist for this instance</span>
+    bodyBlacklist<span class="pl-k">:</span> [<span class="pl-c1">String</span>] <span class="pl-c">// Array of body properties to omit from logs. Overrides global bodyBlacklist for this instance</span>
+    ignoredRoutes<span class="pl-k">:</span> [<span class="pl-c1">String</span>] <span class="pl-c">// Array of paths to ignore/skip logging. Overrides global ignoredRoutes for this instance</span>
+</pre></div>
+
+<h3>
+<a id="error-logging" class="anchor" href="#error-logging" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Logging</h3>
 
 <p>Use <code>expressWinston.errorLogger(options)</code> to create a middleware that log the errors of the pipeline.</p>
 
-<div class="highlight highlight-js"><pre>    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">router</span><span class="p">);</span> <span class="c1">// notice how the router goes first.</span>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">errorLogger</span><span class="p">({</span>
-      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
-        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
-          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
-          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
-        <span class="p">})</span>
-      <span class="p">]</span>
-    <span class="p">}));</span>
-</pre></div>
+<div class="highlight highlight-source-js"><pre>    <span class="pl-k">var</span> router <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>./my-express-router<span class="pl-pds">'</span></span>);
+
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(router); <span class="pl-c">// notice how the router goes first.</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">expressWinston</span>.<span class="pl-en">errorLogger</span>({
+      transports<span class="pl-k">:</span> [
+        <span class="pl-k">new</span> <span class="pl-en">winston.transports</span>.<span class="pl-en">Console</span>({
+          json<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+          colorize<span class="pl-k">:</span> <span class="pl-c1">true</span>
+        })
+      ]
+    }));</pre></div>
 
 <p>The logger needs to be added AFTER the express router(<code>app.router)</code>) and BEFORE any of your custom error handlers(<code>express.handler</code>). Since express-winston will just log the errors and not <strong>handle</strong> them, you can still use your custom error handler like <code>express.handler</code>, just be sure to put the logger before any of your handlers.</p>
 
-<h3>
-<a name="options" class="anchor" href="#options"><span class="octicon octicon-link"></span></a>Options</h3>
+<h4>
+<a id="options-1" class="anchor" href="#options-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Options</h4>
 
-<div class="highlight highlight-js"><pre>    <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span><span class="o">&lt;</span><span class="nx">WinstonTransport</span><span class="o">&gt;</span><span class="p">],</span> <span class="c1">// list of all winston transports instances to use.</span>
-    <span class="nx">winstonInstance</span><span class="o">:</span> <span class="o">&lt;</span><span class="nx">WinstonLogger</span><span class="o">&gt;</span><span class="p">,</span> <span class="c1">// a winston logger instance. If this is provided the transports option is ignored</span>
-    <span class="nx">level</span><span class="o">:</span> <span class="nb">String</span><span class="p">,</span> <span class="c1">// log level to use, the default is "info".</span>
-    <span class="nx">statusLevels</span><span class="o">:</span> <span class="nb">Boolean</span> <span class="c1">// different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false</span>
-</pre></div>
+<div class="highlight highlight-source-js"><pre>    transports<span class="pl-k">:</span> [<span class="pl-k">&lt;</span>WinstonTransport<span class="pl-k">&gt;</span>], <span class="pl-c">// list of all winston transports instances to use.</span>
+    winstonInstance<span class="pl-k">:</span> <span class="pl-k">&lt;</span>WinstonLogger<span class="pl-k">&gt;</span>, <span class="pl-c">// a winston logger instance. If this is provided the transports option is ignored</span>
+    msg<span class="pl-k">:</span> <span class="pl-c1">String</span> <span class="pl-c">// customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".</span>
+    baseMeta<span class="pl-k">:</span> <span class="pl-c1">Object</span>, <span class="pl-c">// default meta data to be added to log, this will be merged with the error data.</span>
+    metaField<span class="pl-k">:</span> <span class="pl-c1">String</span>, <span class="pl-c">// if defined, the meta data will be added in this field instead of the meta root object.</span>
+    <span class="pl-en">requestFilter</span><span class="pl-k">:</span> <span class="pl-k">function</span> (<span class="pl-smi">req</span>, <span class="pl-smi">propName</span>) { <span class="pl-k">return</span> req[propName]; } <span class="pl-c">// A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.</span>
+    requestWhitelist<span class="pl-k">:</span> [<span class="pl-c1">String</span>] <span class="pl-c">// Array of request properties to log. Overrides global requestWhitelist for this instance</span>
+    level<span class="pl-k">:</span> <span class="pl-c1">String</span> <span class="pl-c">// custom log level for errors (default is 'error')</span></pre></div>
 
 <p>To use winston's existing transports, set <code>transports</code> to the values (as in key-value) of the <code>winston.default.transports</code> object. This may be done, for example, by using underscorejs: <code>transports: _.values(winston.default.transports)</code>.</p>
 
 <p>Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the <code>winstonInstance</code> option. The <code>transports</code> option is then ignored.</p>
 
-<h3>
-<a name="request-logging" class="anchor" href="#request-logging"><span class="octicon octicon-link"></span></a>Request Logging</h3>
-
-<p>Use <code>expressWinston.logger(options)</code> to create a middleware to log your HTTP requests.</p>
-
-<div class="highlight highlight-js"><pre>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">logger</span><span class="p">({</span>
-      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
-        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
-          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
-          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
-        <span class="p">})</span>
-      <span class="p">],</span>
-      <span class="nx">meta</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="c1">// optional: control whether you want to log the meta data about the request (default to true)</span>
-      <span class="nx">msg</span><span class="o">:</span> <span class="s2">"HTTP {{req.method}} {{req.url}}"</span><span class="p">,</span> <span class="c1">// optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"</span>
-      <span class="nx">expressFormat</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span> <span class="c1">// Use the default Express/morgan request formatting, with the same colors. Enabling this will override any msg and colorStatus if true. Will only output colors on transports with colorize set to true</span>
-      <span class="nx">colorStatus</span><span class="o">:</span> <span class="kc">true</span> <span class="c1">// Color the status code, using the Express/morgan color palette (default green, 3XX cyan, 4XX yellow, 5XX red). Will not be recognized if expressFormat is true</span>
-    <span class="p">}));</span>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">router</span><span class="p">);</span> <span class="c1">// notice how the router goes after the logger.</span>
-</pre></div>
-
 <h2>
-<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h2>
 
-<div class="highlight highlight-js"><pre>    <span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express'</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">expressWinston</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'express-winston'</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">winston</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'winston'</span><span class="p">);</span> <span class="c1">// for transports.Console</span>
-    <span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+<div class="highlight highlight-source-js"><pre>    <span class="pl-k">var</span> express <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>express<span class="pl-pds">'</span></span>);
+    <span class="pl-k">var</span> expressWinston <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>express-winston<span class="pl-pds">'</span></span>);
+    <span class="pl-k">var</span> winston <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>winston<span class="pl-pds">'</span></span>); <span class="pl-c">// for transports.Console</span>
+    <span class="pl-k">var</span> app <span class="pl-k">=</span> <span class="pl-c1">module</span>.<span class="pl-smi">exports</span> <span class="pl-k">=</span> <span class="pl-en">express</span>();
 
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">bodyParser</span><span class="p">());</span>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">methodOverride</span><span class="p">());</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">express</span>.<span class="pl-en">bodyParser</span>());
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">express</span>.<span class="pl-en">methodOverride</span>());
 
-    <span class="c1">// express-winston logger makes sense BEFORE the router.</span>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">logger</span><span class="p">({</span>
-      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
-        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
-          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
-          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
-        <span class="p">})</span>
-      <span class="p">]</span>
-    <span class="p">}));</span>
+    <span class="pl-c">// Let's make our express `Router` first.</span>
+    <span class="pl-k">var</span> router <span class="pl-k">=</span> <span class="pl-smi">express</span>.<span class="pl-en">Router</span>();
+    <span class="pl-smi">router</span>.<span class="pl-en">get</span>(<span class="pl-s"><span class="pl-pds">'</span>/error<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">req</span>, <span class="pl-smi">res</span>, <span class="pl-smi">next</span>) {
+      <span class="pl-c">// here we cause an error in the pipeline so we see express-winston in action.</span>
+      <span class="pl-k">return</span> <span class="pl-en">next</span>(<span class="pl-k">new</span> <span class="pl-en">Error</span>(<span class="pl-s"><span class="pl-pds">"</span>This is an error and it should be logged to the console<span class="pl-pds">"</span></span>));
+    });
 
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">app</span><span class="p">.</span><span class="nx">router</span><span class="p">);</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">get</span>(<span class="pl-s"><span class="pl-pds">'</span>/<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">req</span>, <span class="pl-smi">res</span>, <span class="pl-smi">next</span>) {
+      <span class="pl-smi">res</span>.<span class="pl-c1">write</span>(<span class="pl-s"><span class="pl-pds">'</span>This is a normal request, it should be logged to the console too<span class="pl-pds">'</span></span>);
+      <span class="pl-smi">res</span>.<span class="pl-en">end</span>();
+    });
 
-    <span class="c1">// express-winston errorLogger makes sense AFTER the router.</span>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">expressWinston</span><span class="p">.</span><span class="nx">errorLogger</span><span class="p">({</span>
-      <span class="nx">transports</span><span class="o">:</span> <span class="p">[</span>
-        <span class="k">new</span> <span class="nx">winston</span><span class="p">.</span><span class="nx">transports</span><span class="p">.</span><span class="nx">Console</span><span class="p">({</span>
-          <span class="nx">json</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
-          <span class="nx">colorize</span><span class="o">:</span> <span class="kc">true</span>
-        <span class="p">})</span>
-      <span class="p">]</span>
-    <span class="p">}));</span>
+    <span class="pl-c">// express-winston logger makes sense BEFORE the router.</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">expressWinston</span>.<span class="pl-en">logger</span>({
+      transports<span class="pl-k">:</span> [
+        <span class="pl-k">new</span> <span class="pl-en">winston.transports</span>.<span class="pl-en">Console</span>({
+          json<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+          colorize<span class="pl-k">:</span> <span class="pl-c1">true</span>
+        })
+      ]
+    }));
 
-    <span class="c1">// Optionally you can include your custom error handler after the logging.</span>
-    <span class="nx">app</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="nx">express</span><span class="p">.</span><span class="nx">errorLogger</span><span class="p">({</span>
-      <span class="nx">dumpExceptions</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
-      <span class="nx">showStack</span><span class="o">:</span> <span class="kc">true</span>
-    <span class="p">}));</span>
+    <span class="pl-c">// Now we can tell the app to use our routing code:</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(router);
 
-    <span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'/error'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
-      <span class="c1">// here we cause an error in the pipeline so we see express-winston in action.</span>
-      <span class="k">return</span> <span class="nx">next</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">"This is an error and it should be logged to the console"</span><span class="p">));</span>
-    <span class="p">});</span>
+    <span class="pl-c">// express-winston errorLogger makes sense AFTER the router.</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">expressWinston</span>.<span class="pl-en">errorLogger</span>({
+      transports<span class="pl-k">:</span> [
+        <span class="pl-k">new</span> <span class="pl-en">winston.transports</span>.<span class="pl-en">Console</span>({
+          json<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+          colorize<span class="pl-k">:</span> <span class="pl-c1">true</span>
+        })
+      ]
+    }));
 
-    <span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
-      <span class="nx">res</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="s1">'This is a normal request, it should be logged to the console too'</span><span class="p">);</span>
-      <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">();</span>
-    <span class="p">});</span>
+    <span class="pl-c">// Optionally you can include your custom error handler after the logging.</span>
+    <span class="pl-smi">app</span>.<span class="pl-en">use</span>(<span class="pl-smi">express</span>.<span class="pl-en">errorLogger</span>({
+      dumpExceptions<span class="pl-k">:</span> <span class="pl-c1">true</span>,
+      showStack<span class="pl-k">:</span> <span class="pl-c1">true</span>
+    }));
 
-    <span class="nx">app</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mi">3000</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
-      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"express-winston demo listening on port %d in %s mode"</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">address</span><span class="p">().</span><span class="nx">port</span><span class="p">,</span> <span class="nx">app</span><span class="p">.</span><span class="nx">settings</span><span class="p">.</span><span class="nx">env</span><span class="p">);</span>
-    <span class="p">});</span>
-</pre></div>
+    <span class="pl-smi">app</span>.<span class="pl-en">listen</span>(<span class="pl-c1">3000</span>, <span class="pl-k">function</span>(){
+      <span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">"</span>express-winston demo listening on port %d in %s mode<span class="pl-pds">"</span></span>, <span class="pl-v">this</span>.<span class="pl-en">address</span>().<span class="pl-c1">port</span>, <span class="pl-smi">app</span>.<span class="pl-smi">settings</span>.<span class="pl-smi">env</span>);
+    });</pre></div>
 
 <p>Browse <code>/</code> to see a regular HTTP logging like this:</p>
 
@@ -280,7 +319,7 @@
 </code></pre>
 
 <h2>
-<a name="global-whitelists-and-blacklists" class="anchor" href="#global-whitelists-and-blacklists"><span class="octicon octicon-link"></span></a>Global Whitelists and Blacklists</h2>
+<a id="global-whitelists-and-blacklists" class="anchor" href="#global-whitelists-and-blacklists" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Global Whitelists and Blacklists</h2>
 
 <p>Express-winston exposes three whitelists that control which properties of the <code>request</code>, <code>body</code>, and <code>response</code> are logged:</p>
 
@@ -290,7 +329,9 @@
 <code>bodyWhitelist</code>, <code>bodyBlacklist</code>
 </li>
 <li><code>responseWhitelist</code></li>
-</ul><p>For example, <code>requestWhitelist</code> defaults to:</p>
+</ul>
+
+<p>For example, <code>requestWhitelist</code> defaults to:</p>
 
 <pre><code>['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
 </code></pre>
@@ -310,16 +351,21 @@ the properties excluded by the blacklist are not included even if they are liste
 <pre><code>expressWinston.bodyBlacklist.push('secretid', 'secretproperty');
 </code></pre>
 
+<p>Note that you can log the whole request and/or response body:</p>
+
+<pre><code>expressWinston.requestWhitelist.push('body');
+expressWinston.responseWhitelist.push('body');
+</code></pre>
+
 <h2>
-<a name="route-specific-whitelists-and-blacklists" class="anchor" href="#route-specific-whitelists-and-blacklists"><span class="octicon octicon-link"></span></a>Route-Specific Whitelists and Blacklists</h2>
+<a id="route-specific-whitelists-and-blacklists" class="anchor" href="#route-specific-whitelists-and-blacklists" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Route-Specific Whitelists and Blacklists</h2>
 
 <p>New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a <code>_routeWhitelists</code> object to the <code>req</code>uest, containing <code>.body</code>, <code>.req</code> and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:</p>
 
-<div class="highlight highlight-js"><pre>    <span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">'/user/register'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
-      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'age'</span><span class="p">];</span> <span class="c1">// But not 'password' or 'confirm-password' or 'top-secret'</span>
-      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">res</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'_headers'</span><span class="p">];</span>
-    <span class="p">});</span>
-</pre></div>
+<div class="highlight highlight-source-js"><pre>    <span class="pl-smi">router</span>.<span class="pl-en">post</span>(<span class="pl-s"><span class="pl-pds">'</span>/user/register<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">req</span>, <span class="pl-smi">res</span>, <span class="pl-smi">next</span>) {
+      <span class="pl-smi">req</span>.<span class="pl-smi">_routeWhitelists</span>.<span class="pl-c1">body</span> <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>username<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>email<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>age<span class="pl-pds">'</span></span>]; <span class="pl-c">// But not 'password' or 'confirm-password' or 'top-secret'</span>
+      <span class="pl-smi">req</span>.<span class="pl-smi">_routeWhitelists</span>.<span class="pl-smi">res</span> <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>_headers<span class="pl-pds">'</span></span>];
+    });</pre></div>
 
 <p>Post to <code>/user/register</code> would give you something like the following:</p>
 
@@ -357,33 +403,51 @@ the properties excluded by the blacklist are not included even if they are liste
 
 <p>Blacklisting supports only the <code>body</code> property.</p>
 
-<div class="highlight highlight-js"><pre>    <span class="nx">app</span><span class="p">.</span><span class="nx">post</span><span class="p">(</span><span class="s1">'/user/register'</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">next</span><span class="p">)</span> <span class="p">{</span>
-      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'email'</span><span class="p">,</span> <span class="s1">'age'</span><span class="p">];</span> <span class="c1">// But not 'password' or 'confirm-password' or 'top-secret'</span>
-      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeBlacklists</span><span class="p">.</span><span class="nx">body</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'username'</span><span class="p">,</span> <span class="s1">'password'</span><span class="p">,</span> <span class="s1">'confirm-password'</span><span class="p">,</span> <span class="s1">'top-secret'</span><span class="p">];</span> 
-      <span class="nx">req</span><span class="p">.</span><span class="nx">_routeWhitelists</span><span class="p">.</span><span class="nx">res</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'_headers'</span><span class="p">];</span>
-    <span class="p">});</span>
-</pre></div>
+<div class="highlight highlight-source-js"><pre>    <span class="pl-smi">router</span>.<span class="pl-en">post</span>(<span class="pl-s"><span class="pl-pds">'</span>/user/register<span class="pl-pds">'</span></span>, <span class="pl-k">function</span>(<span class="pl-smi">req</span>, <span class="pl-smi">res</span>, <span class="pl-smi">next</span>) {
+      <span class="pl-smi">req</span>.<span class="pl-smi">_routeWhitelists</span>.<span class="pl-c1">body</span> <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>username<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>email<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>age<span class="pl-pds">'</span></span>]; <span class="pl-c">// But not 'password' or 'confirm-password' or 'top-secret'</span>
+      <span class="pl-smi">req</span>.<span class="pl-smi">_routeBlacklists</span>.<span class="pl-c1">body</span> <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>username<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>password<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>confirm-password<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>top-secret<span class="pl-pds">'</span></span>];
+      <span class="pl-smi">req</span>.<span class="pl-smi">_routeWhitelists</span>.<span class="pl-smi">res</span> <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>_headers<span class="pl-pds">'</span></span>];
+    });</pre></div>
 
 <p>If both <code>req._bodyWhitelist.body</code> and <code>req._bodyBlacklist.body</code> are set the result will be the white listed properties
 excluding any black listed ones. In the above example, only 'email' and 'age' would be included.</p>
 
 <h2>
-<a name="tests" class="anchor" href="#tests"><span class="octicon octicon-link"></span></a>Tests</h2>
+<a id="custom-status-levels" class="anchor" href="#custom-status-levels" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Custom Status Levels</h2>
+
+<p>If you set statusLevels to true express-winston will log sub 400 responses at info level, sub 500 responses as warnings and 500+ responses as errors. To change these levels specify an object as follows</p>
+
+<div class="highlight highlight-source-json"><pre>  <span class="pl-s"><span class="pl-pds">"</span>statusLevels<span class="pl-pds">"</span></span>: {
+    <span class="pl-s"><span class="pl-pds">"</span>success<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>debug<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>warn<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>debug<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>error<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>info<span class="pl-pds">"</span></span>
+  }</pre></div>
+
+<h2>
+<a id="tests" class="anchor" href="#tests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tests</h2>
+
+<p>Run the basic Mocha tests:</p>
 
 <pre><code>npm test
 </code></pre>
 
-<h2>
-<a name="issues-and-collaboration" class="anchor" href="#issues-and-collaboration"><span class="octicon octicon-link"></span></a>Issues and Collaboration</h2>
+<p>Run the Travis-CI tests (which will fail with &lt; 100% coverage):</p>
 
-<ul>
-<li>Implement a chain of requestFilters. Currently only one requestFilter is allowed in the options.</li>
-</ul><p>We are accepting pull-request for these features.</p>
+<pre><code>npm run test-travis
+</code></pre>
+
+<p>Generate the <code>coverage.html</code> coverage report:</p>
+
+<pre><code>npm run test-coverage
+</code></pre>
+
+<h2>
+<a id="issues-and-collaboration" class="anchor" href="#issues-and-collaboration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Issues and Collaboration</h2>
 
 <p>If you ran into any problems, please use the project <a href="https://github.com/bithavoc/express-winston/issues">Issues section</a> to search or post any bug.</p>
 
 <h2>
-<a name="contributors" class="anchor" href="#contributors"><span class="octicon octicon-link"></span></a>Contributors</h2>
+<a id="contributors" class="anchor" href="#contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contributors</h2>
 
 <ul>
 <li>
@@ -392,10 +456,14 @@ excluding any black listed ones. In the above example, only 'email' and 'age' wo
 <a href="https://github.com/jaclar">Lars Jacob</a> (<a href="https://github.com/jaclar">https://github.com/jaclar</a>)</li>
 <li>
 <a href="https://github.com/floatingLomas">Jonathan Lomas</a> (<a href="https://github.com/floatingLomas">https://github.com/floatingLomas</a>)</li>
-</ul><p>Also see AUTHORS file, add yourself if you are missing.</p>
+<li>
+<a href="https://github.com/rosston">Ross Brandes</a> (<a href="https://github.com/rosston">https://github.com/rosston</a>)</li>
+</ul>
+
+<p>Also see AUTHORS file, add yourself if you are missing.</p>
 
 <h2>
-<a name="mit-license" class="anchor" href="#mit-license"><span class="octicon octicon-link"></span></a>MIT License</h2>
+<a id="mit-license" class="anchor" href="#mit-license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MIT License</h2>
 
 <p>Copyright (c) 2012-2014 Bithavoc.io and Contributors - <a href="http://bithavoc.io">http://bithavoc.io</a></p>
 
@@ -416,26 +484,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.</p>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/bithavoc/express-winston/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/bithavoc/express-winston/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/bithavoc/express-winston"></a> is maintained by <a href="https://github.com/bithavoc">bithavoc</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/bithavoc">bithavoc</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
-
-            <script type="text/javascript">
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
