@@ -48,8 +48,7 @@
   },
   "dependencies": {
     "chalk": "~0.4.0",
-    "lodash": "~4.11.1",
-    "winston": "~1.1.0"
+    "lodash": "~4.11.1"
   },
   "devDependencies": {
     "blanket": "^1.2.2",
@@ -57,7 +56,11 @@
     "node-mocks-http": "^1.5.1",
     "promise": "^7.1.1",
     "should": "^8.2.2",
-    "travis-cov": "^0.2.5"
+    "travis-cov": "^0.2.5",
+    "winston": ">=1.x"
+  },
+  "peerDependencies": {
+    "winston": ">=1.x"
   },
   "engines": {
     "node": ">=0.10.0"
