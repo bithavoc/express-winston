@@ -586,6 +586,7 @@ describe('express-winston', function () {
       it('should match the Express format when logging', function () {
         var testHelperOptions = {
           loggerOptions: {
+            colorize: true,
             expressFormat: true
           },
           req: {
@@ -596,6 +597,40 @@ describe('express-winston', function () {
           var resultMsg = result.log.msg;
           resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
           resultMsg.should.endWith('ms\u001b[39m');
+        });
+      });
+
+      it('should not emit colors when colorize option is false', function() {
+        var testHelperOptions = {
+          loggerOptions: {
+            colorize: false,
+            expressFormat: true
+          },
+          req: {
+            url: '/all-the-things'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          var resultMsg = result.log.msg;
+          resultMsg.should.startWith('GET /all-the-things 200 ');
+          resultMsg.should.endWith('ms');
+        });
+      });
+
+      it('should not emit colors when colorize option is not present', function() {
+        var testHelperOptions = {
+          loggerOptions: {
+            colorize: false,
+            expressFormat: true
+          },
+          req: {
+            url: '/all-the-things'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          var resultMsg = result.log.msg;
+          resultMsg.should.startWith('GET /all-the-things 200 ');
+          resultMsg.should.endWith('ms');
         });
       });
     });
