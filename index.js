@@ -140,7 +140,7 @@ exports.errorLogger = function errorLogger(options) {
             exceptionMeta = newMeta;
         }
 
-        exceptionMeta = _.extend(exceptionMeta, options.baseMeta);
+        exceptionMeta = _.assign(exceptionMeta, options.baseMeta);
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
         options.winstonInstance.log(options.level, template({err: err, req: req, res: res}), exceptionMeta);
@@ -256,10 +256,10 @@ exports.logger = function logger(options) {
                   newMeta[options.metaField] = logData;
                   logData = newMeta;
               }
-              meta = _.extend(meta, logData);
+              meta = _.assign(meta, logData);
             }
 
-            meta = _.extend(meta, options.baseMeta);
+            meta = _.assign(meta, options.baseMeta);
 
             var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
             if (options.colorize) {
