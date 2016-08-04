@@ -1,7 +1,7 @@
 # express-winston
 [![Monthly Downloads](https://img.shields.io/npm/dm/express-winston.svg)](https://www.npmjs.com/package/express-winston) [![Build Status](https://secure.travis-ci.org/bithavoc/express-winston.png)](http://travis-ci.org/bithavoc/express-winston)
 
-> [winston](https://github.com/flatiron/winston) middleware for express.js
+> [winston](https://github.com/winstonjs/winston) middleware for express.js
 
 ## Installation
 
