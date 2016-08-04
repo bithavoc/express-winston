@@ -5,13 +5,9 @@
 
 ## Installation
 
-Newcomers should start with the latest branch which makes use of winston 1.x.x and supports node >= 0.10:
+    npm install winston express-winston
 
-    npm install express-winston
-
-If you're already using express-winston, and want to stick with the stable version based on winston 0.9.x, you should instead do:
-
-    npm install express-winston@0.x.x --save
+(supports node >= 0.10)
 
 ## Usage
 
@@ -25,8 +21,8 @@ In `package.json`:
 {
   "dependencies": {
     "...": "...",
-    "winston": "0.6.x",
-    "express-winston": "0.2.x",
+    "winston": "^2.0.0",
+    "express-winston": "^2.0.0",
     "...": "..."
   }
 }
