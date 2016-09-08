@@ -59,7 +59,8 @@ function loggerTestHelper(providedOptions) {
     res: null,
     transportOptions: null,
     next: function (req, res, next) {
-      res.end('{ "message": "Hi!  I\'m a chunk!" }');
+      res.write('{ "message":');
+      res.end(' "Hi!  I\'m a chunk!" }');
     }
   }, providedOptions);
 
@@ -595,8 +596,9 @@ describe('express-winston', function () {
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
           var resultMsg = result.log.msg;
-          resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
-          resultMsg.should.endWith('ms\u001b[39m');
+          console.log('1 - ' + resultMsg);
+          resultMsg.should.startWith('GET /all-the-things 200 0ms');
+          resultMsg.should.endWith('0ms');
         });
       });
 
@@ -948,6 +950,27 @@ describe('express-winston', function () {
 
   describe('.bodyBlacklist', function () {
 
+  });
+
+  describe('.fullResponseLog', function() {
+
+    it('should be a Boolean', function () {
+      expressWinston.fullResponseLog.should.be.a.Boolean();
+    });
+
+    it('should log the entire response', function () {
+      var options = {
+        loggerOptions: {
+          fullResponseLog: true,
+          responseWhitelist: ['body']
+
+        }
+      };
+      return loggerTestHelper(options).then(function (result) {
+        console.log(result.log.meta.res)
+        result.log.meta.res.should.eql({body:'{ "message": "Hi!  I\'m a chunk!" }' });
+      });
+    });
   });
 
   describe('.responseWhitelist', function () {
