@@ -972,7 +972,6 @@ describe('express-winston', function () {
       it('should work with metaField option', function () {
         testHelperOptions.loggerOptions.metaField = 'metaField';
         return loggerTestHelper(testHelperOptions).then(function (result) {
-          console.log("*** result: " + JSON.stringify(result));
           result.log.meta.metaField.req.should.be.ok();
           result.log.meta.metaField.user.should.equal('john@doe.com');
           result.log.meta.metaField.role.should.equal('operator');
