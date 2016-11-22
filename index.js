@@ -177,6 +177,7 @@ exports.logger = function logger(options) {
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || exports.defaultSkip;
+    options.dynamicMeta = options.dynamicMeta || function(req, res) { return null; };
 
     return function (req, res, next) {
         var currentUrl = req.originalUrl || req.url;
@@ -251,8 +252,13 @@ exports.logger = function logger(options) {
 
               logData.responseTime = res.responseTime;
 
+              if(options.dynamicMeta) {
+                  var dynamicMeta = options.dynamicMeta(req, res);
+                  logData = _.assign(logData, dynamicMeta);
+              }
+
               if (options.metaField) {
-                  var newMeta = {}
+                  var newMeta = {};
                   newMeta[options.metaField] = logData;
                   logData = newMeta;
               }
@@ -317,5 +323,9 @@ function ensureValidOptions(options) {
 function ensureValidLoggerOptions(options) {
     if (options.ignoreRoute && !_.isFunction(options.ignoreRoute)) {
         throw new Error("`ignoreRoute` express-winston option should be a function");
+    }
+
+    if (options.dynamicMeta && !_.isFunction(options.dynamicMeta)) {
+        throw new Error("`dynamicMeta` express-winston option should be a function");
     }
 }
