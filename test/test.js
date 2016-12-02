@@ -932,6 +932,68 @@ describe('express-winston', function () {
         });
       });
     });
+
+    describe('dynamicMeta option', function () {
+      var testHelperOptions = {
+        req: {
+          body: {
+            age: 42,
+            potato: 'Russet'
+          },
+          user: {
+            username: "john@doe.com",
+            role: "operator"
+          }
+        },
+        res: {
+          custom: 'custom response runtime field'
+        },
+        loggerOptions: {
+          meta: true,
+          dynamicMeta: function(req, res) {
+            return {
+              user: req.user.username,
+              role: req.user.role,
+              custom: res.custom
+            }
+          }
+        }
+      };
+
+      it('should contain dynamic meta data if meta and dynamicMeta activated', function () {
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.req.should.be.ok();
+          result.log.meta.user.should.equal('john@doe.com');
+          result.log.meta.role.should.equal('operator');
+          result.log.meta.custom.should.equal('custom response runtime field');
+        });
+      });
+
+      it('should work with metaField option', function () {
+        testHelperOptions.loggerOptions.metaField = 'metaField';
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.metaField.req.should.be.ok();
+          result.log.meta.metaField.user.should.equal('john@doe.com');
+          result.log.meta.metaField.role.should.equal('operator');
+          result.log.meta.metaField.custom.should.equal('custom response runtime field');
+        });
+      });
+
+      it('should not contain dynamic meta data if dynamicMeta activated but meta false', function () {
+        testHelperOptions.loggerOptions.meta = false;
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          should.not.exist(result.log.meta.req);
+          should.not.exist(result.log.meta.user);
+          should.not.exist(result.log.meta.role);
+          should.not.exist(result.log.meta.custom);
+        });
+      });
+
+      it('should throw an error if dynamicMeta is not a function', function () {
+        var loggerFn = expressWinston.logger.bind(expressWinston, {dynamicMeta: 12});
+        loggerFn.should.throw();
+      });
+    });
   });
 
   describe('.requestWhitelist', function () {

@@ -81,6 +81,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     bodyWhitelist: [String] // Array of body properties to log. Overrides global bodyWhitelist for this instance
     bodyBlacklist: [String] // Array of body properties to omit from logs. Overrides global bodyBlacklist for this instance
     ignoredRoutes: [String] // Array of paths to ignore/skip logging. Overrides global ignoredRoutes for this instance
+    dynamicMeta: function(req, res) { return [Object]; } // Extract additional meta data from request or response (typically req.user data if using passport). meta must be true for this function to be activated
 
 ```
 
@@ -379,6 +380,25 @@ If you set statusLevels to true express-winston will log sub 400 responses at in
     "warn": "debug",
     "error": "info"
   }
+```
+
+
+## Dynamic meta data from request or response
+
+If you set dynamicMeta function you can extract additional meta data fields from request or response objects.
+The function can be used to either select relevant elements in request or response body without logging them as a whole
+or to extract runtime data like the user making the request. The example below logs the user name and role as assigned
+by the passport authentication middleware.
+
+```js
+   meta: true,
+   dynamicMeta: function(req, res) {
+     return {
+       user: req.user ? req.user.username : null,
+       role: req.user ? req.user.role : null,
+       ...
+   }
+}
 ```
 
 ## Tests
