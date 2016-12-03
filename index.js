@@ -180,6 +180,8 @@ exports.logger = function logger(options) {
     options.dynamicMeta = options.dynamicMeta || function(req, res) { return null; };
 
     return function (req, res, next) {
+        var coloredRes = {};
+
         var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
@@ -276,8 +278,9 @@ exports.logger = function logger(options) {
               else if (res.statusCode >= 300) statusColor = 'cyan';
 
               expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
-                " " + chalk[statusColor]("{{res.statusCode}}") + " " +
+                " {{res.statusCode}} " +
                 chalk.grey("{{res.responseTime}}ms");
+              coloredRes.statusCode = chalk[statusColor](res.statusCode);
             }
             var msgFormat = !options.expressFormat ? options.msg : expressMsgFormat;
 
@@ -286,7 +289,7 @@ exports.logger = function logger(options) {
               interpolate: /\{\{(.+?)\}\}/g
             });
 
-            var msg = template({req: req, res: res});
+            var msg = template({req: req, res: _.assign({}, res, coloredRes)});
 
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
