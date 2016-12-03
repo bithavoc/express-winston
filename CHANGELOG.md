@@ -1,6 +1,6 @@
 ## 2.1.0
 * Add dynamic metadata support ([#124](https://github.com/bithavoc/express-winston/issues/124), @jpdelima)
-* Add support for `colorize`-ing status code, no `expressFormat` required ([121](https://github.com/bithavoc/express-winston/issues/121))
+* Add support for `colorize`-ing status code, no `expressFormat` required ([#121](https://github.com/bithavoc/express-winston/issues/121))
 
 ## 2.0.0
 #### Breaking changes
