@@ -372,7 +372,7 @@ describe('express-winston', function () {
     });
 
     it('should use the exported bodyBlacklist', function() {
-      var originalWhitelist = expressWinston.bodyBlacklist;
+      var originalBlacklist = expressWinston.bodyBlacklist;
       expressWinston.bodyBlacklist = ['foo'];
 
       var options = {
@@ -380,7 +380,7 @@ describe('express-winston', function () {
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
-        expressWinston.bodyBlacklist = originalWhitelist;
+        expressWinston.bodyBlacklist = originalBlacklist;
 
         result.log.meta.req.body.should.not.have.property('foo');
         result.log.meta.req.body.should.have.property('baz');
@@ -400,6 +400,24 @@ describe('express-winston', function () {
 
         result.log.meta.res.should.have.property('foo');
         result.log.meta.res.should.not.have.property('baz');
+      });
+    });
+
+    it('should remove the body if it is requestWhitelisted and the bodyBlacklist removes all properties', function() {
+      var originalBlacklist = expressWinston.bodyBlacklist;
+      var originalWhitelist = expressWinston.requestWhitelist;
+      expressWinston.bodyBlacklist = ['foo'];
+      expressWinston.requestWhitelist = ['body'];
+
+      var options = {
+        res: {foo: 'bar', baz: 'qux'}
+      };
+      return loggerTestHelper(options).then(function (result) {
+        // Return to the original value for later tests
+        expressWinston.bodyBlacklist = originalBlacklist;
+        expressWinston.requestWhitelist = originalWhitelist;
+
+        should.not.exist(result.log.meta.req.body);
       });
     });
 
