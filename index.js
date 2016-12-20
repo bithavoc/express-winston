@@ -254,7 +254,6 @@ exports.logger = function logger(options) {
                 logData.req.body = filteredBody;
               }
               else {
-                // https://github.com/bithavoc/express-winston/issues/128
                 delete logData.req.body;
               }
 
