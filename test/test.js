@@ -403,24 +403,6 @@ describe('express-winston', function () {
       });
     });
 
-    it('should remove the body if it is requestWhitelisted and the bodyBlacklist removes all properties', function() {
-      var originalBlacklist = expressWinston.bodyBlacklist;
-      var originalWhitelist = expressWinston.requestWhitelist;
-      expressWinston.bodyBlacklist = ['foo'];
-      expressWinston.requestWhitelist = ['body'];
-
-      var options = {
-        res: {foo: 'bar', baz: 'qux'}
-      };
-      return loggerTestHelper(options).then(function (result) {
-        // Return to the original value for later tests
-        expressWinston.bodyBlacklist = originalBlacklist;
-        expressWinston.requestWhitelist = originalWhitelist;
-
-        should.not.exist(result.log.meta.req.body);
-      });
-    });
-
     it('should use the exported defaultRequestFilter', function() {
       var originalRequestFilter = expressWinston.defaultRequestFilter;
       expressWinston.defaultRequestFilter = function() {
@@ -975,6 +957,23 @@ describe('express-winston', function () {
         return loggerTestHelper(options).then(function (result) {
           result.log.meta.req.should.have.property('foo');
           result.log.meta.req.should.not.have.property('method');
+        });
+      });
+    });
+    
+    describe('bodyBlacklist option', function () {
+      it('should remove the body if it is requestWhitelisted and the bodyBlacklist removes all properties', function() {
+        var options = {
+          loggerOptions: {
+            bodyBlacklist: ['foo', 'baz'],
+            requestWhitelist: ['body'],
+          },
+          req: {
+            body: {foo: 'bar', baz: 'qux'}
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.not.have.property('body');
         });
       });
     });
