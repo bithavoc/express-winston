@@ -1,3 +1,6 @@
+## 2.1.1
+* Fix `bodyBlacklist` not working when `requestWhitelist` contains `body` ([#128](https://github.com/bithavoc/express-winston/issues/128), @jacobcabantomski-ct)
+
 ## 2.1.0
 * Add dynamic metadata support ([#124](https://github.com/bithavoc/express-winston/issues/124), @jpdelima)
 * Add support for `colorize`-ing status code, no `expressFormat` required ([#121](https://github.com/bithavoc/express-winston/issues/121))
