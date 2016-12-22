@@ -250,11 +250,12 @@ exports.logger = function logger(options) {
                   }
               }
 
-              if (filteredBody) {
-                logData.req.body = filteredBody;
-              }
-              else {
-                delete logData.req.body;
+              if (logData.req) {
+                if (filteredBody) {
+                  logData.req.body = filteredBody;
+                } else {
+                  delete logData.req.body;
+                }
               }
 
               logData.responseTime = res.responseTime;

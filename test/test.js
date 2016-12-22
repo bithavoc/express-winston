@@ -959,8 +959,19 @@ describe('express-winston', function () {
           result.log.meta.req.should.not.have.property('method');
         });
       });
+
+      it('should not include a req in the log when there is no request whitelist', function() {
+        var options = {
+          loggerOptions: {
+            requestWhitelist: [],
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          should.not.exist(result.log.meta.req);
+        });
+      });
     });
-    
+
     describe('bodyBlacklist option', function () {
       it('should remove the body if it is requestWhitelisted and the bodyBlacklist removes all properties', function() {
         var options = {
