@@ -1,3 +1,6 @@
+## 2.1.2
+* Fix error throwing when no req is logged ([#130](https://github.com/bithavoc/express-winston/issues/130))
+
 ## 2.1.1
 * Fix `bodyBlacklist` not working when `requestWhitelist` contains `body` ([#128](https://github.com/bithavoc/express-winston/issues/128), @jacobcabantomski-ct)
 
