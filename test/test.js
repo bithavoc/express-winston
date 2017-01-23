@@ -309,6 +309,34 @@ describe('express-winston', function () {
       });
     });
 
+    it('should log entire body when request whitelist contains body and there is no body whitelist or blacklist', function () {
+      function next(req, res, next) {
+        res.end();
+      }
+      var testHelperOptions = {
+        next: next,
+        req: {
+          body: {
+            foo: 'bar',
+            baz: 'qux'
+          },
+          routeLevelAddedProperty: 'value that should be logged',
+          url: '/hello'
+        },
+        loggerOptions: {
+          bodyBlacklist: [],
+          bodyWhitelist: [],
+          requestWhitelist: expressWinston.requestWhitelist.concat('body')
+        }
+      };
+      return loggerTestHelper(testHelperOptions).then(function (result) {
+        result.log.meta.req.body.should.eql({
+          foo: 'bar',
+          baz: 'qux'
+        });
+      });
+    });
+
     it('should not invoke the transport when invoked on a route with transport level of "error"', function () {
       function next(req, res, next) {
         req._routeWhitelists.req = ['routeLevelAddedProperty'];
