@@ -1,3 +1,6 @@
+## 2.1.3
+* Re-enable logging of req.body when request whitelist contains body and there is no no body whitelist/blacklist (broken in 2.1.1) ([#136](https://github.com/bithavoc/express-winston/issues/136))
+
 ## 2.1.2
 * Fix error throwing when no req is logged ([#130](https://github.com/bithavoc/express-winston/issues/130))
 
