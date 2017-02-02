@@ -114,6 +114,7 @@ function filterObject(originalObj, whiteList, initialFilter) {
 exports.errorLogger = function errorLogger(options) {
 
     ensureValidOptions(options);
+    ensureValidLoggerOptions(options);
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
@@ -122,6 +123,7 @@ exports.errorLogger = function errorLogger(options) {
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.level = options.level || 'error';
+    options.dynamicMeta = options.dynamicMeta || function(err, req, res) { return null; };
 
     // Using mustache style templating
     var template = _.template(options.msg, {
@@ -133,6 +135,11 @@ exports.errorLogger = function errorLogger(options) {
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
+        
+        if(options.dynamicMeta) {
+            var dynamicMeta = options.dynamicMeta(err, req, res);
+            exceptionMeta = _.assign(exceptionMeta, dynamicMeta);
+        }
 
         if (options.metaField) {
             var newMeta = {};
