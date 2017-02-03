@@ -339,14 +339,14 @@ function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
     if(!((options.transports && (options.transports.length > 0)) || options.winstonInstance))
         throw new Error("transports or a winstonInstance are required by express-winston middleware");
+
+    if (options.dynamicMeta && !_.isFunction(options.dynamicMeta)) {
+        throw new Error("`dynamicMeta` express-winston option should be a function");
+    }
 }
 
 function ensureValidLoggerOptions(options) {
     if (options.ignoreRoute && !_.isFunction(options.ignoreRoute)) {
         throw new Error("`ignoreRoute` express-winston option should be a function");
-    }
-
-    if (options.dynamicMeta && !_.isFunction(options.dynamicMeta)) {
-        throw new Error("`dynamicMeta` express-winston option should be a function");
     }
 }
