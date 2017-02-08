@@ -122,6 +122,7 @@ exports.errorLogger = function errorLogger(options) {
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.level = options.level || 'error';
+    options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };  
 
     // Using mustache style templating
     var template = _.template(options.msg, {
@@ -133,6 +134,11 @@ exports.errorLogger = function errorLogger(options) {
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
+        
+        if(options.dynamicMeta) {
+            var dynamicMeta = options.dynamicMeta(req, res, err);
+            exceptionMeta = _.assign(exceptionMeta, dynamicMeta);
+        }
 
         if (options.metaField) {
             var newMeta = {};
@@ -333,14 +339,14 @@ function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
     if(!((options.transports && (options.transports.length > 0)) || options.winstonInstance))
         throw new Error("transports or a winstonInstance are required by express-winston middleware");
+
+    if (options.dynamicMeta && !_.isFunction(options.dynamicMeta)) {
+        throw new Error("`dynamicMeta` express-winston option should be a function");
+    }
 }
 
 function ensureValidLoggerOptions(options) {
     if (options.ignoreRoute && !_.isFunction(options.ignoreRoute)) {
         throw new Error("`ignoreRoute` express-winston option should be a function");
-    }
-
-    if (options.dynamicMeta && !_.isFunction(options.dynamicMeta)) {
-        throw new Error("`dynamicMeta` express-winston option should be a function");
     }
 }
