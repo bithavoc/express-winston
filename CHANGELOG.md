@@ -1,3 +1,6 @@
+## 2.3.0
+* Allow line breaks inside `msg` interpolation ([#143](https://github.com/bithavoc/express-winston/pull/143), @ltegman)
+
 ## 2.2.0
 * Add dynamic metadata support to error logger ([#139](https://github.com/bithavoc/express-winston/issues/139), @scarlettsteph)
 
