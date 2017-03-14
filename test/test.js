@@ -1033,6 +1033,59 @@ describe('express-winston', function () {
       });
     });
 
+    describe('when levels set to a function', function () {
+        it('should have custom status level provided by the function when 100 <= statusCode < 400', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(200).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              level: function(req,res) { return 'silly'; }
+            },
+            transportOptions: {
+              level: 'silly'
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('silly');
+          });
+        });
+
+        it('should have custom status level provided by the function when 400 <= statusCode < 500', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              level: function(req,res) { return 'silly'; }
+            },
+            transportOptions: {
+              level: 'silly'
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('silly');
+          });
+        });
+
+        it('should have custom status level provided by the function when 500 <= statusCode', function () {
+          var testHelperOptions = {
+            next: function (req, res, next) {
+              res.status(500).end('{ "message": "Hi!  I\'m a chunk!" }');
+            },
+            loggerOptions: {
+              level: function(req,res) { return 'silly'; }
+            },
+            transportOptions: {
+              level: 'silly'
+            }
+          };
+          return loggerTestHelper(testHelperOptions).then(function (result) {
+            result.log.level.should.equal('silly');
+          });
+        });
+    });
+
     describe('requestWhitelist option', function () {
       it('should default to global requestWhitelist', function () {
         var options = {

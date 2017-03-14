@@ -148,19 +148,29 @@ exports.errorLogger = function errorLogger(options) {
 
         exceptionMeta = _.assign(exceptionMeta, options.baseMeta);
 
+        var level = _.isFunction(options.level) ? options.level(req, res, err) : options.level;
+
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log(options.level, template({err: err, req: req, res: res}), exceptionMeta);
+        options.winstonInstance.log(level, template({err: err, req: req, res: res}), exceptionMeta);
 
         next(err);
     };
 };
 
+function levelFromStatus(options) {
+    return function (req, res) {
+        var level = "";
+        if (res.statusCode >= 100) { level = options.statusLevels.success || "info"; }
+        if (res.statusCode >= 400) { level = options.statusLevels.warn || "warn"; }
+        if (res.statusCode >= 500) { level = options.statusLevels.error || "error"; }
+        return level;
+    }
+}
+
 //
 // ### function logger(options)
 // #### @options {Object} options to initialize the middleware.
 //
-
-
 exports.logger = function logger(options) {
 
     ensureValidOptions(options);
@@ -174,8 +184,8 @@ exports.logger = function logger(options) {
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
     options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
-    options.level = options.level || "info";
     options.statusLevels = options.statusLevels || false;
+    options.level = options.statusLevels ? levelFromStatus(options) : (options.level || "info");
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
@@ -213,12 +223,6 @@ exports.logger = function logger(options) {
             res.end(chunk, encoding);
 
             req.url = req.originalUrl || req.url;
-
-            if (options.statusLevels) {
-              if (res.statusCode >= 100) { options.level = options.statusLevels.success || "info"; }
-              if (res.statusCode >= 400) { options.level = options.statusLevels.warn || "warn"; }
-              if (res.statusCode >= 500) { options.level = options.statusLevels.error || "error"; }
-            };
 
             var meta = {};
 
@@ -311,7 +315,8 @@ exports.logger = function logger(options) {
 
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
-              options.winstonInstance.log(options.level, msg, meta);
+              var level = _.isFunction(options.level) ? options.level(req, res) : options.level;
+              options.winstonInstance.log(level, msg, meta);
             }
         };
 
