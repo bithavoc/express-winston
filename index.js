@@ -213,7 +213,7 @@ exports.logger = function logger(options) {
         res.end = function(chunk, encoding) {
             res.responseTime = (new Date) - req._startTime;
 
-            req.body = req._originalBody || req.body;
+            req.body = !_.isEmpty(req._originalBody) ? req._originalBody : req.body;
             delete req._originalBody;
 
             res.end = end;
@@ -258,6 +258,8 @@ exports.logger = function logger(options) {
                   if (blacklist.length > 0 && bodyWhitelist.length === 0) {
                     var whitelist = _.difference(Object.keys(req.body), blacklist);
                     filteredBody = filterObject(req.body, whitelist, options.requestFilter);
+                  } else if (req.headers && req.headers['content-type'] === 'application/xml') {
+                    filteredBody = req.body;
                   } else if (
                     requestWhitelist.indexOf('body') !== -1 &&
                     bodyWhitelist.length === 0 &&
