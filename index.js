@@ -255,20 +255,20 @@ exports.logger = function logger(options) {
               var filteredBody = null;
 
               if ( req.body !== undefined ) {
-                  if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                    var whitelist = _.difference(Object.keys(req.body), blacklist);
-                    filteredBody = filterObject(req.body, whitelist, options.requestFilter);
-                  } else if (req.headers && req.headers['content-type'] === 'application/xml') {
-                    filteredBody = req.body;
-                  } else if (
-                    requestWhitelist.indexOf('body') !== -1 &&
-                    bodyWhitelist.length === 0 &&
-                    blacklist.length === 0
-                  ) {
-                    filteredBody = filterObject(req.body, Object.keys(req.body), options.requestFilter);
-                  } else {
-                    filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
-                  }
+                if (req.headers && req.headers['content-type'] === 'application/xml') {
+                  filteredBody = req.body;
+                } else if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                  var whitelist = _.difference(Object.keys(req.body), blacklist);
+                  filteredBody = filterObject(req.body, whitelist, options.requestFilter);
+                } else if (
+                  requestWhitelist.indexOf('body') !== -1 &&
+                  bodyWhitelist.length === 0 &&
+                  blacklist.length === 0
+                ) {
+                  filteredBody = filterObject(req.body, Object.keys(req.body), options.requestFilter);
+                } else {
+                  filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                }
               }
 
               if (logData.req) {
