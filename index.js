@@ -255,7 +255,9 @@ exports.logger = function logger(options) {
               var filteredBody = null;
 
               if ( req.body !== undefined ) {
-                if (req.headers && req.headers['content-type'] === 'application/xml') {
+                const contentType = req.headers['content-type'];
+
+                if (req.headers &&  ['application/xml', 'text/xml'].includes(contentType)) {
                   filteredBody = req.body;
                 } else if (blacklist.length > 0 && bodyWhitelist.length === 0) {
                   var whitelist = _.difference(Object.keys(req.body), blacklist);
