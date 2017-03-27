@@ -328,6 +328,36 @@ describe('express-winston', function () {
         loggerFn.should.throw();
       });
     });
+
+    describe('skip option', () => {
+      it('should log error by default', () => {
+        var options = {
+          req: {foo: "bar"}
+        };
+
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.transportInvoked.should.eql(true);
+        });
+      });
+
+      it('should not log error when function returns true', () => {
+        var options = {
+          req: {foo: "bar"},
+          loggerOptions: {
+            skip: function() {return true;}
+          }
+        };
+
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.transportInvoked.should.eql(false);
+        });
+      });
+
+      it('should throw an error if skip is not a function', function() {
+        var loggerFn = expressWinston.errorLogger.bind(expressWinston, {skip: 'not a function'});
+        loggerFn.should.throw();
+      });
+    })
   });
 
   describe('.logger()', function () {

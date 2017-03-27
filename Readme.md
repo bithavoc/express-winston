@@ -117,6 +117,7 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
     level: String // custom log level for errors (default is 'error')
     dynamicMeta: function(req, res, err) { return [Object]; } // Extract additional meta data from request or response (typically req.user data if using passport). meta must be true for this function to be activated
+    skip: function(req, res, err) { return false; } // A function to determine if logging is skipped, defaults to returning false.
 ```
 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
