@@ -329,8 +329,8 @@ describe('express-winston', function () {
       });
     });
 
-    describe('skip option', () => {
-      it('should log error by default', () => {
+    describe('skip option', function() {
+      it('should log error by default', function() {
         var options = {
           req: {foo: "bar"}
         };
@@ -340,7 +340,7 @@ describe('express-winston', function () {
         });
       });
 
-      it('should not log error when function returns true', () => {
+      it('should not log error when function returns true', function() {
         var options = {
           req: {foo: "bar"},
           loggerOptions: {
