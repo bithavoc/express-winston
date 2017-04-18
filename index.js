@@ -133,7 +133,7 @@ exports.errorLogger = function errorLogger(options) {
     return function (err, req, res, next) {
 
         // Let winston gather all the error data
-        var exceptionMeta = exceptionToMeta(err);
+        var exceptionMeta = options.exceptionToMeta(err);
         
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
 
