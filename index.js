@@ -130,6 +130,8 @@ exports.errorLogger = function errorLogger(options) {
     });
 
     return function (err, req, res, next) {
+        req.body = req._originalBody || req.body;
+        delete req._originalBody;
 
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
@@ -202,6 +204,8 @@ exports.logger = function logger(options) {
         if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
 
+        req._originalBody = _.cloneDeep(req.body);
+
         req._startTime = (new Date);
 
         req._routeWhitelists = {
@@ -218,6 +222,9 @@ exports.logger = function logger(options) {
         var end = res.end;
         res.end = function(chunk, encoding) {
             res.responseTime = (new Date) - req._startTime;
+
+            req.body = req._originalBody || req.body;
+            delete req._originalBody;
 
             res.end = end;
             res.end(chunk, encoding);
