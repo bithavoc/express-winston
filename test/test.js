@@ -1246,6 +1246,37 @@ describe('express-winston', function () {
         loggerFn.should.throw();
       });
     });
+
+    describe('requestFilter option', function () {
+      it('should respect request body filtered through `requestFilter` (if not filtered by bodyBlacklist/bodyWhitelist)', function () {
+        var testHelperOptions = {
+          req: {
+            body: {
+              field1: 'foo',
+              field2: 'bar'
+            }
+          },
+          loggerOptions: {
+            bodyBlacklist: [],
+            requestWhitelist: ['method', 'url', 'body'],
+            requestFilter: function(req, propName) {
+              if (propName === 'body') {
+                var jsonbody = JSON.parse(JSON.stringify(req[propName]));
+                delete jsonbody.field2;
+                return jsonbody;
+              }
+              return req[propName];
+            }
+          }
+        };
+
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.req.should.be.ok();
+          result.log.meta.req.body.field1.should.equal('foo');
+          should.not.exist(result.log.meta.req.body.field2);
+        });
+      });
+    });
   });
 
   describe('.requestWhitelist', function () {
