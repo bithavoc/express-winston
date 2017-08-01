@@ -293,15 +293,15 @@ exports.logger = function logger(options) {
 
             var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
             if (options.colorize) {
-              // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
-              var statusColor = 'green';
+              // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L201
+              var statusColor = 'reset';
               if (res.statusCode >= 500) statusColor = 'red';
               else if (res.statusCode >= 400) statusColor = 'yellow';
               else if (res.statusCode >= 300) statusColor = 'cyan';
+              else if (res.statusCode >= 200) statusColor = 'green';
 
-              expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
-                " {{res.statusCode}} " +
-                chalk.grey("{{res.responseTime}}ms");
+              expressMsgFormat = chalk.reset(expressMsgFormat)
+
               coloredRes.statusCode = chalk[statusColor](res.statusCode);
             }
             var msgFormat = !options.expressFormat ? options.msg : expressMsgFormat;
