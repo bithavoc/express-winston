@@ -258,9 +258,10 @@ exports.logger = function logger(options) {
               var filteredBody = null;
 
               if ( req.body !== undefined ) {
-                const contentType = req.headers['content-type'];
-
-                if (req.headers &&  ['application/xml', 'text/xml'].includes(contentType)) {
+                const isContentTypeXml = _.includes(req.headers['content-type'], 'application/xml') 
+                  || _.includes(req.headers['content-type'], 'text/xml');
+    
+                if (req.headers && isContentTypeXml) {
                   filteredBody = req.body;
                 } else if (blacklist.length > 0 && bodyWhitelist.length === 0) {
                   var whitelist = _.difference(Object.keys(req.body), blacklist);
