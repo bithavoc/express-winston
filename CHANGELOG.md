@@ -1,3 +1,6 @@
+## 2.4.0
+* Allow `options.level` to be a function for dynamic level setting ([#148](https://github.com/bithavoc/express-winston/pull/148), @CryptArchy)
+
 ## 2.3.0
 * Allow line breaks inside `msg` interpolation ([#143](https://github.com/bithavoc/express-winston/pull/143), @ltegman)
 
