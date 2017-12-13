@@ -124,7 +124,6 @@ exports.errorLogger = function errorLogger(options) {
     options.level = options.level || 'error';
     options.skip = options.skip || exports.defaultSkip;
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
-    options.skip = options.skip || exports.defaultSkip;
 
     // Using mustache style templating
     var template = _.template(options.msg, {
@@ -151,7 +150,7 @@ exports.errorLogger = function errorLogger(options) {
         }
 
         exceptionMeta = _.assign(exceptionMeta, options.baseMeta);
-
+        
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
         if (!options.skip(req, res, err)) {
             options.winstonInstance.log(options.level, template({err: err, req: req, res: res}), exceptionMeta);
