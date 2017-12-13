@@ -352,11 +352,6 @@ describe('express-winston', function () {
           result.transportInvoked.should.eql(false);
         });
       });
-
-      it('should throw an error if skip is not a function', function() {
-        var loggerFn = expressWinston.errorLogger.bind(expressWinston, {skip: 'not a function'});
-        loggerFn.should.throw();
-      });
     })
   });
 
