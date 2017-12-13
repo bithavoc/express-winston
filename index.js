@@ -122,6 +122,7 @@ exports.errorLogger = function errorLogger(options) {
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.level = options.level || 'error';
+    options.skip = options.skip || exports.defaultSkip;
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
     options.skip = options.skip || exports.defaultSkip;
 
@@ -131,6 +132,8 @@ exports.errorLogger = function errorLogger(options) {
     });
 
     return function (err, req, res, next) {
+        req.body = req._originalBody || req.body;
+        delete req._originalBody;
 
         // Let winston gather all the error data.
         var exceptionMeta = winston.exception.getAllInfo(err);
@@ -195,6 +198,8 @@ exports.logger = function logger(options) {
         if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
 
+        req._originalBody = _.cloneDeep(req.body);
+
         req._startTime = (new Date);
 
         req._routeWhitelists = {
@@ -211,6 +216,9 @@ exports.logger = function logger(options) {
         var end = res.end;
         res.end = function(chunk, encoding) {
             res.responseTime = (new Date) - req._startTime;
+
+            req.body = !_.isEmpty(req._originalBody) ? req._originalBody : req.body;
+            delete req._originalBody;
 
             res.end = end;
             res.end(chunk, encoding);
@@ -251,18 +259,23 @@ exports.logger = function logger(options) {
               var filteredBody = null;
 
               if ( req.body !== undefined ) {
-                  if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                    var whitelist = _.difference(Object.keys(req.body), blacklist);
-                    filteredBody = filterObject(req.body, whitelist, options.requestFilter);
-                  } else if (
-                    requestWhitelist.indexOf('body') !== -1 &&
-                    bodyWhitelist.length === 0 &&
-                    blacklist.length === 0
-                  ) {
-                    filteredBody = filterObject(req.body, Object.keys(req.body), options.requestFilter);
-                  } else {
-                    filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
-                  }
+                const isContentTypeXml = _.includes(req.headers['content-type'], 'application/xml') 
+                  || _.includes(req.headers['content-type'], 'text/xml');
+    
+                if (req.headers && isContentTypeXml) {
+                  filteredBody = req.body;
+                } else if (blacklist.length > 0 && bodyWhitelist.length === 0) {
+                  var whitelist = _.difference(Object.keys(req.body), blacklist);
+                  filteredBody = filterObject(req.body, whitelist, options.requestFilter);
+                } else if (
+                  requestWhitelist.indexOf('body') !== -1 &&
+                  bodyWhitelist.length === 0 &&
+                  blacklist.length === 0
+                ) {
+                  filteredBody = filterObject(req.body, Object.keys(req.body), options.requestFilter);
+                } else {
+                  filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                }
               }
 
               if (logData.req) {

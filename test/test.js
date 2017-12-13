@@ -595,6 +595,30 @@ describe('express-winston', function () {
       });
     });
 
+    it('should log original req.body even if the object is mutated', function () {
+      function next(req, res, next) {
+        req.body.value = req.body.value.replace(/-/g, ' ');
+
+        res.end();
+      }
+      var testHelperOptions = {
+        next: next,
+        req: {
+          body: {
+            foo: 'bar',
+            value: 'i-have-dashes',
+          },
+          url: '/hello'
+        },
+      };
+      return loggerTestHelper(testHelperOptions).then(function (result) {
+        result.log.meta.req.body.should.eql({
+          foo: 'bar',
+          value: 'i-have-dashes'
+        });
+      });
+    });
+
     describe('when middleware function is invoked on a route', function () {
       function next(req, res, next) {
         req._startTime = (new Date()) - 125;
