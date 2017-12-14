@@ -315,6 +315,15 @@ exports.logger = function logger(options) {
               coloredRes.statusCode = chalk[statusColor](res.statusCode);
             }
 
+            var msgFormat = !options.expressFormat ?
+              typeof options.msg === 'function' ? options.msg(req, res) : options.msg
+              : expressMsgFormat
+
+            // Using mustache style templating
+            var template = _.template(msgFormat, {
+              interpolate: /\{\{(.+?)\}\}/g
+            });
+
             var msg = template({req: req, res: _.assign({}, res, coloredRes)});
 
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
