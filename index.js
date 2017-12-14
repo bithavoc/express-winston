@@ -125,8 +125,8 @@ exports.errorLogger = function errorLogger(options) {
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
 
     // Using mustache style templating
-    var getTemplate = function(msg, options) {
-      return _.template(msg, {interpolate: /\{\{([\s\S]+?)\}\}/g})(options)
+    var getTemplate = function(msg, data) {
+      return _.template(msg, {interpolate: /\{\{([\s\S]+?)\}\}/g})(data)
     };
 
     return function (err, req, res, next) {
@@ -323,7 +323,6 @@ exports.logger = function logger(options) {
             } else {
               msgFormat = expressMsgFormat
             }
-
 
             // Using mustache style templating
             var template = _.template(msgFormat, {
