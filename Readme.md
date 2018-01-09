@@ -383,7 +383,7 @@ If you set statusLevels to true express-winston will log sub 400 responses at in
   }
 ```
 
-## Dynamica Status Levels
+## Dynamic Status Levels
 
 If you set statusLevels to false and assign a function to level, you can customize the log level for any scenario.
 
