@@ -195,6 +195,20 @@ exports.logger = function logger(options) {
     options.skip = options.skip || exports.defaultSkip;
     options.dynamicMeta = options.dynamicMeta || function(req, res) { return null; };
 
+    var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
+    if (options.colorize) {
+        expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
+          " {{res.statusCode}} " +
+          chalk.grey("{{res.responseTime}}ms");
+    }
+
+    var msgFormat = !options.expressFormat ? options.msg : expressMsgFormat;
+
+    // Using mustache style templating
+    var template = _.template(msgFormat, {
+      interpolate: /\{\{(.+?)\}\}/g
+    });
+
     return function (req, res, next) {
         var coloredRes = {};
 
@@ -291,7 +305,6 @@ exports.logger = function logger(options) {
 
             meta = _.assign(meta, options.baseMeta);
 
-            var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
             if (options.colorize) {
               // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
               var statusColor = 'green';
@@ -299,17 +312,8 @@ exports.logger = function logger(options) {
               else if (res.statusCode >= 400) statusColor = 'yellow';
               else if (res.statusCode >= 300) statusColor = 'cyan';
 
-              expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
-                " {{res.statusCode}} " +
-                chalk.grey("{{res.responseTime}}ms");
               coloredRes.statusCode = chalk[statusColor](res.statusCode);
             }
-            var msgFormat = !options.expressFormat ? options.msg : expressMsgFormat;
-
-            // Using mustache style templating
-            var template = _.template(msgFormat, {
-              interpolate: /\{\{(.+?)\}\}/g
-            });
 
             var msg = template({req: req, res: _.assign({}, res, coloredRes)});
 
