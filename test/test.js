@@ -17,11 +17,12 @@ var MockTransport = function (test, options) {
 
   winston.Transport.call(this, options || {});
 
-  this.log = function (level, msg, meta, cb) {
+  this.log = function (info, cb) {
     test.transportInvoked = true;
-    test.log.level = level;
-    test.log.msg = msg;
-    test.log.meta = meta;
+    test.log.level = info.level;
+    test.log.msg = info.message;
+    test.log.meta = info.metaField;
+    console.log('LOG updated', test)
     this.emit('logged');
     return cb();
   };
@@ -113,6 +114,7 @@ function errorLoggerTestHelper(providedOptions) {
     middleware(options.originalError, req, res, function (pipelineError) {
       options.next(pipelineError);
       result.pipelineError = pipelineError;
+      console.log('The log prop here should contain stuff but is empty', result)
       resolve(result);
     });
   });

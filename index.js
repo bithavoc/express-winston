@@ -111,17 +111,25 @@ function filterObject(originalObj, whiteList, initialFilter) {
 //
 
 
+
 exports.errorLogger = function errorLogger(options) {
 
     ensureValidOptions(options);
 
+    if(options.transports === undefined || options.transports.length == 0)
+      options.transports = [new winston.transports.Console({
+        // format: winston.format.simple()
+        format: winston.format.combine(winston.format.colorize({ all: true }), winston.format.simple()),
+      })]
+
+
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
-    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
+    options.level = options.level || 'error';
+    options.winstonInstance = options.winstonInstance || (winston.createLogger ({level: options.level, transports: options.transports }));
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
-    options.level = options.level || 'error';
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
 
     // Using mustache style templating
@@ -132,7 +140,7 @@ exports.errorLogger = function errorLogger(options) {
     return function (err, req, res, next) {
 
         // Let winston gather all the error data.
-        var exceptionMeta = winston.exception.getAllInfo(err);
+        var exceptionMeta = winston.exceptions.getAllInfo(err);
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
 
         if(options.dynamicMeta) {
@@ -176,6 +184,12 @@ exports.logger = function logger(options) {
     ensureValidOptions(options);
     ensureValidLoggerOptions(options);
 
+    if(options.transports === undefined || options.transports.length == 0)
+      options.transports = [new winston.transports.Console({
+        // format: winston.format.simple()
+        format: winston.format.combine(winston.format.colorize({ all: true }), winston.format.simple()),
+      })]
+
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.bodyWhitelist = options.bodyWhitelist || exports.bodyWhitelist;
     options.bodyBlacklist = options.bodyBlacklist || exports.bodyBlacklist;
@@ -183,9 +197,9 @@ exports.logger = function logger(options) {
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
     options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
-    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
-    options.statusLevels = options.statusLevels || false;
     options.level = options.statusLevels ? levelFromStatus(options) : (options.level || "info");
+    options.winstonInstance = options.winstonInstance || (winston.createLogger ({level: options.level, transports: options.transports }));
+    options.statusLevels = options.statusLevels || false;
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
