@@ -12,26 +12,21 @@ expressWinston.ignoredRoutes.push('/ignored');
 expressWinston.responseWhitelist.push('body');
 expressWinston.bodyBlacklist.push('potato');
 
-class MockTransport extends winston.Transport {
-  constructor(test, opts) {
-    super(opts);
-    this.test = test;
-    this.test.transportInvoked = false;
-  }
-
-  log(info, callback) {
-    setImmediate(function () {
-      this.emit('logged', info);
-    });
-
-    this.test.transportInvoked = true;
-    this.test.log.level = info.level;
-    this.test.log.msg = info.message;
-    this.test.log.meta = info.metaField;
-
-    callback();
-  }
-}
+var MockTransport = function (test, options) {
+  test.transportInvoked = false;
+ 
+  winston.Transport.call(this, options || {});
+ 
+  this.log = function (info, cb) {
+    test.transportInvoked = true;
+    test.log.level = info.level;
+    test.log.msg = info.message;
+    test.log.meta = info.metaField;
+    this.emit('logged');
+    return cb();
+  };
+};
+util.inherits(MockTransport, winston.Transport);
 
 
 function mockReq(reqMock) {
@@ -168,10 +163,8 @@ describe('express-winston', function () {
         // Return to the original value for later tests
         expressWinston.requestWhitelist = originalWhitelist;
 
-        console.log('export whitelist', result.log)
-
-        result.log.meta.req.should.have.property('foo');
-        result.log.meta.req.should.not.have.property('url');
+        result.req.should.have.property('foo');
+        result.req.should.not.have.property('url');
       });
     });
 

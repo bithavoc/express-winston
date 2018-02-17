@@ -122,11 +122,17 @@ exports.errorLogger = function errorLogger(options) {
         format: winston.format.combine(winston.format.colorize({ all: true }), winston.format.simple()),
       })]
 
+    if(options.exceptionHandlers === undefined || options.exceptionHandlers.length == 0)
+      options.exceptionHandlers = options.transports
+
+    // console.log('100error transports', options.transports[0].log)
+    // console.log('2012-2014error transports', options.transports[0].log('test', () => console.log('test callback')))
+
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.level = options.level || 'error';
-    options.winstonInstance = options.winstonInstance || (winston.createLogger ({level: options.level, transports: options.transports }));
+    options.winstonInstance = options.winstonInstance || (winston.createLogger ({level: options.level, transports: options.transports, exceptionHandlers: options.exceptionHandlers }));
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
@@ -160,8 +166,8 @@ exports.errorLogger = function errorLogger(options) {
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
         options.winstonInstance.log(level, template({err: err, req: req, res: res}), exceptionMeta);
-
         next(err);
+
     };
 };
 
@@ -208,6 +214,8 @@ exports.logger = function logger(options) {
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || exports.defaultSkip;
     options.dynamicMeta = options.dynamicMeta || function(req, res) { return null; };
+
+    options.winstonInstance.setMaxListeners(100)
 
     var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
     if (options.colorize) {
