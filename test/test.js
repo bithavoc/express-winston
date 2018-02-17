@@ -12,22 +12,27 @@ expressWinston.ignoredRoutes.push('/ignored');
 expressWinston.responseWhitelist.push('body');
 expressWinston.bodyBlacklist.push('potato');
 
-var MockTransport = function (test, options) {
-  test.transportInvoked = false;
+class MockTransport extends winston.Transport {
+  constructor(test, opts) {
+    super(opts);
+    this.test = test;
+    this.test.transportInvoked = false;
+  }
 
-  winston.Transport.call(this, options || {});
+  log(info, callback) {
+    setImmediate(function () {
+      this.emit('logged', info);
+    });
 
-  this.log = function (info, cb) {
-    test.transportInvoked = true;
-    test.log.level = info.level;
-    test.log.msg = info.message;
-    test.log.meta = info.metaField;
-    console.log('LOG updated', test)
-    this.emit('logged');
-    return cb();
-  };
-};
-util.inherits(MockTransport, winston.Transport);
+    this.test.transportInvoked = true;
+    this.test.log.level = info.level;
+    this.test.log.msg = info.message;
+    this.test.log.meta = info.metaField;
+
+    callback();
+  }
+}
+
 
 function mockReq(reqMock) {
   var reqSpec = _.extend({
@@ -114,7 +119,7 @@ function errorLoggerTestHelper(providedOptions) {
     middleware(options.originalError, req, res, function (pipelineError) {
       options.next(pipelineError);
       result.pipelineError = pipelineError;
-      console.log('The log prop here should contain stuff but is empty', result)
+      console.log('The log prop here should contain stuff but is empty', result.log.msg || result.log)
       resolve(result);
     });
   });
@@ -162,6 +167,8 @@ describe('express-winston', function () {
       return errorLoggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
         expressWinston.requestWhitelist = originalWhitelist;
+
+        console.log('export whitelist', result.log)
 
         result.log.meta.req.should.have.property('foo');
         result.log.meta.req.should.not.have.property('url');
