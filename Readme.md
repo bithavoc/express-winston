@@ -65,7 +65,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
     winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored.
     level: String or function(req, res) { return String; }, // log level to use, the default is "info". Assign a  function to dynamically set the level based on request and response, or a string to statically set it always at that level. statusLevels must be false for this setting to be used.
-    msg: String // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}".
+    msg: String or function // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }
     expressFormat: Boolean, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors when colorize set to true
     colorize: Boolean, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
@@ -110,7 +110,7 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 ``` js
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
     winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored
-    msg: String // customize the default logging message. E.g. "{{err.message}} {{res.statusCode}} {{req.method}}".
+    msg: String or function // customize the default logging message. E.g. "{{err.message}} {{res.statusCode}} {{req.method}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
