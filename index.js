@@ -125,9 +125,9 @@ exports.errorLogger = function errorLogger(options) {
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
 
     // Using mustache style templating
-    var template = _.template(options.msg, {
-      interpolate: /\{\{([\s\S]+?)\}\}/g
-    });
+    var getTemplate = function(msg, data) {
+      return _.template(msg, {interpolate: /\{\{([\s\S]+?)\}\}/g})(data)
+    };
 
     return function (err, req, res, next) {
 
@@ -150,8 +150,10 @@ exports.errorLogger = function errorLogger(options) {
 
         var level = _.isFunction(options.level) ? options.level(req, res, err) : options.level;
 
+        options.msg = typeof options.msg === 'function' ? options.msg(req, res) : options.msg;
+
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log(level, template({err: err, req: req, res: res}), exceptionMeta);
+        options.winstonInstance.log(level, getTemplate(options.msg, {err: err, req: req, res: res}), exceptionMeta);
 
         next(err);
     };
@@ -314,6 +316,18 @@ exports.logger = function logger(options) {
 
               coloredRes.statusCode = chalk[statusColor](res.statusCode);
             }
+
+            var msgFormat
+            if (!options.expressFormat) {
+              msgFormat = typeof options.msg === 'function' ? options.msg(req, res) : options.msg
+            } else {
+              msgFormat = expressMsgFormat
+            }
+
+            // Using mustache style templating
+            var template = _.template(msgFormat, {
+              interpolate: /\{\{(.+?)\}\}/g
+            });
 
             var msg = template({req: req, res: _.assign({}, res, coloredRes)});
 
