@@ -141,12 +141,12 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
       return next(new Error("This is an error and it should be logged to the console"));
     });
 
-    app.get('/', function(req, res, next) {
+    router.get('/', function(req, res, next) {
       res.write('This is a normal request, it should be logged to the console too');
       res.end();
     });
 
-    // express-winston logger makes sense BEFORE the router.
+    // express-winston logger makes sense BEFORE the router
     app.use(expressWinston.logger({
       transports: [
         new winston.transports.Console({
