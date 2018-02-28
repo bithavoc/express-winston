@@ -146,7 +146,7 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
       res.end();
     });
 
-    // express-winston logger makes sense BEFORE the router and and app-defined methods.
+    // express-winston logger makes sense BEFORE the router
     app.use(expressWinston.logger({
       transports: [
         new winston.transports.Console({
