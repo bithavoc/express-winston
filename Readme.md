@@ -141,6 +141,11 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
       return next(new Error("This is an error and it should be logged to the console"));
     });
 
+    router.get('/', function(req, res, next) {
+      res.write('This is a normal request, it should be logged to the console too');
+      res.end();
+    });
+
     // express-winston logger makes sense BEFORE the router and and app-defined methods.
     app.use(expressWinston.logger({
       transports: [
@@ -150,11 +155,6 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
         })
       ]
     }));
-
-    app.get('/', function(req, res, next) {
-      res.write('This is a normal request, it should be logged to the console too');
-      res.end();
-    });
 
     // Now we can tell the app to use our routing code:
     app.use(router);
