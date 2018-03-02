@@ -188,7 +188,7 @@ exports.logger = function logger(options) {
     options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
     options.statusLevels = options.statusLevels || false;
     options.level = options.statusLevels ? levelFromStatus(options) : (options.level || "info");
-    options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
+    options.msg = options.msg || "HTTP {{req.method}} {{req.originalUrl}}";
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.colorize = options.colorize || false;
@@ -197,9 +197,9 @@ exports.logger = function logger(options) {
     options.skip = options.skip || exports.defaultSkip;
     options.dynamicMeta = options.dynamicMeta || function(req, res) { return null; };
 
-    var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
+    var expressMsgFormat = "{{req.method}} {{req.originalUrl}} {{res.statusCode}} {{res.responseTime}}ms";
     if (options.colorize) {
-        expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
+        expressMsgFormat = chalk.grey("{{req.method}} {{req.originalUrl}}") +
           " {{res.statusCode}} " +
           chalk.grey("{{res.responseTime}}ms");
     }
@@ -237,8 +237,6 @@ exports.logger = function logger(options) {
 
             res.end = end;
             res.end(chunk, encoding);
-
-            req.url = req.originalUrl || req.url;
 
             var meta = {};
 
