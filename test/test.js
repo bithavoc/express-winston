@@ -229,6 +229,33 @@ describe('express-winston', function () {
       });
     });
 
+    describe.only('exceptionToMeta option', function () {
+      it('should, use exceptionToMeta function when given', function () {
+        function exceptionToMeta(error) {
+          return {
+            stack: error.stack && error.stack.split('\n')
+          };
+        }
+
+        var testHelperOptions = { loggerOptions: { exceptionToMeta: exceptionToMeta } };
+        return errorLoggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.stack.should.be.ok();
+          result.log.meta.should.not.have.property('trace');
+        });
+      });
+
+      it('should, use getAllInfo function when not given', function () {
+        var testHelperOptions = { loggerOptions: { } };
+        return errorLoggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.should.have.property('date');
+          result.log.meta.should.have.property('process');
+          result.log.meta.should.have.property('os');
+          result.log.meta.should.have.property('trace');
+          result.log.meta.should.have.property('stack');
+        });
+      });
+    });
+
     describe('metaField option', function () {
       it('should, when using a custom metaField, log the custom metaField', function () {
         var testHelperOptions = {loggerOptions: {metaField: 'metaField'}};
