@@ -256,6 +256,20 @@ describe('express-winston', function () {
       });
     });
 
+    describe.only('blacklistedMetaFields option', function () {
+      it('should, remove given fields from the meta result', function () {
+        var testHelperOptionsWithBlacklist = { loggerOptions: { blacklistedMetaFields: ['trace'] } };
+        return errorLoggerTestHelper(testHelperOptionsWithBlacklist).then(function (result) {
+          result.log.meta.should.not.have.property('trace');
+        });
+
+        var testHelperOptionsWithoutBlacklist = { loggerOptions: {} };
+        return errorLoggerTestHelper(testHelperOptionsWithoutBlacklist).then(function (result) {
+          result.log.meta.should.have.property('trace');
+        });
+      });
+    });
+
     describe('metaField option', function () {
       it('should, when using a custom metaField, log the custom metaField', function () {
         var testHelperOptions = {loggerOptions: {metaField: 'metaField'}};
