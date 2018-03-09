@@ -229,7 +229,7 @@ describe('express-winston', function () {
       });
     });
 
-    describe.only('exceptionToMeta option', function () {
+    describe('exceptionToMeta option', function () {
       it('should, use exceptionToMeta function when given', function () {
         function exceptionToMeta(error) {
           return {
@@ -256,7 +256,7 @@ describe('express-winston', function () {
       });
     });
 
-    describe.only('blacklistedMetaFields option', function () {
+    describe('blacklistedMetaFields option', function () {
       it('should, remove given fields from the meta result', function () {
         var testHelperOptionsWithBlacklist = { loggerOptions: { blacklistedMetaFields: ['trace'] } };
         return errorLoggerTestHelper(testHelperOptionsWithBlacklist).then(function (result) {
