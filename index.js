@@ -123,6 +123,8 @@ exports.errorLogger = function errorLogger(options) {
     options.metaField = options.metaField || null;
     options.level = options.level || 'error';
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
+    options.exceptionToMeta = options.exceptionToMeta || winston.exception.getAllInfo;
+    options.blacklistedMetaFields = options.blacklistedMetaFields || [];
 
     // Using mustache style templating
     var getTemplate = function(msg, data) {
@@ -131,8 +133,8 @@ exports.errorLogger = function errorLogger(options) {
 
     return function (err, req, res, next) {
 
-        // Let winston gather all the error data.
-        var exceptionMeta = winston.exception.getAllInfo(err);
+      // Let winston gather all the error data
+        var exceptionMeta = _.omit(options.exceptionToMeta(err), options.blacklistedMetaFields);
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
 
         if(options.dynamicMeta) {
