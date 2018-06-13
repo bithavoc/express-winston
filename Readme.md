@@ -368,7 +368,7 @@ Blacklisting supports only the `body` property.
     });
 ```
 
-If both `req._bodyWhitelist.body` and `req._bodyBlacklist.body` are set the result will be the white listed properties
+If both `req._routeWhitelists.body` and `req._routeBlacklists.body` are set the result will be the white listed properties
 excluding any black listed ones. In the above example, only 'email' and 'age' would be included.
 
 
