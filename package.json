@@ -60,7 +60,7 @@
     "winston": ">=1.x"
   },
   "peerDependencies": {
-    "winston": ">=1.x"
+    "winston": ">=1.x <3"
   },
   "engines": {
     "node": ">=0.10.0"
