@@ -5,6 +5,7 @@ var Promise = require('promise/lib/es6-extensions');
 var should = require('should');
 var _ = require('lodash');
 var winston = require('winston');
+var Transport = require('winston-transport');
 
 var expressWinston = require('../index.js');
 
@@ -12,21 +13,23 @@ expressWinston.ignoredRoutes.push('/ignored');
 expressWinston.responseWhitelist.push('body');
 expressWinston.bodyBlacklist.push('potato');
 
-var MockTransport = function (test, options) {
-  test.transportInvoked = false;
+class MockTransport extends Transport {
+  constructor(test, options) {
+    super(options || {});
 
-  winston.Transport.call(this, options || {});
+    this._test = test;
+    this._test.transportInvoked = false;
+  }
 
-  this.log = function (level, msg, meta, cb) {
-    test.transportInvoked = true;
-    test.log.level = level;
-    test.log.msg = msg;
-    test.log.meta = meta;
+  log(info, cb) {
+    this._test.transportInvoked = true;
+    this._test.log.level = info.level;
+    this._test.log.msg = info.message;
+    this._test.log.meta = info.meta;
     this.emit('logged');
     return cb();
-  };
-};
-util.inherits(MockTransport, winston.Transport);
+  }
+}
 
 function mockReq(reqMock) {
   var reqSpec = _.extend({

@@ -117,13 +117,14 @@ exports.errorLogger = function errorLogger(options) {
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
-    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
+    options.winstonInstance = options.winstonInstance || (winston.createLogger ({ transports: options.transports }));
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.level = options.level || 'error';
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
-    options.exceptionToMeta = options.exceptionToMeta || winston.exception.getAllInfo;
+    const exceptionHandler = new winston.ExceptionHandler(options.winstonInstance);
+    options.exceptionToMeta = options.exceptionToMeta || exceptionHandler.getAllInfo.bind(exceptionHandler);
     options.blacklistedMetaFields = options.blacklistedMetaFields || [];
 
     // Using mustache style templating
@@ -155,7 +156,11 @@ exports.errorLogger = function errorLogger(options) {
         options.msg = typeof options.msg === 'function' ? options.msg(req, res) : options.msg;
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log(level, getTemplate(options.msg, {err: err, req: req, res: res}), exceptionMeta);
+        options.winstonInstance.log({
+            level,
+            message: getTemplate(options.msg, {err: err, req: req, res: res}),
+            meta: exceptionMeta
+        });
 
         next(err);
     };
@@ -187,7 +192,7 @@ exports.logger = function logger(options) {
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
     options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
-    options.winstonInstance = options.winstonInstance || (new winston.Logger ({ transports: options.transports }));
+    options.winstonInstance = options.winstonInstance || (winston.createLogger ({ transports: options.transports }));
     options.statusLevels = options.statusLevels || false;
     options.level = options.statusLevels ? levelFromStatus(options) : (options.level || "info");
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
@@ -336,7 +341,7 @@ exports.logger = function logger(options) {
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
               var level = _.isFunction(options.level) ? options.level(req, res) : options.level;
-              options.winstonInstance.log(level, msg, meta);
+              options.winstonInstance.log({level, message: msg, meta});
             }
         };
 
