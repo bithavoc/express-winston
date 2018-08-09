@@ -7,6 +7,9 @@ node_js:
   - "4"
   - "6"
   - "7"
+  - "8"
+  - "9"
+  - "10"
 
 script:
   - "test $TRAVIS_NODE_VERSION  = '0.6' || npm test"
