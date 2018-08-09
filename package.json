@@ -54,7 +54,6 @@
     "blanket": "^1.2.2",
     "mocha": "^2.4.5",
     "node-mocks-http": "^1.5.1",
-    "promise": "^7.1.1",
     "should": "^8.2.2",
     "travis-cov": "^0.2.5",
     "winston": ">=3.x <4",

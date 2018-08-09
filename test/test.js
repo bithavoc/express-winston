@@ -1,7 +1,6 @@
 var util = require('util');
 
 var mocks = require('node-mocks-http');
-var Promise = require('promise/lib/es6-extensions');
 var should = require('should');
 var _ = require('lodash');
 var winston = require('winston');
