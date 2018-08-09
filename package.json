@@ -57,7 +57,7 @@
     "promise": "^7.1.1",
     "should": "^8.2.2",
     "travis-cov": "^0.2.5",
-    "winston": ">=1.x"
+    "winston": ">=1.x <3"
   },
   "peerDependencies": {
     "winston": ">=1.x <3"
