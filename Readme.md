@@ -3,11 +3,13 @@
 
 > [winston](https://github.com/winstonjs/winston) middleware for express.js
 
+[Changelog](CHANGELOG.md)
+
 ## Installation
 
     npm install winston express-winston
 
-(supports node >= 0.10)
+(supports node >= 6)
 
 ## Usage
 
@@ -21,8 +23,8 @@ In `package.json`:
 {
   "dependencies": {
     "...": "...",
-    "winston": "^2.0.0",
-    "express-winston": "^2.0.0",
+    "winston": "^3.0.0",
+    "express-winston": "^3.0.0",
     "...": "..."
   }
 }
