@@ -1,3 +1,22 @@
+## 3.0.0
+express-winston@3 shouldn't have any breaking changes _of its own_, but there are breaking changes as a result of upgrading winston and Node.js.
+
+express-winston@2.6.0 will be the last version to support winston@2.
+
+#### Breaking changes
+* Drop support for winston < 3. winston@3 includes quite a few breaking changes. Check their [changelog](https://github.com/winstonjs/winston/blob/master/CHANGELOG.md) and [upgrade guide](https://github.com/winstonjs/winston/blob/master/UPGRADE-3.0.md) to get an idea of winston's breaking changes.
+* Drop support for Node.js < 6. v6 is the oldest version of Node.js [currently supported by the Node.js team](https://github.com/nodejs/Release).
+
+## 2.6.0
+* Add `exceptionToMeta` and `blacklistedMetaFields` for filtering returned meta
+  object ([#173](https://github.com/bithavoc/express-winston/pull/173), @cubbuk)
+
+## 2.5.1
+* Allow `msg` to be a function ([#160](https://github.com/bithavoc/express-winston/pull/160), @brendancwood)
+
+## 2.5.0
+* Reduce memory usage ([#164](https://github.com/bithavoc/express-winston/pull/164), @Kmaschta)
+
 ## 2.4.0
 * Allow `options.level` to be a function for dynamic level setting ([#148](https://github.com/bithavoc/express-winston/pull/148), @CryptArchy)
 
