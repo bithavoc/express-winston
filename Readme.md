@@ -46,11 +46,12 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
 
     app.use(expressWinston.logger({
       transports: [
-        new winston.transports.Console({
-          json: true,
-          colorize: true
-        })
+        new winston.transports.Console()
       ],
+      format: winston.format.combine(
+        winston.format.colorize()
+        winston.format.json()
+      )
       meta: true, // optional: control whether you want to log the meta data about the request (default to true)
       msg: "HTTP {{req.method}} {{req.url}}", // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
       expressFormat: true, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors with colorize set to true
@@ -65,7 +66,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
 
 ``` js
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
-    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored.
+    format: [<logform.Format>], // formatting desired for log output.
+    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports and formats options are ignored.
     level: String or function(req, res) { return String; }, // log level to use, the default is "info". Assign a  function to dynamically set the level based on request and response, or a string to statically set it always at that level. statusLevels must be false for this setting to be used.
     msg: String or function // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }
     expressFormat: Boolean, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors when colorize set to true
@@ -97,11 +99,12 @@ Use `expressWinston.errorLogger(options)` to create a middleware that log the er
     app.use(router); // notice how the router goes first.
     app.use(expressWinston.errorLogger({
       transports: [
-        new winston.transports.Console({
-          json: true,
-          colorize: true
-        })
-      ]
+        new winston.transports.Console()
+      ],
+      format: winston.format.combine(
+        winston.format.colorize()
+        winston.format.json()
+      )
     }));
 ```
 
@@ -111,7 +114,8 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 
 ``` js
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
-    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports option is ignored
+    format: [<logform.Format>], // formatting desired for log output
+    winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports and formats options are ignored.
     msg: String or function // customize the default logging message. E.g. "{{err.message}} {{res.statusCode}} {{req.method}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
@@ -153,11 +157,12 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
     // express-winston logger makes sense BEFORE the router
     app.use(expressWinston.logger({
       transports: [
-        new winston.transports.Console({
-          json: true,
-          colorize: true
-        })
-      ]
+        new winston.transports.Console()
+      ],
+      format: winston.format.combine(
+        winston.format.colorize()
+        winston.format.json()
+      )
     }));
 
     // Now we can tell the app to use our routing code:
@@ -166,11 +171,12 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
     // express-winston errorLogger makes sense AFTER the router.
     app.use(expressWinston.errorLogger({
       transports: [
-        new winston.transports.Console({
-          json: true,
-          colorize: true
-        })
-      ]
+        new winston.transports.Console()
+      ],
+      format: winston.format.combine(
+        winston.format.colorize()
+        winston.format.json()
+      )
     }));
 
     // Optionally you can include your custom error handler after the logging.
