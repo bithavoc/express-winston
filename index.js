@@ -19,7 +19,6 @@
 // THE SOFTWARE.
 //
 var winston = require('winston');
-var util = require('util');
 var chalk = require('chalk');
 
 var _ = require('lodash');
@@ -117,7 +116,10 @@ exports.errorLogger = function errorLogger(options) {
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
-    options.winstonInstance = options.winstonInstance || (winston.createLogger ({ transports: options.transports }));
+    options.winstonInstance = options.winstonInstance || (winston.createLogger({
+      transports: options.transports,
+      format: options.format
+    }));
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
@@ -192,7 +194,10 @@ exports.logger = function logger(options) {
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
     options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
-    options.winstonInstance = options.winstonInstance || (winston.createLogger ({ transports: options.transports }));
+    options.winstonInstance = options.winstonInstance || (winston.createLogger({
+      transports: options.transports,
+      format: options.format
+    }));
     options.statusLevels = options.statusLevels || false;
     options.level = options.statusLevels ? levelFromStatus(options) : (options.level || "info");
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
