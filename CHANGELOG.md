@@ -1,3 +1,6 @@
+## 3.0.1
+* Add `format` to `options` to allow user-specified formatting following winston@3 conventions ([#190](https://github.com/bithavoc/express-winston/pull/190), @crellison)
+
 ## 3.0.0
 express-winston@3 shouldn't have any breaking changes _of its own_, but there are breaking changes as a result of upgrading winston and Node.js.
 
