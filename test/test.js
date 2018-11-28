@@ -305,8 +305,30 @@ describe('express-winston', function () {
       });
     });
 
-    describe('bodyBlacklist option', function() {
-      it('should use specified bodyBlacklist', function () {
+    describe('bodyBlacklist error logger functionality', function() {
+      it('should use the exported bodyBlacklist', function() {
+        var originalBlacklist = expressWinston.bodyBlacklist;
+        expressWinston.bodyBlacklist = ['foo'];
+
+        var options = {
+          req: {
+            body: {
+              foo: 'bar',
+              baz: 'qux'
+            }
+          }
+        };
+
+        return errorLoggerTestHelper(options).then(function (result) {
+          // Return to the original value for later tests
+          expressWinston.bodyBlacklist = originalBlacklist;
+
+          result.log.meta.req.body.should.not.have.property('foo');
+          result.log.meta.req.body.should.have.property('baz');
+        });
+      });
+
+      it('should use bodyBlacklist option', function () {
         var options = {
           req: {
             body: {
@@ -318,6 +340,7 @@ describe('express-winston', function () {
             bodyBlacklist: ['foo']
           }
         };
+
         return errorLoggerTestHelper(options).then(function (result) {
           result.log.meta.req.body.should.not.have.property('foo');
           result.log.meta.req.body.should.have.property('baz');
@@ -325,8 +348,30 @@ describe('express-winston', function () {
       });
     });
 
-    describe('bodyWhitelist option', function() {
-      it('should use specified bodyBlacklist', function () {
+    describe('bodyWhitelist error logger functionality', function() {
+      it('should use the exported bodyWhitelist', function() {
+        var originalWhitelist = expressWinston.bodyWhitelist;
+        expressWinston.bodyWhitelist = ['foo'];
+
+        var options = {
+          req: {
+            body: {
+              foo: 'bar',
+               baz: 'qux'
+            }
+          }
+        };
+
+        return errorLoggerTestHelper(options).then(function (result) {
+          // Return to the original value for later tests
+          expressWinston.bodyWhitelist = originalWhitelist;
+
+          result.log.meta.req.body.should.have.property('foo');
+          result.log.meta.req.body.should.not.have.property('baz');
+        });
+      });
+
+      it('should use bodyWhitelist option', function () {
         var options = {
           req: {
             body: {
