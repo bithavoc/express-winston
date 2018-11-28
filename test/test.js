@@ -305,6 +305,76 @@ describe('express-winston', function () {
       });
     });
 
+    describe('bodyBlacklist option', function() {
+      it('should use specified bodyBlacklist', function () {
+        var options = {
+          req: {
+            body: {
+              foo: 'bar',
+              baz: 'qux'
+            }
+          },
+          loggerOptions: {
+            bodyBlacklist: ['foo']
+          }
+        };
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.log.meta.req.body.should.not.have.property('foo');
+          result.log.meta.req.body.should.have.property('baz');
+        });
+      });
+    });
+
+    describe('bodyWhitelist option', function() {
+      it('should use specified bodyBlacklist', function () {
+        var options = {
+          req: {
+            body: {
+              foo: 'bar',
+              baz: 'qux'
+            }
+          },
+          loggerOptions: {
+            bodyWhitelist: ['foo']
+          }
+        };
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.log.meta.req.body.should.have.property('foo');
+          result.log.meta.req.body.should.not.have.property('baz');
+        });
+      });
+    });
+
+    describe('requestFilter option', function () {
+      it('should respect request body filtered through `requestFilter` (if not filtered by bodyBlacklist/bodyWhitelist)', function () {
+        var testHelperOptions = {
+          req: {
+            body: {
+              field1: 'foo',
+              field2: 'bar'
+            }
+          },
+          loggerOptions: {
+            bodyBlacklist: [],
+            requestWhitelist: ['method', 'url', 'body'],
+            requestFilter: function(req, propName) {
+              if (propName === 'body') {
+                var jsonbody = JSON.parse(JSON.stringify(req[propName]));
+                delete jsonbody.field2;
+                return jsonbody;
+              }
+              return req[propName];
+            }
+          }
+        };
+        return errorLoggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.meta.req.should.be.ok();
+          result.log.meta.req.body.field1.should.equal('foo');
+          should.not.exist(result.log.meta.req.body.field2);
+        });
+      });
+    });
+
     describe('dynamicMeta option', function () {
       var testHelperOptions = {
         req: {
