@@ -116,16 +116,15 @@ exports.errorLogger = function errorLogger(options) {
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
-    options.winstonInstance = options.winstonInstance || (winston.createLogger({
-      transports: options.transports,
-      format: options.format
-    }));
+    const getLogger = loggerFactory(options);
     options.msg = options.msg || 'middlewareError';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField || null;
     options.level = options.level || 'error';
     options.dynamicMeta = options.dynamicMeta || function(req, res, err) { return null; };
-    const exceptionHandler = new winston.ExceptionHandler(options.winstonInstance);
+    // TODO: improve the default exception meta information by not calling a 
+    // constructor than a function that does nothing with the constructor parameter.
+    const exceptionHandler = new winston.ExceptionHandler({});
     options.exceptionToMeta = options.exceptionToMeta || exceptionHandler.getAllInfo.bind(exceptionHandler);
     options.blacklistedMetaFields = options.blacklistedMetaFields || [];
 
@@ -158,7 +157,7 @@ exports.errorLogger = function errorLogger(options) {
         options.msg = typeof options.msg === 'function' ? options.msg(req, res) : options.msg;
 
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log({
+        getLogger(req, res).log({
             level,
             message: getTemplate(options.msg, {err: err, req: req, res: res}),
             meta: exceptionMeta
@@ -178,12 +177,35 @@ function levelFromStatus(options) {
     }
 }
 
+/**
+ * returns a factory function to get a logger instance. 
+ * The output function expect a request and result as parameters
+ * @param options - the library options
+ * @return func
+ */
+function loggerFactory(options) {
+
+  if(options.winstonInstance) {
+
+    if(_.isFunction(options.winstonInstance))
+      return options.winstonInstance;
+
+    const originalInstance = options.winstonInstance;
+    return function() { return originalInstance; };
+  }
+
+  const localLogger = winston.createLogger({
+                                            transports: options.transports,
+                                            format: options.format
+                                          });
+  return function() { return localLogger;};
+}
+
 //
 // ### function logger(options)
 // #### @options {Object} options to initialize the middleware.
 //
 exports.logger = function logger(options) {
-
     ensureValidOptions(options);
     ensureValidLoggerOptions(options);
 
@@ -194,10 +216,8 @@ exports.logger = function logger(options) {
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
     options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
-    options.winstonInstance = options.winstonInstance || (winston.createLogger({
-      transports: options.transports,
-      format: options.format
-    }));
+
+    const getLogger = loggerFactory(options);
     options.statusLevels = options.statusLevels || false;
     options.level = options.statusLevels ? levelFromStatus(options) : (options.level || "info");
     options.msg = options.msg || "HTTP {{req.method}} {{req.url}}";
@@ -346,7 +366,7 @@ exports.logger = function logger(options) {
             // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
             if (!options.skip(req, res)) {
               var level = _.isFunction(options.level) ? options.level(req, res) : options.level;
-              options.winstonInstance.log({level, message: msg, meta});
+              getLogger(req, res).log({level, message: msg, meta});
             }
         };
 
@@ -372,8 +392,10 @@ function bodyToString(body, isJSON) {
 
 function ensureValidOptions(options) {
     if(!options) throw new Error("options are required by express-winston middleware");
+
     if(!((options.transports && (options.transports.length > 0)) || options.winstonInstance))
         throw new Error("transports or a winstonInstance are required by express-winston middleware");
+
 
     if (options.dynamicMeta && !_.isFunction(options.dynamicMeta)) {
         throw new Error("`dynamicMeta` express-winston option should be a function");

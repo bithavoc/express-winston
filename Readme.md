@@ -131,7 +131,11 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
 
-Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the `winstonInstance` option. The `transports` option is then ignored.
+Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, the `winstonInstance` option can be used. It has 2 forms:
++ an actual `winston` logger instance. In the case, the logger is used as is.
++ a factory function that takes parameters `req` and `res` of the middleware. The function is expected to return a `winston` logger instance.
+
+When using any version of `winstonInstance`, the `transports` option is then ignored.
 
 ## Examples
 
