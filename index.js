@@ -104,6 +104,38 @@ function filterObject(originalObj, whiteList, initialFilter) {
     return fieldsSet?obj:undefined;
 }
 
+function getTemplate(loggerOptions, templateOptions) {
+    if (loggerOptions.expressFormat) {
+        var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
+        if (loggerOptions.colorize) {
+            expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
+                " {{res.statusCode}} " +
+                chalk.grey("{{res.responseTime}}ms");
+        }
+
+        return _.template(expressMsgFormat, templateOptions);
+    }
+
+    if (!_.isFunction(loggerOptions.msg)) {
+        return _.template(loggerOptions.msg, templateOptions);
+    }
+
+    return function (data) {
+        data = data || {};
+        var m = loggerOptions.msg(data.req, data.res);
+
+        // if there is no interpolation, don't waste resources creating a template.
+        // this quick regex is still way faster than just blindly compiling a new template.
+        if (!/\{\{/.test(m)) {
+            return m;
+        }
+        // since options.msg was a function, and the results seem to contain moustache
+        // interpolation, we'll compile a new template for each request.
+        // Warning: this eats a ton of memory under heavy load.
+        return _.template(m, templateOptions)(data);
+    }
+}
+
 //
 // ### function errorLogger(options)
 // #### @options {Object} options to initialize the middleware.
@@ -129,10 +161,12 @@ exports.errorLogger = function errorLogger(options) {
     options.exceptionToMeta = options.exceptionToMeta || exceptionHandler.getAllInfo.bind(exceptionHandler);
     options.blacklistedMetaFields = options.blacklistedMetaFields || [];
 
+    // backwards comparability.
+    // just in case they're using the same options object as exports.logger.
+    options = _.omit(options, 'expressFormat');
+
     // Using mustache style templating
-    var getTemplate = function(msg, data) {
-      return _.template(msg, {interpolate: /\{\{([\s\S]+?)\}\}/g})(data)
-    };
+    var template = getTemplate(options, { interpolate: /\{\{([\s\S]+?)\}\}/g });
 
     return function (err, req, res, next) {
 
@@ -155,12 +189,10 @@ exports.errorLogger = function errorLogger(options) {
 
         var level = _.isFunction(options.level) ? options.level(req, res, err) : options.level;
 
-        options.msg = typeof options.msg === 'function' ? options.msg(req, res) : options.msg;
-
         // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
         options.winstonInstance.log({
             level,
-            message: getTemplate(options.msg, {err: err, req: req, res: res}),
+            message: template({err: err, req: req, res: res}),
             meta: exceptionMeta
         });
 
@@ -209,17 +241,8 @@ exports.logger = function logger(options) {
     options.skip = options.skip || exports.defaultSkip;
     options.dynamicMeta = options.dynamicMeta || function(req, res) { return null; };
 
-    var expressMsgFormat = "{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms";
-    if (options.colorize) {
-        expressMsgFormat = chalk.grey("{{req.method}} {{req.url}}") +
-          " {{res.statusCode}} " +
-          chalk.grey("{{res.responseTime}}ms");
-    }
-
-    var msgFormat = !options.expressFormat ? options.msg : expressMsgFormat;
-
     // Using mustache style templating
-    var template = _.template(msgFormat, {
+    var template = getTemplate(options, {
       interpolate: /\{\{(.+?)\}\}/g
     });
 
@@ -328,18 +351,6 @@ exports.logger = function logger(options) {
 
               coloredRes.statusCode = chalk[statusColor](res.statusCode);
             }
-
-            var msgFormat
-            if (!options.expressFormat) {
-              msgFormat = typeof options.msg === 'function' ? options.msg(req, res) : options.msg
-            } else {
-              msgFormat = expressMsgFormat
-            }
-
-            // Using mustache style templating
-            var template = _.template(msgFormat, {
-              interpolate: /\{\{(.+?)\}\}/g
-            });
 
             var msg = template({req: req, res: _.assign({}, res, coloredRes)});
 

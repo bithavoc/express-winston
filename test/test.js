@@ -874,6 +874,34 @@ describe('express-winston', function () {
           result.log.msg.should.eql('Foo GET /all-the-things');
         });
       });
+
+      it('can be a function', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            msg: function (req) { return 'fn ' + req.url; }
+          },
+          req: {
+            url: '/all-the-things'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.msg.should.eql('fn /all-the-things');
+        });
+      });
+
+      it('can be interpolated when it is a function', function () {
+        var testHelperOptions = {
+          loggerOptions: {
+            msg: function () { return 'fn {{req.url}}'; }
+          },
+          req: {
+            url: '/all-the-things'
+          }
+        };
+        return loggerTestHelper(testHelperOptions).then(function (result) {
+          result.log.msg.should.eql('fn /all-the-things');
+        });
+      });
     });
 
     describe('ignoreRoute option', function () {
