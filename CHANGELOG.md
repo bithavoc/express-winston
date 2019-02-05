@@ -1,3 +1,6 @@
+## 3.1.0
+* Fix large _.template memory consumption ([#203](https://github.com/bithavoc/express-winston/pull/203), @slickmb)
+
 ## 3.0.1
 * Add `format` to `options` to allow user-specified formatting following winston@3 conventions ([#190](https://github.com/bithavoc/express-winston/pull/190), @crellison)
 
