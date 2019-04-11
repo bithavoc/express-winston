@@ -198,7 +198,7 @@ function loggerFactory(options) {
                                             transports: options.transports,
                                             format: options.format
                                           });
-  return function() { return localLogger;};
+  return function() { return localLogger; };
 }
 
 //
