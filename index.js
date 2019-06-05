@@ -287,8 +287,8 @@ exports.logger = function logger(options) {
 
               if (_.includes(responseWhitelist, 'body')) {
                 if (chunk) {
-                  var isJson = (res._headers && res._headers['content-type']
-                    && res._headers['content-type'].indexOf('json') >= 0);
+                  var isJson = (res.getHeader('content-type')
+                    && res.getHeader('content-type').indexOf('json') >= 0);
 
                   logData.res.body = bodyToString(chunk, isJson);
                 }
