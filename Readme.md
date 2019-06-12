@@ -439,13 +439,9 @@ Run the basic Mocha tests:
 
     npm test
 
-Run the Travis-CI tests (which will fail with < 100% coverage):
+View the coverage report:
 
-    npm run test-travis
-
-Generate the `coverage.html` coverage report:
-
-    npm run test-coverage
+    npx http-server coverage/lcov-report
 
 ## Issues and Collaboration
 

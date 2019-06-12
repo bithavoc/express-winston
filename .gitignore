@@ -17,5 +17,6 @@ package-lock.json
 #################
 .DS_Store
 lib/.DS_Store
-coverage.html
+coverage
+.nyc_output
 .vimrc

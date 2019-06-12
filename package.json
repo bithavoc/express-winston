@@ -28,34 +28,17 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha --reporter spec",
-    "test-travis": "node_modules/.bin/mocha --require blanket --reporter travis-cov",
-    "test-coverage": "node_modules/.bin/mocha --require blanket --reporter html-cov > coverage.html || true"
-  },
-  "config": {
-    "travis-cov": {
-      "threshold": 100
-    },
-    "blanket": {
-      "pattern": [
-        "index.js"
-      ],
-      "data-cover-never": [
-        "node_modules",
-        "test"
-      ]
-    }
+    "test": "nyc mocha && nyc report --reporter lcov"
   },
   "dependencies": {
     "chalk": "^2.4.1",
     "lodash": "^4.17.10"
   },
   "devDependencies": {
-    "blanket": "^1.2.2",
     "mocha": "^5.2.0",
     "node-mocks-http": "^1.5.1",
+    "nyc": "^14.1.1",
     "should": "^13.2.3",
-    "travis-cov": "^0.2.5",
     "winston": ">=3.x <4",
     "winston-transport": "^4.2.0"
   },
