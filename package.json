@@ -28,13 +28,15 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha && nyc report --reporter lcov"
+    "pretest": "eslint .",
+    "test": "node_modules/.bin/mocha --reporter spec"
   },
   "dependencies": {
     "chalk": "^2.4.1",
     "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "eslint": "^5.16.0",
     "mocha": "^5.2.0",
     "node-mocks-http": "^1.5.1",
     "nyc": "^14.1.1",

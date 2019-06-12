@@ -98,7 +98,7 @@ function filterObject(originalObj, whiteList, initialFilter) {
         if(typeof (value) !== 'undefined') {
             obj[propName] = value;
             fieldsSet = true;
-        };
+        }
     });
 
     return fieldsSet?obj:undefined;
@@ -249,7 +249,7 @@ exports.logger = function logger(options) {
     return function (req, res, next) {
         var coloredRes = {};
 
-        var currentUrl = req.originalUrl || req.url;
+        var currentUrl = req.originalUrl || req.url;
         if (currentUrl && _.includes(options.ignoredRoutes, currentUrl)) return next();
         if (options.ignoreRoute(req, res)) return next();
 
@@ -273,7 +273,7 @@ exports.logger = function logger(options) {
             res.end = end;
             res.end(chunk, encoding);
 
-            req.url = req.originalUrl || req.url;
+            req.url = req.originalUrl || req.url;
 
             var meta = {};
 
