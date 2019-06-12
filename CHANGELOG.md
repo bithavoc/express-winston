@@ -1,3 +1,8 @@
+## 3.2.0
+* Replaced: _header -> getHeader ([#210](https://github.com/bithavoc/express-winston/pull/210), @Gregoirevda)
+* Replaced coverage tool blanket with nyc ([#211](https://github.com/bithavoc/express-winston/pull/211), @golopot)
+* Add eslint and fix lint errors ([#212](https://github.com/bithavoc/express-winston/pull/212), @golopot)
+
 ## 3.1.0
 * Fix large _.template memory consumption ([#203](https://github.com/bithavoc/express-winston/pull/203), @slickmb)
 
