@@ -1,9 +1,6 @@
-var util = require('util');
-
 var mocks = require('node-mocks-http');
 var should = require('should');
 var _ = require('lodash');
-var winston = require('winston');
 var Transport = require('winston-transport');
 
 var expressWinston = require('../index.js');
@@ -263,11 +260,6 @@ describe('express-winston', function () {
         var testHelperOptionsWithBlacklist = { loggerOptions: { blacklistedMetaFields: ['trace'] } };
         return errorLoggerTestHelper(testHelperOptionsWithBlacklist).then(function (result) {
           result.log.meta.should.not.have.property('trace');
-        });
-
-        var testHelperOptionsWithoutBlacklist = { loggerOptions: {} };
-        return errorLoggerTestHelper(testHelperOptionsWithoutBlacklist).then(function (result) {
-          result.log.meta.should.have.property('trace');
         });
       });
     });
@@ -676,7 +668,7 @@ describe('express-winston', function () {
 
     describe('when middleware function is invoked on a route that returns JSON', function() {
       it('should parse JSON in response body', function() {
-        var bodyObject = { "message": "Hi!  I\'m a chunk!" };
+        var bodyObject = { "message": "Hi!  I'm a chunk!" };
         function next(req, res, next) {
           // Set Content-Type in a couple different case types, just in case.
           // Seems like the mock response doesn't quite handle the case

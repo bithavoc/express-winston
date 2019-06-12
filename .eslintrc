@@ -1,0 +1,21 @@
+{
+  "extends": ["eslint:recommended"],
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "rules": {
+    "no-unused-vars": [2, { "args": "none" }]
+  },
+  "overrides": [
+    {
+      "files": "test/**",
+      "env": {
+        "mocha": true
+      }
+    }
+  ]
+}
