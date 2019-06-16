@@ -27,6 +27,16 @@ class MockTransport extends Transport {
   }
 }
 
+class MockWinston {
+  constructor(test) {
+    this.invoked = false;
+  }
+
+  log(options) {
+    this.invoked = true;
+  }
+}
+
 function mockReq(reqMock) {
   var reqSpec = _.extend({
     method: 'GET',
@@ -182,9 +192,84 @@ describe('express-winston', function () {
       });
     });
 
-    describe('when middleware function encounters an error in the pipeline', function () {
-      it('should invoke the transport', function () {
-        return errorLoggerTestHelper().then(function (result) {
+    describe('when providing logger instance', function() {
+
+      it('should use the winstonInstance', function() {
+
+        const winstonMock = new MockWinston();
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: winstonMock,
+                                  transports: null
+                                }
+                              };
+
+        return errorLoggerTestHelper(localOptions).then(function(result) {
+          winstonMock.invoked.should.eql(true);
+        });
+      });
+      it('should use the winstonInstance in favor of transport specification', function() {
+
+        const winstonMock = new MockWinston();
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: winstonMock,
+                                  transports: [new MockTransport({})]
+                                }
+                              };
+
+
+        return errorLoggerTestHelper(localOptions).then(function(result) {
+          winstonMock.invoked.should.eql(true);
+        });
+      });
+
+      it('should invoke the winstonInstance factory if provided', function() {
+        const mockWinston = new  MockWinston();
+
+        const loggerFactory = function() {
+          return mockWinston;
+        }
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: loggerFactory,
+                                  transports: null,
+                                }
+                              };
+        return errorLoggerTestHelper(localOptions).then(function(result) {
+          mockWinston.invoked.should.eql(true);
+        });
+      });
+
+      it('should have the req and res as parameters when invoking the winstonInstance factory', function() {
+
+        const mockWinston = new MockWinston();
+        let factoryReq;
+        let factoryRes;
+        const loggerFactory = function(req, res) {
+          factoryReq = req;
+          factoryRes = res;
+          return mockWinston;
+        }
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: loggerFactory,
+                                  transports: null,
+                                }
+                              };
+
+        return errorLoggerTestHelper(localOptions).then(function(result) {
+          mockWinston.invoked.should.eql(true);
+          factoryReq.should.be.deepEqual(result.req);
+          factoryRes.should.be.deepEqual(result.res);
+        });
+      });
+
+    });
+
+    describe('when middleware function encounters an error in the pipeline', function() {
+      it('should invoke the transport', function() {
+        return errorLoggerTestHelper().then(function(result) {
           result.transportInvoked.should.eql(true);
         });
       });
@@ -600,7 +685,83 @@ describe('express-winston', function () {
       });
     });
 
-    describe('when middleware function is invoked on a route', function () {
+    describe('when providing logger instance', function() {
+
+      it('should use the winstonInstance', function() {
+
+        const winstonMock = new MockWinston();
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: winstonMock,
+                                  transports: null
+                                }
+                              };
+
+        return loggerTestHelper(localOptions).then(function(result) {
+          winstonMock.invoked.should.eql(true);
+        });
+      });
+      it('should use the winstonInstance in favor of transport specification', function() {
+
+        const winstonMock = new MockWinston();
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: winstonMock,
+                                  transports: [new MockTransport({})]
+                                }
+                              };
+
+
+        return loggerTestHelper(localOptions).then(function(result) {
+          winstonMock.invoked.should.eql(true);
+        });
+      });
+
+      it('should invoke the winstonInstance factory if provided', function() {
+        const mockWinston = new  MockWinston();
+
+        const loggerFactory = function() {
+          return mockWinston;
+        }
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: loggerFactory,
+                                  transports: null,
+                                }
+                              };
+        return loggerTestHelper(localOptions).then(function(result) {
+          mockWinston.invoked.should.eql(true);
+        });
+      });
+
+      it('should have the req and res as parameters when invoking the winstonInstance factory', function() {
+
+        const mockWinston = new MockWinston();
+        let factoryReq;
+        let factoryRes;
+        const loggerFactory = function(req, res) {
+          factoryReq = req;
+          factoryRes = res;
+          return mockWinston;
+        }
+        const localOptions = {
+                                loggerOptions: {
+                                  winstonInstance: loggerFactory,
+                                  transports: null,
+                                }
+                              };
+
+        return loggerTestHelper(localOptions).then(function(result) {
+          mockWinston.invoked.should.eql(true);
+          factoryReq.should.be.deepEqual(result.req);
+          factoryRes.should.be.deepEqual(result.res);
+        });
+      });
+
+    });
+
+
+    describe('when middleware function is invoked on a route', function() {
       function next(req, res, next) {
         req._startTime = (new Date()) - 125;
 
