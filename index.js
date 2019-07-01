@@ -66,7 +66,7 @@ exports.ignoredRoutes = [];
  * @return {*}
  */
 exports.defaultRequestFilter = function (req, propName) {
-    return req[propName];
+    return _.get(req, propName);
 };
 
 /**
@@ -76,7 +76,7 @@ exports.defaultRequestFilter = function (req, propName) {
  * @return {*}
  */
 exports.defaultResponseFilter = function (res, propName) {
-    return res[propName];
+    return _.get(res, propName);
 };
 
 /**
@@ -96,7 +96,7 @@ function filterObject(originalObj, whiteList, initialFilter) {
         var value = initialFilter(originalObj, propName);
 
         if(typeof (value) !== 'undefined') {
-            obj[propName] = value;
+            _.set(obj, propName, value);
             fieldsSet = true;
         }
     });
