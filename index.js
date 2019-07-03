@@ -160,6 +160,7 @@ exports.errorLogger = function errorLogger(options) {
     const exceptionHandler = new winston.ExceptionHandler(options.winstonInstance);
     options.exceptionToMeta = options.exceptionToMeta || exceptionHandler.getAllInfo.bind(exceptionHandler);
     options.blacklistedMetaFields = options.blacklistedMetaFields || [];
+    options.skip = options.skip || exports.defaultSkip;
 
     // backwards comparability.
     // just in case they're using the same options object as exports.logger.
@@ -169,8 +170,7 @@ exports.errorLogger = function errorLogger(options) {
     var template = getTemplate(options, { interpolate: /\{\{([\s\S]+?)\}\}/g });
 
     return function (err, req, res, next) {
-
-      // Let winston gather all the error data
+        // Let winston gather all the error data
         var exceptionMeta = _.omit(options.exceptionToMeta(err), options.blacklistedMetaFields);
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
 
@@ -189,12 +189,14 @@ exports.errorLogger = function errorLogger(options) {
 
         var level = _.isFunction(options.level) ? options.level(req, res, err) : options.level;
 
-        // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
-        options.winstonInstance.log({
+        if (!options.skip(req, res, err)) {
+          // This is fire and forget, we don't want logging to hold up the request so don't wait for the callback
+          options.winstonInstance.log({
             level,
             message: template({err: err, req: req, res: res}),
             meta: exceptionMeta
-        });
+          });
+        }
 
         next(err);
     };
