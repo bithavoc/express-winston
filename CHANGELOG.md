@@ -1,3 +1,6 @@
+## 3.2.1
+* Added: options.skip ([#214](https://github.com/bithavoc/express-winston/pull/214), [#147](https://github.com/bithavoc/express-winston/pull/147), @ahnkee)
+
 ## 3.2.0
 * Replaced: _header -> getHeader ([#210](https://github.com/bithavoc/express-winston/pull/210), @Gregoirevda)
 * Replaced coverage tool blanket with nyc ([#211](https://github.com/bithavoc/express-winston/pull/211), @golopot)

@@ -17,7 +17,7 @@
     "middleware",
     "colors"
   ],
-  "version": "3.2.0",
+  "version": "3.2.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/bithavoc/express-winston.git"
