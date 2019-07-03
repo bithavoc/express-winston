@@ -363,6 +363,31 @@ describe('express-winston', function () {
         loggerFn.should.throw();
       });
     });
+
+    describe('skip option', function() {
+      it('should log error by default', function() {
+        var options = {
+          req: {foo: "bar"}
+        };
+
+         return errorLoggerTestHelper(options).then(function (result) {
+          result.transportInvoked.should.eql(true);
+        });
+      });
+
+       it('should not log error when function returns true', function() {
+        var options = {
+          req: {foo: "bar"},
+          loggerOptions: {
+            skip: function() {return true;}
+          }
+        };
+
+         return errorLoggerTestHelper(options).then(function (result) {
+          result.transportInvoked.should.eql(false);
+        });
+      });
+    });
   });
 
   describe('.logger()', function () {
