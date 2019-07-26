@@ -106,11 +106,11 @@ function filterObject(originalObj, whiteList, headerBlacklist, initialFilter) {
             fieldsSet = true;
             if(propName === 'headers') {
                 [].concat(headerBlacklist).forEach(function (headerName) {
-                    var lowerCaseHeaderName = headerName.toLowerCase();
+                    var lowerCaseHeaderName = headerName ? headerName.toLowerCase() : null;
                     if(obj[propName].hasOwnProperty(lowerCaseHeaderName)) {
                         delete obj[propName][lowerCaseHeaderName];
-                }
-              })
+                    }
+                })
             }
         }
 
