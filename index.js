@@ -313,7 +313,6 @@ exports.logger = function logger(options) {
                 }
               }
 
-
               logData.req = filterObject(req, requestWhitelist, options.headerBlacklist, options.requestFilter);
               logData.res = filterObject(res, responseWhitelist, options.headerBlacklist, options.responseFilter);
 
