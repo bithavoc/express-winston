@@ -32,7 +32,9 @@ function mockReq(reqMock) {
     method: 'GET',
     url: '/hello',
     headers: {
-      'header-1': 'value 1'
+      'header-1': 'value 1',
+      'header-2': 'value 2',
+      'header-3': 'value 3'
     },
     query: {
       val: '1'
@@ -162,23 +164,6 @@ describe('express-winston', function () {
 
         result.log.meta.req.should.have.property('foo');
         result.log.meta.req.should.not.have.property('url');
-      });
-    });
-
-    it('should use the exported defaultRequestFilter', function() {
-      var originalRequestFilter = expressWinston.defaultRequestFilter;
-      expressWinston.defaultRequestFilter = function() {
-        return 'foo';
-      };
-
-      var options = {
-        req: {foo: "bar"}
-      };
-      return errorLoggerTestHelper(options).then(function (result) {
-        // Return to the original value for later tests
-        expressWinston.defaultRequestFilter = originalRequestFilter;
-
-        result.log.meta.req.url.should.equal('foo');
       });
     });
 
@@ -1174,6 +1159,56 @@ describe('express-winston', function () {
         });
     });
 
+    describe('headerBlacklist option', function () {
+      it('should default to global defaultHeaderBlackList', function () {
+        return loggerTestHelper().then(function (result) {
+          result.log.meta.req.headers.should.have.property('header-1');
+          result.log.meta.req.headers.should.have.property('header-2');
+          result.log.meta.req.headers.should.have.property('header-3');
+        });
+      });
+
+      it('should use specified headerBlackList', function () {
+        var options = {
+          loggerOptions: {
+            headerBlacklist: ['header-1', 'Header-3']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.headers.should.not.have.property('header-1');
+          result.log.meta.req.headers.should.have.property('header-2');
+          result.log.meta.req.headers.should.not.have.property('header-3');
+        });
+      });
+
+      it('should not use specified headerBlackList since the requestWhiteList is empty', function () {
+        var options = {
+          loggerOptions: {
+            requestWhitelist: ['url'],
+            headerBlacklist: ['header-1']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.not.have.property('headers');
+        });
+      });
+
+      it('should not headerBlackList but since a requestFilter is set', function () {
+        const customRequestFilter = (req, propName) => {
+          return (propName !== 'headers') ? req[propName] : undefined;
+        }
+        var options = {
+          loggerOptions: {
+            requestFilter: customRequestFilter,
+            headerBlacklist: ['header-1']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.not.have.property('headers');
+        });
+      });
+    });
+
     describe('requestWhitelist option', function () {
       it('should default to global requestWhitelist', function () {
         var options = {
@@ -1355,6 +1390,12 @@ describe('express-winston', function () {
   describe('.responseWhitelist', function () {
     it('should be an array with all the properties whitelisted in the res object', function () {
       expressWinston.responseWhitelist.should.be.an.Array();
+    });
+  });
+
+  describe('.defaultHeaderBlacklist', function () {
+    it('should be an array with all the header which are prevented to be logged', function () {
+      expressWinston.defaultHeaderBlacklist.should.be.an.Array();
     });
   });
 
