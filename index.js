@@ -70,6 +70,12 @@ exports.defaultRequestFilter = function (req, propName) {
 };
 
 /**
+ * A default list of headers in the request object that are not allowed to be logged.
+ * @type {Array}
+ */
+exports.defaultHeaderBlacklist = [];
+
+/**
  * A default function to filter the properties of the res object.
  * @param res
  * @param propName
@@ -87,7 +93,7 @@ exports.defaultSkip = function() {
   return false;
 };
 
-function filterObject(originalObj, whiteList, initialFilter) {
+function filterObject(originalObj, whiteList, headerBlacklist, initialFilter) {
 
     var obj = {};
     var fieldsSet = false;
@@ -98,7 +104,16 @@ function filterObject(originalObj, whiteList, initialFilter) {
         if(typeof (value) !== 'undefined') {
             obj[propName] = value;
             fieldsSet = true;
+            if(propName === 'headers') {
+                [].concat(headerBlacklist).forEach(function (headerName) {
+                    var lowerCaseHeaderName = headerName ? headerName.toLowerCase() : null;
+                    if(obj[propName].hasOwnProperty(lowerCaseHeaderName)) {
+                        delete obj[propName][lowerCaseHeaderName];
+                    }
+                })
+            }
         }
+
     });
 
     return fieldsSet?obj:undefined;
@@ -148,6 +163,7 @@ exports.errorLogger = function errorLogger(options) {
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
+    options.headerBlacklist = options.headerBlacklist || exports.defaultHeaderBlacklist;
     options.winstonInstance = options.winstonInstance || (winston.createLogger({
       transports: options.transports,
       format: options.format
@@ -172,7 +188,7 @@ exports.errorLogger = function errorLogger(options) {
     return function (err, req, res, next) {
         // Let winston gather all the error data
         var exceptionMeta = _.omit(options.exceptionToMeta(err), options.blacklistedMetaFields);
-        exceptionMeta.req = filterObject(req, options.requestWhitelist, options.requestFilter);
+        exceptionMeta.req = filterObject(req, options.requestWhitelist, options.headerBlacklist, options.requestFilter);
 
         if(options.dynamicMeta) {
             var dynamicMeta = options.dynamicMeta(req, res, err);
@@ -224,6 +240,7 @@ exports.logger = function logger(options) {
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
     options.bodyWhitelist = options.bodyWhitelist || exports.bodyWhitelist;
     options.bodyBlacklist = options.bodyBlacklist || exports.bodyBlacklist;
+    options.headerBlacklist = options.headerBlacklist || exports.defaultHeaderBlacklist;
     options.responseWhitelist = options.responseWhitelist || exports.responseWhitelist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
@@ -296,8 +313,8 @@ exports.logger = function logger(options) {
                 }
               }
 
-              logData.req = filterObject(req, requestWhitelist, options.requestFilter);
-              logData.res = filterObject(res, responseWhitelist, options.responseFilter);
+              logData.req = filterObject(req, requestWhitelist, options.headerBlacklist, options.requestFilter);
+              logData.res = filterObject(res, responseWhitelist, options.headerBlacklist, options.responseFilter);
 
               var bodyWhitelist = _.union(options.bodyWhitelist, (req._routeWhitelists.body || []));
               var blacklist = _.union(options.bodyBlacklist, (req._routeBlacklists.body || []));
@@ -307,15 +324,15 @@ exports.logger = function logger(options) {
               if ( req.body !== undefined ) {
                   if (blacklist.length > 0 && bodyWhitelist.length === 0) {
                     var whitelist = _.difference(Object.keys(req.body), blacklist);
-                    filteredBody = filterObject(req.body, whitelist, options.requestFilter);
+                    filteredBody = filterObject(req.body, whitelist, options.headerBlacklist, options.requestFilter);
                   } else if (
                     requestWhitelist.indexOf('body') !== -1 &&
                     bodyWhitelist.length === 0 &&
                     blacklist.length === 0
                   ) {
-                    filteredBody = filterObject(req.body, Object.keys(req.body), options.requestFilter);
+                    filteredBody = filterObject(req.body, Object.keys(req.body), options.headerBlacklist, options.requestFilter);
                   } else {
-                    filteredBody = filterObject(req.body, bodyWhitelist, options.requestFilter);
+                    filteredBody = filterObject(req.body, bodyWhitelist, options.headerBlacklist, options.requestFilter);
                   }
               }
 
