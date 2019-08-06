@@ -1,3 +1,6 @@
+## 3.3.0
+* Added: options.headerBlacklist ([#217](https://github.com/bithavoc/express-winston/pull/217), @maxday)
+
 ## 3.2.1
 * Added: options.skip ([#214](https://github.com/bithavoc/express-winston/pull/214), [#147](https://github.com/bithavoc/express-winston/pull/147), @ahnkee)
 
