@@ -736,8 +736,8 @@ describe('express-winston', function () {
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
           var resultMsg = result.log.msg;
-          resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
-          resultMsg.should.endWith('ms\u001b[39m');
+          resultMsg.should.startWith('\x1b[0mGET /all-the-things \x1b[32m200\u001b[39m 0ms\x1b[0m');
+          resultMsg.should.endWith('ms\x1b[0m');
         });
       });
 
