@@ -162,6 +162,8 @@ exports.errorLogger = function errorLogger(options) {
     ensureValidOptions(options);
 
     options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
+    options.bodyWhitelist = options.bodyWhitelist || exports.bodyWhitelist;
+    options.bodyBlacklist = options.bodyBlacklist || exports.bodyBlacklist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.headerBlacklist = options.headerBlacklist || exports.defaultHeaderBlacklist;
     options.winstonInstance = options.winstonInstance || (winston.createLogger({
@@ -189,6 +191,35 @@ exports.errorLogger = function errorLogger(options) {
         // Let winston gather all the error data
         var exceptionMeta = _.omit(options.exceptionToMeta(err), options.blacklistedMetaFields);
         exceptionMeta.req = filterObject(req, options.requestWhitelist, options.headerBlacklist, options.requestFilter);
+
+        var filteredBody = null;
+
+        if ( req.body !== undefined ) {
+          if (options.bodyBlacklist.length > 0 && options.bodyWhitelist.length === 0) {
+            var whitelist = _.difference(Object.keys(req.body), options.bodyBlacklist);
+            filteredBody = filterObject(req.body, whitelist, options.requestFilter);
+          } else if (
+            options.requestWhitelist.indexOf('body') !== -1 &&
+            options.bodyWhitelist.length === 0 &&
+            options.bodyBlacklist.length === 0
+          ) {
+            filteredBody = filterObject(req.body, Object.keys(req.body), options.requestFilter);
+          } else {
+            filteredBody = filterObject(req.body, options.bodyWhitelist, options.requestFilter);
+          }
+        }
+
+        if (exceptionMeta.req) {
+          if (!filteredBody) {
+            delete exceptionMeta.req.body;
+          } else if (!_.isEqual(filteredBody, req.body)) {
+            // Only replace req.body with filtered body if filtered body
+            // is ACTUALLY filtered, since there's a possibility that
+            // someone filtered the body through `requestFilter` being
+            // called on the req.
+            exceptionMeta.req.body = filteredBody;
+          }
+        }
 
         if(options.dynamicMeta) {
             var dynamicMeta = options.dynamicMeta(req, res, err);
