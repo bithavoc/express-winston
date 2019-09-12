@@ -17,7 +17,7 @@
     "middleware",
     "colors"
   ],
-  "version": "3.3.0",
+  "version": "4.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/bithavoc/express-winston.git"
@@ -50,6 +50,15 @@
   "engines": {
     "node": ">= 6"
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "AUTHORS",
+    "LICENSE",
+    "CHANGELOG.md",
+    "Readme.md",
+    ".npmrc"
+  ],
   "license": "MIT",
   "contributors": [
     {
@@ -72,6 +81,11 @@
       "name": "Robbie Trencheny",
       "email": "me@robbiet.us",
       "url": "http://robbie.io"
+    },
+    {
+      "name": "Matt Morrissette",
+      "email": "yinzara@gmail.com",
+      "url": "https://github.com/yinzara"
     }
   ]
 }
