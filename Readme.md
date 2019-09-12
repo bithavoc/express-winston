@@ -338,7 +338,7 @@ app.use(expressWinston.logger({
   requestField: "httpRequest",
   responseField: "httpRequest",
   requestWhitelist: ["requestMethod", "requestUrl", "protocol", "remoteIp", "requestSize", "userAgent", "referrer"],
-  responseWhitelist: ["status", "responseSize", "responseTime", "latency"],
+  responseWhitelist: ["status", "responseSize", "latency"],
   requestFilter: function (req, propName) {
     switch(propName) {
       case "requestMethod":
@@ -369,7 +369,10 @@ app.use(expressWinston.logger({
           typeof res.body === 'string' ?
             res.body.length : undefined;
       case "latency":
-        return res.responseTime;
+        return {
+          seconds: Math.round(res.responseTime / 1000),
+          nanos: (res.responseTime - Math.round(res.responseTime / 1000) * 1000) * 1000000
+        };
       default:
         return undefined;
     }
