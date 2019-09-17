@@ -333,50 +333,43 @@ var LoggingWinston = require('@google-cloud/logging-winston').LoggingWinston;
 const app = express()
 
 app.use(expressWinston.logger({
-  transports: [ new LoggingWinston({}) ],
-  metaField: null,
-  requestField: "httpRequest",
-  responseField: "httpRequest",
-  requestWhitelist: ["requestMethod", "requestUrl", "protocol", "remoteIp", "requestSize", "userAgent", "referrer"],
-  responseWhitelist: ["status", "responseSize", "latency"],
-  requestFilter: function (req, propName) {
-    switch(propName) {
-      case "requestMethod":
-        return req.method;
-      case "requestUrl":
-        return `${req.protocol}://${req.hostname}${req.originalUrl}`;
-      case "protocol":
-        return req.protocol;
-      case "remoteIp":
-        return req.ip;
-      case "requestSize":
-        return req.get('Content-Length');
-      case "userAgent":
-        return req.get('User-Agent');
-      case "referrer":
-        return req.get("Referer");
-      default:
-        return undefined;
+    transports: [new LoggingWinston({})],
+    metaField: null, //this causes the metadata to be stored at the root of the log entry
+    responseField: null, // this prevents the response from being included in the metadata (including body and status code)
+    requestWhitelist: ["headers", "query"],  //these are not included in the standard StackDriver httpRequest
+    responseWhitelist: ["body"], // this populates the `res.body` so we can get the response size (not required)
+    dynamicMeta:  (req, res) => {
+      const httpRequest = {}
+      const meta = {}
+      if (req) {
+        meta.httpRequest = httpRequest
+        httpRequest.requestMethod = req.method
+        httpRequest.requestUrl = `${req.protocol}://${req.hostname}${req.originalUrl}`
+        httpRequest.protocol = `${req.protocol}/${req.httpVersion}`
+        // httpRequest.remoteIp = req.ip // this includes both ipv6 and ipv4 addresses separated by ':'
+        httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.lastIndexOf(':') + 1) : req.ip   // just ipv4
+        httpRequest.requestSize = req.socket.bytesRead
+        httpRequest.userAgent = req.get("User-Agent")
+        httpRequest.referrer = req.get("Referrer")
+      }
+    
+      if (res) {
+        meta.httpRequest = httpRequest
+        httpRequest.status = res.statusCode
+        httpRequest.latency = {
+          seconds: Math.floor(res.responseTime / 1000),
+          nanos: ( res.responseTime % 1000 ) * 1000000
+        }
+        if (res.body) {
+          if (typeof res.body === "object") {
+            httpRequest.responseSize = JSON.stringify(res.body).length
+          } else if (typeof res.body === "string") {
+            httpRequest.responseSize = res.body.length
+          }
+        }
+      }
+      return meta
     }
-  },
-  responseFilter: function(res, propName) {
-    switch (propName) {
-      case "status":
-        return res.statusCode;
-      case "responseSize":
-        return typeof res.body === 'object' ?
-          JSON.stringify(res.body).length :
-          typeof res.body === 'string' ?
-            res.body.length : undefined;
-      case "latency":
-        return {
-          seconds: Math.round(res.responseTime / 1000),
-          nanos: (res.responseTime - Math.round(res.responseTime / 1000) * 1000) * 1000000
-        };
-      default:
-        return undefined;
-    }
-  }
 }));
 
 ```

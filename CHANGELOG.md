@@ -1,3 +1,12 @@
+## 4.0.0
+* Changed `metaField` configuration property functionality (see Readme.md) ([#209](https://github.com/bithavoc/express-winston/issues/209)) - BREAKING CHANGE
+* Moved type definitions to be embedded inside library ([#123](https://github.com/bithavoc/express-winston/issues/123))
+* Added "files" to package.json to reduce unnecessary files in released package
+* Added StackDriver/Google Cloud Logging specific instructions to Readme.md
+* Added `requestField` and `responseField` options to allow storing the request and response in different metadata fields (or not at all) 
+* Fixed `meta` configuration option on `errorLogger` (was not functioning at all)
+* Added .editorconfig and reformatted library to match
+
 ## 3.3.0
 * Added: options.headerBlacklist ([#217](https://github.com/bithavoc/express-winston/pull/217), @maxday)
 
