@@ -280,6 +280,19 @@ describe('express-winston', function () {
           result.log.meta.req.should.not.have.property('method');
         });
       });
+
+      it('should work with nested requestWhitelist', function () {
+        var options = {
+          req: {foo: {test: "bar"}},
+          loggerOptions: {
+            requestWhitelist: ['foo.test']
+          }
+        };
+        return errorLoggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.have.property('foo');
+          result.log.meta.req.foo.should.have.property('test');
+        });  
+      });
     });
 
     describe('dynamicMeta option', function () {
@@ -1281,6 +1294,19 @@ describe('express-winston', function () {
         return loggerTestHelper(options).then(function (result) {
           result.log.meta.res.should.have.property('foo');
           result.log.meta.res.should.not.have.property('method');
+        });
+      });
+
+      it('should work with nested responseWhitelist', function () {
+        var options = {
+          res: {foo: {test: "bar"}},
+          loggerOptions: {
+            responseWhitelist: ['foo.test']
+          }
+        };
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.res.should.have.property('foo');
+          result.log.meta.res.foo.should.have.property('test');
         });
       });
     });
