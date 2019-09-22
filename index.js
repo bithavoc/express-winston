@@ -304,7 +304,7 @@ exports.logger = function logger(options) {
 
               logData.res = res;
 
-              if (_.includes(responseWhitelist, 'body')) {
+              if (_.includes(responseWhitelist.map(term => term.split('.')[0]), 'body')) {
                 if (chunk) {
                   var isJson = (res.getHeader('content-type')
                     && res.getHeader('content-type').indexOf('json') >= 0);
