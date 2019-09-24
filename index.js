@@ -337,10 +337,14 @@ exports.logger = function logger(options) {
               }
 
               if (logData.req) {
-                if (filteredBody) {
-                  logData.req.body = filteredBody;
-                } else {
+                if (!filteredBody) {
                   delete logData.req.body;
+                } else if (!_.isEqual(filteredBody, req.body)) {
+                  // Only replace req.body with filtered body if filtered body
+                  // is ACTUALLY filtered, since there's a possibility that
+                  // someone filtered the body through `requestFilter` being
+                  // called on the req.
+                  logData.req.body = filteredBody;
                 }
               }
 
