@@ -327,6 +327,40 @@ Note that you can log the whole request and/or response body:
 
     expressWinston.requestWhitelist.push('body');
     expressWinston.responseWhitelist.push('body');
+    
+### Nested Whitelists
+
+`requestWhitelist` and `responseWhitelist` also support nested whitelist values, allowing access to parts of an object.
+
+For example, using the following during logger setup:
+
+    expressWinston.responseWhitelist.push('body.import.value');
+    
+A response that looks like this :
+
+    {
+        body: {
+            important: {
+                value: 5
+            },
+            notImportant: {
+                value: 7
+            }
+        },
+        other: {
+            value: 3
+        }
+    }
+    
+Would only log the following value :
+
+    {
+        body: {
+            important: {
+                value: 5
+            }
+        }
+    }
 
 ## Route-Specific Whitelists and Blacklists
 
@@ -456,6 +490,7 @@ If you ran into any problems, please use the project [Issues section](https://gi
 * [Lars Jacob](https://github.com/jaclar) (https://github.com/jaclar)
 * [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
 * [Ross Brandes](https://github.com/rosston) (https://github.com/rosston)
+* [Alex Kaplan](https://github.com/kapalex) (https://github.com/kapalex)
 
 Also see AUTHORS file, add yourself if you are missing.
 

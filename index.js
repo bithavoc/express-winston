@@ -66,7 +66,7 @@ exports.ignoredRoutes = [];
  * @return {*}
  */
 exports.defaultRequestFilter = function (req, propName) {
-    return req[propName];
+    return _.get(req, propName);
 };
 
 /**
@@ -82,7 +82,7 @@ exports.defaultHeaderBlacklist = [];
  * @return {*}
  */
 exports.defaultResponseFilter = function (res, propName) {
-    return res[propName];
+    return _.get(res, propName);
 };
 
 /**
@@ -102,7 +102,7 @@ function filterObject(originalObj, whiteList, headerBlacklist, initialFilter) {
         var value = initialFilter(originalObj, propName);
 
         if(typeof (value) !== 'undefined') {
-            obj[propName] = value;
+            _.set(obj, propName, value);
             fieldsSet = true;
             if(propName === 'headers') {
                 [].concat(headerBlacklist).forEach(function (headerName) {
@@ -304,7 +304,7 @@ exports.logger = function logger(options) {
 
               logData.res = res;
 
-              if (_.includes(responseWhitelist, 'body')) {
+              if (_.includes(responseWhitelist.map(term => term.split('.')[0]), 'body')) {
                 if (chunk) {
                   var isJson = (res.getHeader('content-type')
                     && res.getHeader('content-type').indexOf('json') >= 0);
