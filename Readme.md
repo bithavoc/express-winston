@@ -344,8 +344,8 @@ app.use(expressWinston.logger({
       if (req) {
         meta.httpRequest = httpRequest
         httpRequest.requestMethod = req.method
-        httpRequest.requestUrl = `${req.protocol}://${req.hostname}${req.originalUrl}`
-        httpRequest.protocol = `${req.protocol}/${req.httpVersion}`
+        httpRequest.requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+        httpRequest.protocol = `HTTP/${req.httpVersion}`
         // httpRequest.remoteIp = req.ip // this includes both ipv6 and ipv4 addresses separated by ':'
         httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.ip.lastIndexOf(':') + 1) : req.ip   // just ipv4
         httpRequest.requestSize = req.socket.bytesRead
