@@ -1,3 +1,6 @@
+## 3.4.0
+* Added: Nested Whitelists ([#225](https://github.com/bithavoc/express-winston/pull/225), @kapalex)
+
 ## 3.3.0
 * Added: options.headerBlacklist ([#217](https://github.com/bithavoc/express-winston/pull/217), @maxday)
 
