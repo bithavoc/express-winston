@@ -1,0 +1,23 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_style = space
+indent_size = 4
+chaset = utf-8
+trim_trailing_whitespace = true
+ij_javascript_use_semicolon_after_statement = true
+ij_javascript_space_before_function_left_parenth = true
+ij_javascript_space_before_method_left_brace = true
+ij_javascript_space_before_method_parentheses = false
+
+[test/*.js]
+indent_size = 2
+
+[package.json]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

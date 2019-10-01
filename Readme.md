@@ -76,7 +76,8 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     colorize: Boolean, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
     baseMeta: Object, // default meta data to be added to log, this will be merged with the meta data.
-    metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
+    metaField: String, // if defined, the meta data will be added in this field instead of the meta root object. Defaults to 'meta'. Set to `null` to store metadata at the root of the log entry.
+    requestField: [String] // the property of the metadata to store the request under (default 'req'). Set to null to exclude request from metadata
     statusLevels: Boolean or Object, // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false. Use an object to control the levels various status codes are logged at. Using an object for statusLevels overrides any setting of options.level.
     ignoreRoute: function (req, res) { return false; }, // A function to determine if logging is skipped, defaults to returning false. Called _before_ any later middleware.
     skip: function(req, res) { return false; }, // A function to determine if logging is skipped, defaults to returning false. Called _after_ response has already been sent.
@@ -121,7 +122,10 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports and formats options are ignored.
     msg: String or function // customize the default logging message. E.g. "{{err.message}} {{res.statusCode}} {{req.method}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
-    metaField: String, // if defined, the meta data will be added in this field instead of the meta root object.
+    meta: Boolean, // control whether you want to log the meta data about the request (default to true).
+    metaField: String, // if defined, the meta data will be added in this field instead of the meta root object. Defaults to 'meta'. Set to `null` to store metadata at the root of the log entry.
+    requestField: [String] // the property of the metadata to store the request under (default 'req'). Set to null to exclude request from metadata
+    responseField: [String] // the property of the metadata to store the response under (default 'res'). If set to the same as 'requestField', filtered response and request properties will be merged. Set to null to exclude request from metadata    
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
     requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
     headerBlacklist: [String], // Array of headers to omit from logs. Applied after any previous filters.
@@ -135,6 +139,23 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
 To use winston's existing transports, set `transports` to the values (as in key-value) of the `winston.default.transports` object. This may be done, for example, by using underscorejs: `transports: _.values(winston.default.transports)`.
 
 Alternatively, if you're using a winston logger instance elsewhere and have already set up levels and transports, pass the instance into expressWinston with the `winstonInstance` option. The `transports` option is then ignored.
+
+#### `metaField` option
+
+In versions of `express-winston` prior to 4.0.0, this field functioned differently.  
+
+Previously the log entry would always have a "meta" field which would be set to the metadata of the request/error.  
+If `metaField` was set, this information would be stored as an object with the given property on the "meta" object of 
+the log entry.  This prevented the use case where the metadata should be located at the root of the log entry.
+
+In this version, `metaField` defaults to "meta" which maintains the prior versions behavior of storing the metadata at 
+a "meta" property of the log entry.  
+
+Explicitly setting the `metaField` to `null` or "null" causes the metadata to be stored at the root of the log entry.
+
+The `metaField` option now also supports dot separated and array values to store the metadata at a nested location in the log entry.
+
+<h3>Upgrade Note: For those upgrading from a version of `express-winston` prior to 4.0.0 that use the `metaField` property, to keep the same behavior, prepend `meta.` to your current `metaField` configuration. (i.e. 'foo' would become 'meta.foo')</h3> 
 
 ## Examples
 
@@ -297,6 +318,60 @@ Browse `/error` will show you how express-winston handles and logs the errors in
       "level": "error",
       "message": "middlewareError"
     }
+
+### StackDriver/Google Cloud Logging
+
+If using this library with `@google-cloud/logging-winston`, use the following configuration to properly store httpRequest information.
+
+See https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry
+
+```javascript
+var express = require('express');
+var expressWinston = require('express-winston');
+var LoggingWinston = require('@google-cloud/logging-winston').LoggingWinston;
+
+const app = express()
+
+app.use(expressWinston.logger({
+    transports: [new LoggingWinston({})],
+    metaField: null, //this causes the metadata to be stored at the root of the log entry
+    responseField: null, // this prevents the response from being included in the metadata (including body and status code)
+    requestWhitelist: ['headers', 'query'],  //these are not included in the standard StackDriver httpRequest
+    responseWhitelist: ['body'], // this populates the `res.body` so we can get the response size (not required)
+    dynamicMeta:  (req, res) => {
+      const httpRequest = {}
+      const meta = {}
+      if (req) {
+        meta.httpRequest = httpRequest
+        httpRequest.requestMethod = req.method
+        httpRequest.requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+        httpRequest.protocol = `HTTP/${req.httpVersion}`
+        // httpRequest.remoteIp = req.ip // this includes both ipv6 and ipv4 addresses separated by ':'
+        httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.ip.lastIndexOf(':') + 1) : req.ip   // just ipv4
+        httpRequest.requestSize = req.socket.bytesRead
+        httpRequest.userAgent = req.get('User-Agent')
+        httpRequest.referrer = req.get('Referrer')
+      }
+    
+      if (res) {
+        meta.httpRequest = httpRequest
+        httpRequest.status = res.statusCode
+        httpRequest.latency = {
+          seconds: Math.floor(res.responseTime / 1000),
+          nanos: ( res.responseTime % 1000 ) * 1000000
+        }
+        if (res.body) {
+          if (typeof res.body === 'object') {
+            httpRequest.responseSize = JSON.stringify(res.body).length
+          } else if (typeof res.body === 'string') {
+            httpRequest.responseSize = res.body.length
+          }
+        }
+      }
+      return meta
+    }
+}));
+```
 
 ## Global Whitelists and Blacklists
 
@@ -491,6 +566,7 @@ If you ran into any problems, please use the project [Issues section](https://gi
 * [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
 * [Ross Brandes](https://github.com/rosston) (https://github.com/rosston)
 * [Alex Kaplan](https://github.com/kapalex) (https://github.com/kapalex)
+* [Matt Morrissette](https://github.com/yinzara) (https://github.com/yinzara) 
 
 Also see AUTHORS file, add yourself if you are missing.
 

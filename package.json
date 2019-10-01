@@ -17,7 +17,7 @@
     "middleware",
     "colors"
   ],
-  "version": "3.4.0",
+  "version": "4.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/bithavoc/express-winston.git"
@@ -36,6 +36,8 @@
     "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "@types/express": "^4.17.1",
+    "@types/logform": "^1.2.0",
     "eslint": "^5.16.0",
     "mocha": "^5.2.0",
     "node-mocks-http": "^1.5.1",
@@ -50,6 +52,15 @@
   "engines": {
     "node": ">= 6"
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "AUTHORS",
+    "LICENSE",
+    "CHANGELOG.md",
+    "Readme.md",
+    ".npmrc"
+  ],
   "license": "MIT",
   "contributors": [
     {
@@ -72,6 +83,12 @@
       "name": "Robbie Trencheny",
       "email": "me@robbiet.us",
       "url": "http://robbie.io"
+    },
+    {
+      "name": "Matt Morrissette",
+      "email": "yinzara@gmail.com",
+      "url": "https://github.com/yinzara"
     }
-  ]
+  ],
+  "types": "index.d.ts"
 }
