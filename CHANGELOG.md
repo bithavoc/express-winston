@@ -1,3 +1,6 @@
+## 4.0.1
+* Added `headerBlacklist` to BaseLoggerOptions for better typescript support ([#228](https://github.com/bithavoc/express-winston/pull/228))
+
 ## 4.0.0
 * Changed `metaField` configuration property functionality (see Readme.md) ([#209](https://github.com/bithavoc/express-winston/issues/209)) - BREAKING CHANGE
 * Moved type definitions to be embedded inside library ([#123](https://github.com/bithavoc/express-winston/issues/123))
