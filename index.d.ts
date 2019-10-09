@@ -44,6 +44,7 @@ export interface BaseLoggerOptions {
     requestWhitelist?: string[];
     responseFilter?: ResponseFilter;
     responseWhitelist?: string[];
+    headerBlacklist?: string[];
     skip?: RouteFilter;
     statusLevels?: {
         error?: string;
