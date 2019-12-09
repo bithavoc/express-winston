@@ -76,6 +76,8 @@ export interface BaseErrorLoggerOptions {
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
     requestWhitelist?: string[];
+    headerBlacklist?: string[];
+    blacklistedMetaFields?: string[];
 }
 
 export interface ErrorLoggerOptionsWithTransports extends BaseErrorLoggerOptions {
