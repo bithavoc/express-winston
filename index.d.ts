@@ -17,11 +17,13 @@ export interface FilterResponse extends Response {
     [other: string]: any;
 }
 
+export type ExceptionToMetaFunction = (err: Error) => object;
 export type DynamicMetaFunction = (req: Request, res: Response, err: Error) => object;
 export type DynamicLevelFunction = (req: Request, res: Response, err: Error) => string;
 export type RequestFilter = (req: FilterRequest, propName: string) => any;
 export type ResponseFilter = (res: FilterResponse, propName: string) => any;
 export type RouteFilter = (req: Request, res: Response) => boolean;
+export type ErrorRouteFilter = (req: Request, res: Response, err: Error) => boolean;
 export type MessageTemplate = string | ((req: Request, res: Response) => string);
 
 export interface BaseLoggerOptions {
@@ -68,16 +70,19 @@ export function logger(options: LoggerOptions): Handler;
 export interface BaseErrorLoggerOptions {
     baseMeta?: object;
     dynamicMeta?: DynamicMetaFunction;
+    exceptionToMeta?: ExceptionToMetaFunction;
     format?: Format;
     level?: string | DynamicLevelFunction;
     meta?: boolean;
     metaField?: string;
     requestField?: string;
+    responseField?: string;
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
     requestWhitelist?: string[];
     headerBlacklist?: string[];
     blacklistedMetaFields?: string[];
+    skip?: ErrorRouteFilter;
 }
 
 export interface ErrorLoggerOptionsWithTransports extends BaseErrorLoggerOptions {
