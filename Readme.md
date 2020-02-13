@@ -124,8 +124,8 @@ The logger needs to be added AFTER the express router(`app.router)`) and BEFORE 
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object. Defaults to 'meta'. Set to `null` to store metadata at the root of the log entry.
-    requestField: [String] // the property of the metadata to store the request under (default 'req'). Set to null to exclude request from metadata
-    responseField: [String] // the property of the metadata to store the response under (default 'res'). If set to the same as 'requestField', filtered response and request properties will be merged. Set to null to exclude request from metadata    
+    requestField: [String] // the property of the metadata to store the request under (default 'req'). Set to null to exclude request from metadata    
+    responseField: [String] // the property of the metadata to store the response under (default 'res'). If set to the same as 'requestField', filtered response and request properties will be merged. Set to null to exclude request from metadata
     requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
     requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
     headerBlacklist: [String], // Array of headers to omit from logs. Applied after any previous filters.
