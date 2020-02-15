@@ -12,7 +12,6 @@ app.use(expressWinston.logger({
     baseMeta: { foo: 'foo', nested: { bar: 'baz' } },
     bodyBlacklist: ['foo'],
     bodyWhitelist: ['bar'],
-    colorize: true,
     dynamicMeta: (req, res, err) => ({ foo: 'bar' }),
     expressFormat: true,
     format: new Format(),

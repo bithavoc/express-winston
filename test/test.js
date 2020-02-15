@@ -820,26 +820,10 @@ describe('express-winston', function () {
     });
 
     describe('expressFormat option', function () {
-      it('should match the Express format when logging', function () {
+     it('should not emit colors', function () {
         var testHelperOptions = {
           loggerOptions: {
-            colorize: true,
-            expressFormat: true
-          },
-          req: {
-            url: '/all-the-things'
-          }
-        };
-        return loggerTestHelper(testHelperOptions).then(function (result) {
-          var resultMsg = result.log.msg;
-          resultMsg.should.startWith('\u001b[90mGET /all-the-things\u001b[39m \u001b[32m200\u001b[39m \u001b[90m');
-          resultMsg.should.endWith('ms\u001b[39m');
-        });
-      });
-
-      it('should not emit colors when colorize option is false', function () {
-        var testHelperOptions = {
-          loggerOptions: {
+            // colorize option is not supported by this fork
             colorize: false,
             expressFormat: true
           },
@@ -851,98 +835,6 @@ describe('express-winston', function () {
           var resultMsg = result.log.msg;
           resultMsg.should.startWith('GET /all-the-things 200 ');
           resultMsg.should.endWith('ms');
-        });
-      });
-
-      it('should not emit colors when colorize option is not present', function () {
-        var testHelperOptions = {
-          loggerOptions: {
-            colorize: false,
-            expressFormat: true
-          },
-          req: {
-            url: '/all-the-things'
-          }
-        };
-        return loggerTestHelper(testHelperOptions).then(function (result) {
-          var resultMsg = result.log.msg;
-          resultMsg.should.startWith('GET /all-the-things 200 ');
-          resultMsg.should.endWith('ms');
-        });
-      });
-    });
-
-    describe('colorize option', function () {
-      it('should make status code text green if < 300', function () {
-        var testHelperOptions = {
-          loggerOptions: {
-            colorize: true,
-            msg: '{{res.statusCode}} {{req.method}} {{req.url}}'
-          },
-          req: {
-            url: '/all-the-things'
-          }
-        };
-        return loggerTestHelper(testHelperOptions).then(function (result) {
-          var resultMsg = result.log.msg;
-          resultMsg.should.eql('\u001b[32m200\u001b[39m GET /all-the-things');
-        });
-      });
-
-      it('should make status code text cyan if >= 300 and < 400', function () {
-        var testHelperOptions = {
-          loggerOptions: {
-            colorize: true,
-            msg: '{{res.statusCode}} {{req.method}} {{req.url}}'
-          },
-          req: {
-            url: '/all-the-things'
-          },
-          res: {
-            statusCode: 302
-          }
-        };
-        return loggerTestHelper(testHelperOptions).then(function (result) {
-          var resultMsg = result.log.msg;
-          resultMsg.should.eql('\u001b[36m302\u001b[39m GET /all-the-things');
-        });
-      });
-
-      it('should make status code text yellow if >= 400 and < 500', function () {
-        var testHelperOptions = {
-          loggerOptions: {
-            colorize: true,
-            msg: '{{res.statusCode}} {{req.method}} {{req.url}}'
-          },
-          req: {
-            url: '/all-the-things'
-          },
-          res: {
-            statusCode: 420
-          }
-        };
-        return loggerTestHelper(testHelperOptions).then(function (result) {
-          var resultMsg = result.log.msg;
-          resultMsg.should.eql('\u001b[33m420\u001b[39m GET /all-the-things');
-        });
-      });
-
-      it('should make status code text red if >= 500', function () {
-        var testHelperOptions = {
-          loggerOptions: {
-            colorize: true,
-            msg: '{{res.statusCode}} {{req.method}} {{req.url}}'
-          },
-          req: {
-            url: '/all-the-things'
-          },
-          res: {
-            statusCode: 500
-          }
-        };
-        return loggerTestHelper(testHelperOptions).then(function (result) {
-          var resultMsg = result.log.msg;
-          resultMsg.should.eql('\u001b[31m500\u001b[39m GET /all-the-things');
         });
       });
     });

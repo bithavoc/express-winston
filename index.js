@@ -19,7 +19,6 @@
 // THE SOFTWARE.
 //
 var winston = require('winston');
-var chalk = require('chalk');
 
 var _ = require('lodash');
 
@@ -132,12 +131,6 @@ function filterObject(originalObj, whiteList, headerBlacklist, initialFilter) {
 function getTemplate(loggerOptions, templateOptions) {
     if (loggerOptions.expressFormat) {
         var expressMsgFormat = '{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms';
-        if (loggerOptions.colorize) {
-            expressMsgFormat = chalk.grey('{{req.method}} {{req.url}}') +
-                ' {{res.statusCode}} ' +
-                chalk.grey('{{res.responseTime}}ms');
-        }
-
         return _.template(expressMsgFormat, templateOptions);
     }
 
@@ -275,7 +268,6 @@ exports.logger = function logger(options) {
     options.msg = options.msg || 'HTTP {{req.method}} {{req.url}}';
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField === null || options.metaField === 'null' ? null : options.metaField || 'meta';
-    options.colorize = options.colorize || false;
     options.expressFormat = options.expressFormat || false;
     options.ignoreRoute = options.ignoreRoute || function () { return false; };
     options.skip = options.skip || exports.defaultSkip;
@@ -405,16 +397,6 @@ exports.logger = function logger(options) {
             }
 
             meta = _.assign(meta, options.baseMeta);
-
-            if (options.colorize) {
-                // Palette from https://github.com/expressjs/morgan/blob/master/index.js#L205
-                var statusColor = 'green';
-                if (res.statusCode >= 500) statusColor = 'red';
-                else if (res.statusCode >= 400) statusColor = 'yellow';
-                else if (res.statusCode >= 300) statusColor = 'cyan';
-
-                coloredRes.statusCode = chalk[statusColor](res.statusCode);
-            }
 
             var msg = template({ req: req, res: _.assign({}, res, coloredRes) });
 

@@ -30,7 +30,6 @@ export interface BaseLoggerOptions {
     baseMeta?: object;
     bodyBlacklist?: string[];
     bodyWhitelist?: string[];
-    colorize?: boolean;
     dynamicMeta?: DynamicMetaFunction;
     expressFormat?: boolean;
     format?: Format;

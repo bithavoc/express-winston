@@ -14,17 +14,16 @@
     "log",
     "error",
     "handler",
-    "middleware",
-    "colors"
+    "middleware"
   ],
   "version": "4.0.3",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bithavoc/express-winston.git"
+    "url": "https://github.com/frodeaa/express-winston.git"
   },
   "bugs": {
-    "url": "http://github.com/bithavoc/express-winston/issues",
-    "email": "im@bithavoc.io"
+    "url": "https://github.com/frodeaa/express-winston/issues",
+    "email": "frode.aa@gmail.com"
   },
   "main": "index.js",
   "scripts": {
@@ -32,7 +31,6 @@
     "test": "node_modules/.bin/mocha --reporter spec"
   },
   "dependencies": {
-    "chalk": "^2.4.1",
     "lodash": "^4.17.15"
   },
   "devDependencies": {
@@ -88,6 +86,11 @@
       "name": "Matt Morrissette",
       "email": "yinzara@gmail.com",
       "url": "https://github.com/yinzara"
+    },
+    {
+      "name": "Frode Aannevik",
+      "email": "frode.aa@gmail.com",
+      "url": "https://github.com/frodeaa"
     }
   ],
   "types": "index.d.ts"
