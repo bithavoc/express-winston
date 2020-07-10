@@ -30,27 +30,27 @@ var _ = require('lodash');
  * TODO: Include 'body' and get the defaultRequestFilter to filter the inner properties like 'password' or 'password_confirmation', etc. Pull requests anyone?
  * @type {Array}
  */
-exports.requestWhitelist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
+exports.requestAllowlist = ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
 
 /**
  * A default list of properties in the request body that are allowed to be logged.
  * This will normally be empty here, since it should be done at the route level.
  * @type {Array}
  */
-exports.bodyWhitelist = [];
+exports.bodyAllowlist = [];
 
 /**
  * A default list of properties in the request body that are not allowed to be logged.
  * @type {Array}
  */
-exports.bodyBlacklist = [];
+exports.bodyDenylist = [];
 
 /**
  * A default list of properties in the response object that are allowed to be logged.
  * These properties will be safely included in the meta of the log.
  * @type {Array}
  */
-exports.responseWhitelist = ['statusCode'];
+exports.responseAllowlist = ['statusCode'];
 
 /**
  * A list of request routes that will be skipped instead of being logged. This would be useful if routes for health checks or pings would otherwise pollute
@@ -73,7 +73,7 @@ exports.defaultRequestFilter = function (req, propName) {
  * A default list of headers in the request object that are not allowed to be logged.
  * @type {Array}
  */
-exports.defaultHeaderBlacklist = [];
+exports.defaultHeaderDenylist = [];
 
 /**
  * A default function to filter the properties of the res object.
@@ -105,18 +105,18 @@ exports.requestField = 'req';
  */
 exports.responseField = 'res';
 
-function filterObject(originalObj, whiteList, headerBlacklist, initialFilter) {
+function filterObject(originalObj, allowList, headerDenylist, initialFilter) {
 
     var obj = {};
     var fieldsSet = false;
 
-    [].concat(whiteList).forEach(function (propName) {
+    [].concat(allowList).forEach(function (propName) {
         var value = initialFilter(originalObj, propName);
         if(typeof (value) !== 'undefined') {
             _.set(obj, propName, value);
             fieldsSet = true;
             if (propName === 'headers') {
-                [].concat(headerBlacklist).forEach(function (headerName) {
+                [].concat(headerDenylist).forEach(function (headerName) {
                     var lowerCaseHeaderName = headerName ? headerName.toLowerCase() : null;
                     if (obj[propName].hasOwnProperty(lowerCaseHeaderName)) {
                         delete obj[propName][lowerCaseHeaderName];
@@ -170,9 +170,9 @@ exports.errorLogger = function errorLogger(options) {
 
     ensureValidOptions(options);
 
-    options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
+    options.requestAllowlist = options.requestAllowlist || exports.requestAllowlist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
-    options.headerBlacklist = options.headerBlacklist || exports.defaultHeaderBlacklist;
+    options.headerDenylist = options.headerDenylist || exports.defaultHeaderDenylist;
     options.winstonInstance = options.winstonInstance || (winston.createLogger({
         transports: options.transports,
         format: options.format
@@ -184,7 +184,7 @@ exports.errorLogger = function errorLogger(options) {
     options.dynamicMeta = options.dynamicMeta || function (req, res, err) { return null; };
     const exceptionHandler = new winston.ExceptionHandler(options.winstonInstance);
     options.exceptionToMeta = options.exceptionToMeta || exceptionHandler.getAllInfo.bind(exceptionHandler);
-    options.blacklistedMetaFields = options.blacklistedMetaFields || [];
+    options.denylistedMetaFields = options.denylistedMetaFields || [];
     options.skip = options.skip || exports.defaultSkip;
     options.requestField = options.requestField === null || options.requestField === 'null' ? null : options.requestField || exports.requestField;
 
@@ -197,10 +197,10 @@ exports.errorLogger = function errorLogger(options) {
 
     return function (err, req, res, next) {
         // Let winston gather all the error data
-        var exceptionMeta = _.omit(options.exceptionToMeta(err), options.blacklistedMetaFields);
+        var exceptionMeta = _.omit(options.exceptionToMeta(err), options.denylistedMetaFields);
         if (options.meta !== false) {
             if (options.requestField !== null) {
-                exceptionMeta[options.requestField] = filterObject(req, options.requestWhitelist, options.headerBlacklist, options.requestFilter);
+                exceptionMeta[options.requestField] = filterObject(req, options.requestAllowlist, options.headerDenylist, options.requestFilter);
             }
 
             if (options.dynamicMeta) {
@@ -258,11 +258,11 @@ exports.logger = function logger(options) {
     ensureValidOptions(options);
     ensureValidLoggerOptions(options);
 
-    options.requestWhitelist = options.requestWhitelist || exports.requestWhitelist;
-    options.bodyWhitelist = options.bodyWhitelist || exports.bodyWhitelist;
-    options.bodyBlacklist = options.bodyBlacklist || exports.bodyBlacklist;
-    options.headerBlacklist = options.headerBlacklist || exports.defaultHeaderBlacklist;
-    options.responseWhitelist = options.responseWhitelist || exports.responseWhitelist;
+    options.requestAllowlist = options.requestAllowlist || exports.requestAllowlist;
+    options.bodyAllowlist = options.bodyAllowlist || exports.bodyAllowlist;
+    options.bodyDenylist = options.bodyDenylist || exports.bodyDenylist;
+    options.headerDenylist = options.headerDenylist || exports.defaultHeaderDenylist;
+    options.responseAllowlist = options.responseAllowlist || exports.responseAllowlist;
     options.requestFilter = options.requestFilter || exports.defaultRequestFilter;
     options.responseFilter = options.responseFilter || exports.defaultResponseFilter;
     options.ignoredRoutes = options.ignoredRoutes || exports.ignoredRoutes;
@@ -297,13 +297,13 @@ exports.logger = function logger(options) {
 
         req._startTime = (new Date);
 
-        req._routeWhitelists = {
+        req._routeAllowlists = {
             req: [],
             res: [],
             body: []
         };
 
-        req._routeBlacklists = {
+        req._routeDenylists = {
             body: []
         };
 
@@ -323,26 +323,26 @@ exports.logger = function logger(options) {
                 var logData = {};
 
                 if (options.requestField !== null) {
-                    var requestWhitelist = options.requestWhitelist.concat(req._routeWhitelists.req || []);
-                    var filteredRequest = filterObject(req, requestWhitelist, options.headerBlacklist, options.requestFilter);
+                    var requestAllowlist = options.requestAllowlist.concat(req._routeAllowlists.req || []);
+                    var filteredRequest = filterObject(req, requestAllowlist, options.headerDenylist, options.requestFilter);
 
-                    var bodyWhitelist = _.union(options.bodyWhitelist, (req._routeWhitelists.body || []));
-                    var blacklist = _.union(options.bodyBlacklist, (req._routeBlacklists.body || []));
+                    var bodyAllowlist = _.union(options.bodyAllowlist, (req._routeAllowlists.body || []));
+                    var denylist = _.union(options.bodyDenylist, (req._routeDenylists.body || []));
 
                     var filteredBody = null;
 
                     if (req.body !== undefined) {
-                        if (blacklist.length > 0 && bodyWhitelist.length === 0) {
-                            var whitelist = _.difference(Object.keys(req.body), blacklist);
-                            filteredBody = filterObject(req.body, whitelist, options.headerBlacklist, options.requestFilter);
+                        if (denylist.length > 0 && bodyAllowlist.length === 0) {
+                            var allowlist = _.difference(Object.keys(req.body), denylist);
+                            filteredBody = filterObject(req.body, allowlist, options.headerDenylist, options.requestFilter);
                         } else if (
-                            requestWhitelist.indexOf('body') !== -1 &&
-                            bodyWhitelist.length === 0 &&
-                            blacklist.length === 0
+                            requestAllowlist.indexOf('body') !== -1 &&
+                            bodyAllowlist.length === 0 &&
+                            denylist.length === 0
                         ) {
-                            filteredBody = filterObject(req.body, Object.keys(req.body), options.headerBlacklist, options.requestFilter);
+                            filteredBody = filterObject(req.body, Object.keys(req.body), options.headerDenylist, options.requestFilter);
                         } else {
-                            filteredBody = filterObject(req.body, bodyWhitelist, options.headerBlacklist, options.requestFilter);
+                            filteredBody = filterObject(req.body, bodyAllowlist, options.headerDenylist, options.requestFilter);
                         }
                     }
 
@@ -357,8 +357,8 @@ exports.logger = function logger(options) {
                     logData[options.requestField] = filteredRequest;
                 }
 
-                var responseWhitelist = options.responseWhitelist.concat(req._routeWhitelists.res || []);
-                if (_.includes(responseWhitelist, 'body')) {
+                var responseAllowlist = options.responseAllowlist.concat(req._routeAllowlists.res || []);
+                if (_.includes(responseAllowlist, 'body')) {
                     if (chunk) {
                         var isJson = (res.getHeader('content-type')
                             && res.getHeader('content-type').indexOf('json') >= 0);
@@ -368,7 +368,7 @@ exports.logger = function logger(options) {
                 }
 
                 if (options.responseField !== null) {
-                    var filteredResponse = filterObject(res, responseWhitelist, options.headerBlacklist, options.responseFilter);
+                    var filteredResponse = filterObject(res, responseAllowlist, options.headerDenylist, options.responseFilter);
                     if (filteredResponse) {
                         if (options.requestField === options.responseField) {
                             logData[options.requestField] = _.assign(filteredRequest, filteredResponse);
@@ -378,7 +378,7 @@ exports.logger = function logger(options) {
                     }
                 }
 
-                if (!responseWhitelist.includes('responseTime')) {
+                if (!responseAllowlist.includes('responseTime')) {
                     logData.responseTime = res.responseTime;
                 }
 
