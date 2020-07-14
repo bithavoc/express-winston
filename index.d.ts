@@ -26,6 +26,12 @@ export type RouteFilter = (req: Request, res: Response) => boolean;
 export type ErrorRouteFilter = (req: Request, res: Response, err: Error) => boolean;
 export type MessageTemplate = string | ((req: Request, res: Response) => string);
 
+export interface StatusLevels {
+    error?: string;
+    success?: string;
+    warn?: string;
+};
+
 export interface BaseLoggerOptions {
     baseMeta?: object;
     bodyBlacklist?: string[];
@@ -48,12 +54,8 @@ export interface BaseLoggerOptions {
     responseWhitelist?: string[];
     headerBlacklist?: string[];
     skip?: RouteFilter;
-    statusLevels?: {
-        error?: string;
-        success?: string;
-        warn?: string;
-    };
-}
+    statusLevels?: Boolean | StatusLevels;
+}   
 
 export interface LoggerOptionsWithTransports extends BaseLoggerOptions {
     transports: Transport[];
