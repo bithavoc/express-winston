@@ -30,7 +30,7 @@ export interface StatusLevels {
     error?: string;
     success?: string;
     warn?: string;
-};
+}
 
 export interface BaseLoggerOptions {
     baseMeta?: object;
@@ -55,7 +55,7 @@ export interface BaseLoggerOptions {
     headerBlacklist?: string[];
     skip?: RouteFilter;
     statusLevels?: Boolean | StatusLevels;
-}   
+}
 
 export interface LoggerOptionsWithTransports extends BaseLoggerOptions {
     transports: Transport[];
