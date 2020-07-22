@@ -24,7 +24,7 @@ Therefore, exposed configuration options, types in this library using those term
 including the ~~master~~ branch, you should update your apps and your code accordingly.
 We've taken immediate action to make `main` our default branch in Git.
 
-You can track the progress of these changes in [#241](https://github.com/bithavoc/express-winston/issues/241).
+You can track the progress of these changes in [#247](https://github.com/bithavoc/express-winston/issues/247).
 
 ## Usage
 
