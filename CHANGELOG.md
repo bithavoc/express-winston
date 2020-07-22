@@ -1,3 +1,6 @@
+## 4.0.5
+* Fix excess semicolon breaking Typescript compilation ([#249](https://github.com/bithavoc/express-winston/pull/249))
+
 ## 4.0.4
 * Update lodash to 4.17.19 ([#245](https://github.com/bithavoc/express-winston/pull/245))
 * Update statusLevels to accept Boolean or StatusLevel object in TypeScript definition ([#244](https://github.com/bithavoc/express-winston/pull/244))
