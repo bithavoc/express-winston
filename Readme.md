@@ -13,6 +13,19 @@
 
 (supports node >= 6)
 
+## #BLM and 5.x breaking changes
+
+The maintainers of this project no longer feel comfortable with the following terms:
+* whitelist
+* blacklist
+* master
+
+Therefore, exposed configuration options, types in this library using those terms are due to be removed in the upcoming 5.x series,
+including the ~~master~~ branch, you should update your apps and your code accordingly.
+We've taken immediate action to make `main` our default branch in Git.
+
+You can track the progress of these changes in [#241](https://github.com/bithavoc/express-winston/issues/241).
+
 ## Usage
 
 express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.
@@ -26,7 +39,7 @@ In `package.json`:
   "dependencies": {
     "...": "...",
     "winston": "^3.0.0",
-    "express-winston": "^3.0.0",
+    "express-winston": "^4.0.4",
     "...": "..."
   }
 }
