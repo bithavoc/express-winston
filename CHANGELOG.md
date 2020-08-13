@@ -1,3 +1,14 @@
+## 4.0.4
+* Update lodash to 4.17.19 ([#245](https://github.com/bithavoc/express-winston/pull/245))
+* Update statusLevels to accept Boolean or StatusLevel object in TypeScript definition ([#244](https://github.com/bithavoc/express-winston/pull/244))
+
+## 4.0.3
+* Update lodash to 4.17.15 ([#232](https://github.com/bithavoc/express-winston/pull/232))
+* Add missing exceptionToMeta and skip to TypeScript definition ([#234](https://github.com/bithavoc/express-winston/pull/234))
+
+## 4.0.2
+* Add blacklist fields to BaseErrorLoggerOptions interface ([#230](https://github.com/bithavoc/express-winston/pull/230))
+
 ## 4.0.1
 * Added `headerBlacklist` to BaseLoggerOptions for better typescript support ([#228](https://github.com/bithavoc/express-winston/pull/228))
 

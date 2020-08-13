@@ -30,6 +30,7 @@ export interface ExpressWinstonResponse extends Response {
     body?: string | Record<string, any>;
 }
 
+export type ExceptionToMetaFunction = (err: Error) => object;
 export type DynamicMetaFunction = (req: Request, res: ExpressWinstonResponse, err: Error) => Record<string, any>;
 export type DynamicLevelFunction = (req: Request, res: ExpressWinstonResponse, err: Error) => string;
 export type DynamicMetaFunctionError = (req: Request, res: Response, err: Error) => Record<string, any>;
@@ -38,7 +39,14 @@ export type DynamicLevelFunctionError = (req: Request, res: Response, err: Error
 export type RequestFilter = (req: FilterRequest, propName: string) => any;
 export type ResponseFilter = (res: FilterResponse, propName: string) => any;
 export type RouteFilter = (req: Request, res: Response) => boolean;
+export type ErrorRouteFilter = (req: Request, res: Response, err: Error) => boolean;
 export type MessageTemplate = string | ((req: Request, res: Response) => string);
+
+export interface StatusLevels {
+    error?: string;
+    success?: string;
+    warn?: string;
+};
 
 export interface BaseLoggerOptions {
     baseMeta?: object;
@@ -62,11 +70,7 @@ export interface BaseLoggerOptions {
     responseWhitelist?: string[];
     headerBlacklist?: string[];
     skip?: RouteFilter;
-    statusLevels?: {
-        error?: string;
-        success?: string;
-        warn?: string;
-    };
+    statusLevels?: Boolean | StatusLevels;
 }
 
 export interface LoggerOptionsWithTransports extends BaseLoggerOptions {
@@ -84,16 +88,19 @@ export function logger(options: LoggerOptions): Handler;
 export interface BaseErrorLoggerOptions {
     baseMeta?: object;
     dynamicMeta?: DynamicMetaFunctionError;
+    exceptionToMeta?: ExceptionToMetaFunction;
     format?: Format;
     level?: string | DynamicLevelFunctionError;
     meta?: boolean;
     metaField?: string;
     requestField?: string;
+    responseField?: string;
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
     requestWhitelist?: string[];
     headerBlacklist?: string[];
     blacklistedMetaFields?: string[];
+    skip?: ErrorRouteFilter;
 }
 
 export interface ErrorLoggerOptionsWithTransports extends BaseErrorLoggerOptions {

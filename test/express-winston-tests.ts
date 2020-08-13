@@ -49,12 +49,19 @@ app.use(expressWinston.logger({
 app.use(expressWinston.errorLogger({
     baseMeta: { foo: 'foo', nested: { bar: 'baz' } },
     dynamicMeta: (req, res, err) => ({ foo: 'bar' }),
+    exceptionToMeta: function(error){return {}; },
     format: new Format(),
     level: (req, res) => 'level',
+    meta: true,
     metaField: 'metaField',
+    requestField: 'requestField',
+    responseField: 'responseField',
     msg: 'msg',
     requestFilter: (req, prop) => true,
     requestWhitelist: ['foo', 'bar'],
+    headerBlacklist: ['foo', 'bar'],
+    blacklistedMetaFields: ['foo', 'bar'],
+    skip: (req, res) => false,
     transports: [
         new winston.transports.Console({})
     ]
