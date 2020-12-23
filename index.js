@@ -282,6 +282,7 @@ exports.logger = function logger(options) {
     options.dynamicMeta = options.dynamicMeta || function (req, res) { return null; };
     options.requestField = options.requestField === null || options.requestField === 'null' ? null : options.requestField || exports.requestField;
     options.responseField = options.responseField === null || options.responseField === 'null' ? null : options.responseField || exports.responseField;
+    options.allowFilterOutWhitelistedRequestBody = !!options.allowFilterOutWhitelistedRequestBody || false;
 
     // Using mustache style templating
     var template = getTemplate(options, {
@@ -346,7 +347,7 @@ exports.logger = function logger(options) {
                         }
                     }
 
-                    if (filteredRequest) {
+                    if (filteredRequest && (!options.allowFilterOutWhitelistedRequestBody || filteredRequest.body !== undefined)) {
                         if (filteredBody) {
                             filteredRequest.body = filteredBody;
                         } else {
