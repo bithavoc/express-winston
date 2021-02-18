@@ -44,9 +44,9 @@ export interface BaseLoggerOptions {
     ignoredRoutes?: string[];
     level?: string | DynamicLevelFunction;
     meta?: boolean;
-    metaField?: string;
-    requestField?: string;
-    responseField?: string;
+    metaField?: string | null;
+    requestField?: string | null;
+    responseField?: string | null;
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
     requestWhitelist?: string[];
@@ -77,9 +77,9 @@ export interface BaseErrorLoggerOptions {
     format?: Format;
     level?: string | DynamicLevelFunction;
     meta?: boolean;
-    metaField?: string;
-    requestField?: string;
-    responseField?: string;
+    metaField?: string | null;
+    requestField?: string | null;
+    responseField?: string | null;
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
     requestWhitelist?: string[];
