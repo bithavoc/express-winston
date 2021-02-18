@@ -1,4 +1,10 @@
+## 4.1.0
+* Update chalk and lodash due minor security impact ([#252](https://github.com/bithavoc/express-winston/pull/252))
+* Allow filter out whitelisted request body ([#258](https://github.com/bithavoc/express-winston/pull/258))
+* Fix metaField/requestField/responseField typescript types ([#259](https://github.com/bithavoc/express-winston/pull/259))
+
 ## 4.0.5
+
 * Fix excess semicolon breaking Typescript compilation ([#249](https://github.com/bithavoc/express-winston/pull/249))
 
 ## 4.0.4
