@@ -1508,6 +1508,33 @@ describe('express-winston', function () {
         loggerFn.should.throw();
       });
     });
+
+    describe('allowFilterOutWhitelistedRequestBody option', function() {
+      const removeRequestBodyFilter = (req, propName) => {
+        return (propName !== 'body') ? req[propName] : undefined;
+      };
+      const options = {
+        req: {
+          body: {
+            content: 'sensitive'
+          }
+        },
+        loggerOptions: {
+          requestWhitelist: ['body', 'url'],
+          requestFilter: removeRequestBodyFilter
+        }
+      };
+      it('should not filter out request whitelisted body using requestFilter when option missing', function() {
+        return loggerTestHelper(options).then(function (result) {
+          result.log.meta.req.should.have.property('body');
+        });
+      });
+      it('should filter out request whitelisted body using requestFilter when option exists', function() {
+        return loggerTestHelper(_.extend(options, { loggerOptions: _.extend(options.loggerOptions, { allowFilterOutWhitelistedRequestBody: true }) })).then(function (result) {
+          result.log.meta.req.should.not.have.property('body');
+        });
+      });
+    });
   });
 
   describe('.requestWhitelist', function () {

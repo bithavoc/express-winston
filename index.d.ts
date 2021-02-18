@@ -55,6 +55,7 @@ export interface BaseLoggerOptions {
     headerBlacklist?: string[];
     skip?: RouteFilter;
     statusLevels?: Boolean | StatusLevels;
+    allowFilterOutWhitelistedRequestBody?: boolean;
 }
 
 export interface LoggerOptionsWithTransports extends BaseLoggerOptions {
