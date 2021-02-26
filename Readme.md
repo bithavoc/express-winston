@@ -125,7 +125,7 @@ Use `expressWinston.errorLogger(options)` to create a middleware that log the er
     }));
 ```
 
-The logger needs to be added AFTER the express router(`app.router)`) and BEFORE any of your custom error handlers(`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
+The logger needs to be added AFTER the express router (`app.router`) and BEFORE any of your custom error handlers (`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
 
 #### Options
 
@@ -422,7 +422,7 @@ Note that you can log the whole request and/or response body:
 
 For example, using the following during logger setup:
 
-    expressWinston.responseWhitelist.push('body.import.value');
+    expressWinston.responseWhitelist.push('body.important.value');
     
 A response that looks like this :
 
@@ -452,7 +452,7 @@ Would only log the following value :
 
 ## Route-Specific Whitelists and Blacklists
 
-New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and .res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
+New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and `.res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
 
 ``` js
     router.post('/user/register', function(req, res, next) {
@@ -511,7 +511,7 @@ excluding any black listed ones. In the above example, only 'email' and 'age' wo
 
 ## Custom Status Levels
 
-If you set statusLevels to true express-winston will log sub 400 responses at info level, sub 500 responses as warnings and 500+ responses as errors. To change these levels specify an object as follows
+If you set `statusLevels` to `true` express-winston will log sub 400 responses at info level, sub 500 responses as warnings and 500+ responses as errors. To change these levels specify an object as follows
 ```json
   "statusLevels": {
     "success": "debug",
@@ -522,7 +522,7 @@ If you set statusLevels to true express-winston will log sub 400 responses at in
 
 ## Dynamic Status Levels
 
-If you set statusLevels to false and assign a function to level, you can customize the log level for any scenario.
+If you set `statusLevels` to `false` and assign a function to level, you can customize the log level for any scenario.
 
 ```js
   statusLevels: false // default value
@@ -542,7 +542,7 @@ If you set statusLevels to false and assign a function to level, you can customi
 
 ## Dynamic meta data from request or response
 
-If you set dynamicMeta function you can extract additional meta data fields from request or response objects.
+If you set `dynamicMeta` function you can extract additional meta data fields from request or response objects.
 The function can be used to either select relevant elements in request or response body without logging them as a whole
 or to extract runtime data like the user making the request. The example below logs the user name and role as assigned
 by the passport authentication middleware.
