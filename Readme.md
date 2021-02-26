@@ -125,7 +125,7 @@ Use `expressWinston.errorLogger(options)` to create a middleware that log the er
     }));
 ```
 
-The logger needs to be added AFTER the express router(`app.router)`) and BEFORE any of your custom error handlers(`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
+The logger needs to be added AFTER the express router (`app.router`) and BEFORE any of your custom error handlers (`express.handler`). Since express-winston will just log the errors and not __handle__ them, you can still use your custom error handler like `express.handler`, just be sure to put the logger before any of your handlers.
 
 #### Options
 
