@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.2",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/express": "^4.17.1",
