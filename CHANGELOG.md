@@ -1,3 +1,7 @@
+## 4.2.0
+* Upgraded lodash to 4.17.21 minimum ([#264](https://github.com/bithavoc/express-winston/issues/264))
+* Fixed typos and Readme format ([#262](https://github.com/bithavoc/express-winston/pull/262))
+
 ## 4.1.0
 * Update chalk and lodash due minor security impact ([#252](https://github.com/bithavoc/express-winston/pull/252))
 * Allow filter out whitelisted request body ([#258](https://github.com/bithavoc/express-winston/pull/258))
