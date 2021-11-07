@@ -363,7 +363,7 @@ app.use(expressWinston.logger({
         httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.ip.lastIndexOf(':') + 1) : req.ip   // just ipv4
         httpRequest.requestSize = req.socket.bytesRead
         httpRequest.userAgent = req.get('User-Agent')
-        httpRequest.referrer = req.get('Referrer')
+        httpRequest.referer = req.get('Referrer')
       }
     
       if (res) {
