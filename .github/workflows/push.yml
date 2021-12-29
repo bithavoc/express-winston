@@ -1,0 +1,44 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [6.x, 8.x, 10.x, 12.x, 14.x]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v1
+      - name: set up node ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install dependencies
+        working-directory: .
+        run: npm install
+      - name: running lint (pretest)
+        working-directory: .
+        run: npm run pretest
+
+  unit_tests:
+    name: unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [6.x, 8.x, 10.x, 12.x, 14.x]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v1
+      - name: set up node ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: install dependencies
+        working-directory: .
+        run: npm install
+      - name: running npm test
+        working-directory: .
+        run: npm run test
