@@ -6,8 +6,8 @@ var Transport = require('winston-transport');
 var expressWinston = require('../index.js');
 
 expressWinston.ignoredRoutes.push('/ignored');
-expressWinston.responseWhitelist.push('body');
-expressWinston.bodyBlacklist.push('potato');
+expressWinston.responseAllowlist.push('body');
+expressWinston.bodyDenylist.push('potato');
 
 class MockTransport extends Transport {
   constructor(test, options) {
@@ -153,16 +153,16 @@ describe('express-winston', function () {
       middleware.length.should.eql(4);
     });
 
-    it('should use the exported requestWhitelist', function () {
-      var originalWhitelist = expressWinston.requestWhitelist;
-      expressWinston.requestWhitelist = ['foo'];
+    it('should use the exported requestAllowlist', function () {
+      var originalAllowlist = expressWinston.requestAllowlist;
+      expressWinston.requestAllowlist = ['foo'];
 
       var options = {
         req: { foo: 'bar' }
       };
       return errorLoggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
-        expressWinston.requestWhitelist = originalWhitelist;
+        expressWinston.requestAllowlist = originalAllowlist;
 
         result.log.meta.req.should.have.property('foo');
         result.log.meta.req.should.not.have.property('url');
@@ -203,7 +203,7 @@ describe('express-winston', function () {
             val: '1'
           });
 
-          result.log.meta.req.should.not.have.property('nonWhitelistedProperty');
+          result.log.meta.req.should.not.have.property('nonAllowlistedProperty');
         });
       });
 
@@ -242,10 +242,10 @@ describe('express-winston', function () {
       });
     });
 
-    describe('blacklistedMetaFields option', function () {
+    describe('denylistedMetaFields option', function () {
       it('should, remove given fields from the meta result', function () {
-        var testHelperOptionsWithBlacklist = { loggerOptions: { blacklistedMetaFields: ['trace'] } };
-        return errorLoggerTestHelper(testHelperOptionsWithBlacklist).then(function (result) {
+        var testHelperOptionsWithDenylist = { loggerOptions: { denylistedMetaFields: ['trace'] } };
+        return errorLoggerTestHelper(testHelperOptionsWithDenylist).then(function (result) {
           result.log.meta.should.not.have.property('trace');
         });
       });
@@ -269,8 +269,8 @@ describe('express-winston', function () {
       });
     });
 
-    describe('requestWhitelist option', function () {
-      it('should default to global requestWhitelist', function () {
+    describe('requestAllowlist option', function () {
+      it('should default to global requestAllowlist', function () {
         var options = {
           req: { foo: 'bar' }
         };
@@ -279,11 +279,11 @@ describe('express-winston', function () {
         });
       });
 
-      it('should use specified requestWhitelist', function () {
+      it('should use specified requestAllowlist', function () {
         var options = {
           req: { foo: 'bar' },
           loggerOptions: {
-            requestWhitelist: ['foo']
+            requestAllowlist: ['foo']
           }
         };
         return errorLoggerTestHelper(options).then(function (result) {
@@ -292,17 +292,17 @@ describe('express-winston', function () {
         });
       });
 
-      it('should work with nested requestWhitelist', function () {
+      it('should work with nested requestAllowlist', function () {
         var options = {
           req: {foo: {test: "bar"}},
           loggerOptions: {
-            requestWhitelist: ['foo.test']
+            requestAllowlist: ['foo.test']
           }
         };
         return errorLoggerTestHelper(options).then(function (result) {
           result.log.meta.req.should.have.property('foo');
           result.log.meta.req.foo.should.have.property('test');
-        });  
+        });
       });
     });
 
@@ -473,7 +473,7 @@ describe('express-winston', function () {
       });
     });
 
-    it('should log entire body when request whitelist contains body and there is no body whitelist or blacklist', function () {
+    it('should log entire body when request allowlist contains body and there is no body allowlist or denylist', function () {
       function next(req, res, next) {
         res.end();
       }
@@ -489,9 +489,9 @@ describe('express-winston', function () {
           url: '/hello'
         },
         loggerOptions: {
-          bodyBlacklist: [],
-          bodyWhitelist: [],
-          requestWhitelist: expressWinston.requestWhitelist.concat('body')
+          bodyDenylist: [],
+          bodyAllowlist: [],
+          requestAllowlist: expressWinston.requestAllowlist.concat('body')
         }
       };
       return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -504,8 +504,8 @@ describe('express-winston', function () {
 
     it('should not invoke the transport when invoked on a route with transport level of "error"', function () {
       function next(req, res, next) {
-        req._routeWhitelists.req = ['routeLevelAddedProperty'];
-        req._routeWhitelists.res = ['routeLevelAddedProperty'];
+        req._routeAllowlists.req = ['routeLevelAddedProperty'];
+        req._routeAllowlists.res = ['routeLevelAddedProperty'];
 
         res.end('{ "message": "Hi!  I\'m a chunk!" }');
       }
@@ -521,7 +521,7 @@ describe('express-winston', function () {
           url: '/hello',
         },
         res: {
-          nonWhitelistedProperty: 'value that should not be logged',
+          nonAllowlistedProperty: 'value that should not be logged',
           routeLevelAddedProperty: 'value that should be logged'
         },
         transportOptions: {
@@ -533,64 +533,64 @@ describe('express-winston', function () {
       });
     });
 
-    it('should use the exported requestWhitelist', function () {
-      var originalWhitelist = expressWinston.requestWhitelist;
-      expressWinston.requestWhitelist = ['foo'];
+    it('should use the exported requestAllowlist', function () {
+      var originalAllowlist = expressWinston.requestAllowlist;
+      expressWinston.requestAllowlist = ['foo'];
 
       var options = {
         req: { foo: 'bar' }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
-        expressWinston.requestWhitelist = originalWhitelist;
+        expressWinston.requestAllowlist = originalAllowlist;
 
         result.log.meta.req.should.have.property('foo');
         result.log.meta.req.should.not.have.property('url');
       });
     });
 
-    it('should use the exported bodyWhitelist', function () {
-      var originalWhitelist = expressWinston.bodyWhitelist;
-      expressWinston.bodyWhitelist = ['foo'];
+    it('should use the exported bodyAllowlist', function () {
+      var originalAllowlist = expressWinston.bodyAllowlist;
+      expressWinston.bodyAllowlist = ['foo'];
 
       var options = {
         req: { body: { foo: 'bar', baz: 'qux' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
-        expressWinston.bodyWhitelist = originalWhitelist;
+        expressWinston.bodyAllowlist = originalAllowlist;
 
         result.log.meta.req.body.should.have.property('foo');
         result.log.meta.req.body.should.not.have.property('baz');
       });
     });
 
-    it('should use the exported bodyBlacklist', function () {
-      var originalBlacklist = expressWinston.bodyBlacklist;
-      expressWinston.bodyBlacklist = ['foo'];
+    it('should use the exported bodyDenylist', function () {
+      var originalDenylist = expressWinston.bodyDenylist;
+      expressWinston.bodyDenylist = ['foo'];
 
       var options = {
         req: { body: { foo: 'bar', baz: 'qux' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
-        expressWinston.bodyBlacklist = originalBlacklist;
+        expressWinston.bodyDenylist = originalDenylist;
 
         result.log.meta.req.body.should.not.have.property('foo');
         result.log.meta.req.body.should.have.property('baz');
       });
     });
 
-    it('should use the exported responseWhitelist', function () {
-      var originalWhitelist = expressWinston.responseWhitelist;
-      expressWinston.responseWhitelist = ['foo'];
+    it('should use the exported responseAllowlist', function () {
+      var originalAllowlist = expressWinston.responseAllowlist;
+      expressWinston.responseAllowlist = ['foo'];
 
       var options = {
         res: { foo: 'bar', baz: 'qux' }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
-        expressWinston.responseWhitelist = originalWhitelist;
+        expressWinston.responseAllowlist = originalAllowlist;
 
         result.log.meta.res.should.have.property('foo');
         result.log.meta.res.should.not.have.property('baz');
@@ -667,11 +667,11 @@ describe('express-winston', function () {
       function next(req, res, next) {
         req._startTime = (new Date()) - 125;
 
-        req._routeWhitelists.req = ['routeLevelAddedProperty'];
-        req._routeWhitelists.res = ['routeLevelAddedProperty'];
+        req._routeAllowlists.req = ['routeLevelAddedProperty'];
+        req._routeAllowlists.res = ['routeLevelAddedProperty'];
 
-        req._routeWhitelists.body = ['username'];
-        req._routeBlacklists.body = ['age'];
+        req._routeAllowlists.body = ['username'];
+        req._routeDenylists.body = ['age'];
 
         res.end('{ "message": "Hi!  I\'m a chunk!" }');
       }
@@ -688,7 +688,7 @@ describe('express-winston', function () {
           routeLevelAddedProperty: 'value that should be logged'
         },
         res: {
-          nonWhitelistedProperty: 'value that should not be logged',
+          nonAllowlistedProperty: 'value that should not be logged',
           routeLevelAddedProperty: 'value that should be logged'
         },
       };
@@ -719,7 +719,7 @@ describe('express-winston', function () {
           result.log.meta.res.statusCode.should.eql(200);
           result.log.meta.res.routeLevelAddedProperty.should.be.ok();
 
-          result.log.meta.res.should.not.have.property('nonWhitelistedProperty');
+          result.log.meta.res.should.not.have.property('nonAllowlistedProperty');
         });
       });
 
@@ -774,7 +774,7 @@ describe('express-winston', function () {
               {
                 responseField: 'httpRequest',
                 requestField: 'httpRequest',
-                responseWhitelist: [...expressWinston.responseWhitelist, 'responseTime']
+                responseAllowlist: [...expressWinston.responseAllowlist, 'responseTime']
               }
           })
           .then(function (result) {
@@ -1255,8 +1255,8 @@ describe('express-winston', function () {
       });
     });
 
-    describe('headerBlacklist option', function () {
-      it('should default to global defaultHeaderBlackList', function () {
+    describe('headerDenylist option', function () {
+      it('should default to global defaultHeaderDenyList', function () {
         return loggerTestHelper().then(function (result) {
           result.log.meta.req.headers.should.have.property('header-1');
           result.log.meta.req.headers.should.have.property('header-2');
@@ -1264,10 +1264,10 @@ describe('express-winston', function () {
         });
       });
 
-      it('should use specified headerBlackList', function () {
+      it('should use specified headerDenyList', function () {
         var options = {
           loggerOptions: {
-            headerBlacklist: ['header-1', 'Header-3']
+            headerDenylist: ['header-1', 'Header-3']
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1277,11 +1277,11 @@ describe('express-winston', function () {
         });
       });
 
-      it('should not use specified headerBlackList since the requestWhiteList is empty', function () {
+      it('should not use specified headerDenyList since the requestAllowList is empty', function () {
         var options = {
           loggerOptions: {
-            requestWhitelist: ['url'],
-            headerBlacklist: ['header-1']
+            requestAllowlist: ['url'],
+            headerDenylist: ['header-1']
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1289,14 +1289,14 @@ describe('express-winston', function () {
         });
       });
 
-      it('should not headerBlackList but since a requestFilter is set', function () {
+      it('should not headerDenyList but since a requestFilter is set', function () {
         const customRequestFilter = (req, propName) => {
           return (propName !== 'headers') ? req[propName] : undefined;
         };
         var options = {
           loggerOptions: {
             requestFilter: customRequestFilter,
-            headerBlacklist: ['header-1']
+            headerDenylist: ['header-1']
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1305,8 +1305,8 @@ describe('express-winston', function () {
       });
     });
 
-    describe('requestWhitelist option', function () {
-      it('should default to global requestWhitelist', function () {
+    describe('requestAllowlist option', function () {
+      it('should default to global requestAllowlist', function () {
         var options = {
           req: { foo: 'bar' }
         };
@@ -1315,11 +1315,11 @@ describe('express-winston', function () {
         });
       });
 
-      it('should use specified requestWhitelist', function () {
+      it('should use specified requestAllowlist', function () {
         var options = {
           req: { foo: 'bar' },
           loggerOptions: {
-            requestWhitelist: ['foo']
+            requestAllowlist: ['foo']
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1328,10 +1328,10 @@ describe('express-winston', function () {
         });
       });
 
-      it('should not include a req in the log when there is no request whitelist', function () {
+      it('should not include a req in the log when there is no request allowlist', function () {
         var options = {
           loggerOptions: {
-            requestWhitelist: [],
+            requestAllowlist: [],
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1340,12 +1340,12 @@ describe('express-winston', function () {
       });
     });
 
-    describe('bodyBlacklist option', function () {
-      it('should remove the body if it is requestWhitelisted and the bodyBlacklist removes all properties', function () {
+    describe('bodyDenylist option', function () {
+      it('should remove the body if it is requestAllowlisted and the bodyDenylist removes all properties', function () {
         var options = {
           loggerOptions: {
-            bodyBlacklist: ['foo', 'baz'],
-            requestWhitelist: ['body'],
+            bodyDenylist: ['foo', 'baz'],
+            requestAllowlist: ['body'],
           },
           req: {
             body: { foo: 'bar', baz: 'qux' }
@@ -1357,8 +1357,8 @@ describe('express-winston', function () {
       });
     });
 
-    describe('responseWhitelist option', function () {
-      it('should default to global responseWhitelist', function () {
+    describe('responseAllowlist option', function () {
+      it('should default to global responseAllowlist', function () {
         var options = {
           res: { foo: 'bar' }
         };
@@ -1367,11 +1367,11 @@ describe('express-winston', function () {
         });
       });
 
-      it('should use specified responseWhitelist', function () {
+      it('should use specified responseAllowlist', function () {
         var options = {
           res: { foo: 'bar' },
           loggerOptions: {
-            responseWhitelist: ['foo']
+            responseAllowlist: ['foo']
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1380,11 +1380,11 @@ describe('express-winston', function () {
         });
       });
 
-      it('should work with nested responseWhitelist', function () {
+      it('should work with nested responseAllowlist', function () {
         var options = {
           res: {foo: {test: "bar"}},
           loggerOptions: {
-            responseWhitelist: ['foo.test']
+            responseAllowlist: ['foo.test']
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1509,7 +1509,7 @@ describe('express-winston', function () {
       });
     });
 
-    describe('allowFilterOutWhitelistedRequestBody option', function() {
+    describe('allowFilterOutAllowlistedRequestBody option', function() {
       const removeRequestBodyFilter = (req, propName) => {
         return (propName !== 'body') ? req[propName] : undefined;
       };
@@ -1520,48 +1520,48 @@ describe('express-winston', function () {
           }
         },
         loggerOptions: {
-          requestWhitelist: ['body', 'url'],
+          requestAllowlist: ['body', 'url'],
           requestFilter: removeRequestBodyFilter
         }
       };
-      it('should not filter out request whitelisted body using requestFilter when option missing', function() {
+      it('should not filter out request allowlisted body using requestFilter when option missing', function() {
         return loggerTestHelper(options).then(function (result) {
           result.log.meta.req.should.have.property('body');
         });
       });
-      it('should filter out request whitelisted body using requestFilter when option exists', function() {
-        return loggerTestHelper(_.extend(options, { loggerOptions: _.extend(options.loggerOptions, { allowFilterOutWhitelistedRequestBody: true }) })).then(function (result) {
+      it('should filter out request allowlisted body using requestFilter when option exists', function() {
+        return loggerTestHelper(_.extend(options, { loggerOptions: _.extend(options.loggerOptions, { allowFilterOutAllowlistedRequestBody: true }) })).then(function (result) {
           result.log.meta.req.should.not.have.property('body');
         });
       });
     });
   });
 
-  describe('.requestWhitelist', function () {
-    it('should be an array with all the properties whitelisted in the req object', function () {
-      expressWinston.requestWhitelist.should.be.an.Array();
+  describe('.requestAllowlist', function () {
+    it('should be an array with all the properties allowlisted in the req object', function () {
+      expressWinston.requestAllowlist.should.be.an.Array();
     });
   });
 
-  describe('.bodyWhitelist', function () {
-    it('should be an array with all the properties whitelisted in the body object', function () {
-      expressWinston.bodyWhitelist.should.be.an.Array();
+  describe('.bodyAllowlist', function () {
+    it('should be an array with all the properties allowlisted in the body object', function () {
+      expressWinston.bodyAllowlist.should.be.an.Array();
     });
   });
 
-  describe('.bodyBlacklist', function () {
+  describe('.bodyDenylist', function () {
 
   });
 
-  describe('.responseWhitelist', function () {
-    it('should be an array with all the properties whitelisted in the res object', function () {
-      expressWinston.responseWhitelist.should.be.an.Array();
+  describe('.responseAllowlist', function () {
+    it('should be an array with all the properties allowlisted in the res object', function () {
+      expressWinston.responseAllowlist.should.be.an.Array();
     });
   });
 
-  describe('.defaultHeaderBlacklist', function () {
+  describe('.defaultHeaderDenylist', function () {
     it('should be an array with all the header which are prevented to be logged', function () {
-      expressWinston.defaultHeaderBlacklist.should.be.an.Array();
+      expressWinston.defaultHeaderDenylist.should.be.an.Array();
     });
   });
 

@@ -34,8 +34,8 @@ export interface StatusLevels {
 
 export interface BaseLoggerOptions {
     baseMeta?: object;
-    bodyBlacklist?: string[];
-    bodyWhitelist?: string[];
+    bodyDenylist?: string[];
+    bodyAllowlist?: string[];
     colorize?: boolean;
     dynamicMeta?: DynamicMetaFunction;
     expressFormat?: boolean;
@@ -49,13 +49,13 @@ export interface BaseLoggerOptions {
     responseField?: string | null;
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
-    requestWhitelist?: string[];
+    requestAllowlist?: string[];
     responseFilter?: ResponseFilter;
-    responseWhitelist?: string[];
-    headerBlacklist?: string[];
+    responseAllowlist?: string[];
+    headerDenylist?: string[];
     skip?: RouteFilter;
     statusLevels?: Boolean | StatusLevels;
-    allowFilterOutWhitelistedRequestBody?: boolean;
+    allowFilterOutAllowlistedRequestBody?: boolean;
 }
 
 export interface LoggerOptionsWithTransports extends BaseLoggerOptions {
@@ -82,9 +82,9 @@ export interface BaseErrorLoggerOptions {
     responseField?: string | null;
     msg?: MessageTemplate;
     requestFilter?: RequestFilter;
-    requestWhitelist?: string[];
-    headerBlacklist?: string[];
-    blacklistedMetaFields?: string[];
+    requestAllowlist?: string[];
+    headerDenylist?: string[];
+    denylistedMetaFields?: string[];
     skip?: ErrorRouteFilter;
 }
 
@@ -100,13 +100,13 @@ export type ErrorLoggerOptions = ErrorLoggerOptionsWithTransports | ErrorLoggerO
 
 export function errorLogger(options: ErrorLoggerOptions): ErrorRequestHandler;
 
-export let requestWhitelist: string[];
+export let requestAllowlist: string[];
 
-export let bodyWhitelist: string[];
+export let bodyAllowlist: string[];
 
-export let bodyBlacklist: string[];
+export let bodyDenylist: string[];
 
-export let responseWhitelist: string[];
+export let responseAllowlist: string[];
 
 export let ignoredRoutes: string[];
 
@@ -117,7 +117,7 @@ export let defaultResponseFilter: ResponseFilter;
 export function defaultSkip(): boolean;
 
 export interface ExpressWinstonRequest extends Request {
-    _routeWhitelists: {
+    _routeAllowlists: {
         body: string[];
         req: string[];
         res: string[];
