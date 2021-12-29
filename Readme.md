@@ -16,8 +16,8 @@
 ## #BLM and 5.x breaking changes
 
 The maintainers of this project no longer feel comfortable with the following terms:
-* whitelist
-* blacklist
+* allowlist
+* denylist
 * master
 
 Therefore, exposed configuration options, types in this library using those terms are due to be removed in the upcoming 5.x series,
@@ -28,7 +28,7 @@ You can track the progress of these changes in [#247](https://github.com/bithavo
 
 ## Usage
 
-express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.
+express-winston provides middlewares for request and error logging of your express.js application.  It uses 'allowlists' to select properties from the request and (new in 0.2.x) response objects.
 
 To make use of express-winston, you need to add the following to your application:
 
@@ -94,15 +94,15 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     statusLevels: Boolean or Object, // different HTTP status codes caused log messages to be logged at different levels (info/warn/error), the default is false. Use an object to control the levels various status codes are logged at. Using an object for statusLevels overrides any setting of options.level.
     ignoreRoute: function (req, res) { return false; }, // A function to determine if logging is skipped, defaults to returning false. Called _before_ any later middleware.
     skip: function(req, res) { return false; }, // A function to determine if logging is skipped, defaults to returning false. Called _after_ response has already been sent.
-    requestFilter: function (req, propName) { return req[propName]; }, // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
-    responseFilter: function (res, propName) { return res[propName]; }, // A function to filter/return response values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
-    requestWhitelist: [String], // Array of request properties to log. Overrides global requestWhitelist for this instance
-    responseWhitelist: [String], // Array of response properties to log. Overrides global responseWhitelist for this instance
-    bodyWhitelist: [String], // Array of body properties to log. Overrides global bodyWhitelist for this instance
-    bodyBlacklist: [String], // Array of body properties to omit from logs. Overrides global bodyBlacklist for this instance
+    requestFilter: function (req, propName) { return req[propName]; }, // A function to filter/return request values, defaults to returning all values allowed by allowlist. If the function returns undefined, the key/value will not be included in the meta.
+    responseFilter: function (res, propName) { return res[propName]; }, // A function to filter/return response values, defaults to returning all values allowed by allowlist. If the function returns undefined, the key/value will not be included in the meta.
+    requestAllowlist: [String], // Array of request properties to log. Overrides global requestAllowlist for this instance
+    responseAllowlist: [String], // Array of response properties to log. Overrides global responseAllowlist for this instance
+    bodyAllowlist: [String], // Array of body properties to log. Overrides global bodyAllowlist for this instance
+    bodyDenylist: [String], // Array of body properties to omit from logs. Overrides global bodyDenylist for this instance
     ignoredRoutes: [String], // Array of paths to ignore/skip logging. Overrides global ignoredRoutes for this instance
     dynamicMeta: function(req, res) { return [Object]; } // Extract additional meta data from request or response (typically req.user data if using passport). meta must be true for this function to be activated
-    headerBlacklist: [String], // Array of headers to omit from logs. Applied after any previous filters.
+    headerDenylist: [String], // Array of headers to omit from logs. Applied after any previous filters.
 
 ```
 
@@ -137,15 +137,15 @@ The logger needs to be added AFTER the express router (`app.router`) and BEFORE 
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object. Defaults to 'meta'. Set to `null` to store metadata at the root of the log entry.
-    requestField: [String] // the property of the metadata to store the request under (default 'req'). Set to null to exclude request from metadata    
+    requestField: [String] // the property of the metadata to store the request under (default 'req'). Set to null to exclude request from metadata
     responseField: [String] // the property of the metadata to store the response under (default 'res'). If set to the same as 'requestField', filtered response and request properties will be merged. Set to null to exclude request from metadata
-    requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by whitelist. If the function returns undefined, the key/value will not be included in the meta.
-    requestWhitelist: [String] // Array of request properties to log. Overrides global requestWhitelist for this instance
-    headerBlacklist: [String], // Array of headers to omit from logs. Applied after any previous filters.
+    requestFilter: function (req, propName) { return req[propName]; } // A function to filter/return request values, defaults to returning all values allowed by allowlist. If the function returns undefined, the key/value will not be included in the meta.
+    requestAllowlist: [String] // Array of request properties to log. Overrides global requestAllowlist for this instance
+    headerDenylist: [String], // Array of headers to omit from logs. Applied after any previous filters.
     level: String or function(req, res, err) { return String; }// custom log level for errors (default is 'error'). Assign a function to dynamically set the log level based on request, response, and the exact error.
     dynamicMeta: function(req, res, err) { return [Object]; } // Extract additional meta data from request or response (typically req.user data if using passport). meta must be true for this function to be activated
     exceptionToMeta: function(error){return Object; } // Function to format the returned meta information on error log. If not given `winston.exception.getAllInfo` will be used by default
-    blacklistedMetaFields: [String] // fields to blacklist from meta data
+    denylistedMetaFields: [String] // fields to denylist from meta data
     skip: function(req, res, err) { return false; } // A function to determine if logging is skipped, defaults to returning false.
 ```
 
@@ -155,20 +155,20 @@ Alternatively, if you're using a winston logger instance elsewhere and have alre
 
 #### `metaField` option
 
-In versions of `express-winston` prior to 4.0.0, this field functioned differently.  
+In versions of `express-winston` prior to 4.0.0, this field functioned differently.
 
-Previously the log entry would always have a "meta" field which would be set to the metadata of the request/error.  
-If `metaField` was set, this information would be stored as an object with the given property on the "meta" object of 
+Previously the log entry would always have a "meta" field which would be set to the metadata of the request/error.
+If `metaField` was set, this information would be stored as an object with the given property on the "meta" object of
 the log entry.  This prevented the use case where the metadata should be located at the root of the log entry.
 
-In this version, `metaField` defaults to "meta" which maintains the prior versions behavior of storing the metadata at 
-a "meta" property of the log entry.  
+In this version, `metaField` defaults to "meta" which maintains the prior versions behavior of storing the metadata at
+a "meta" property of the log entry.
 
 Explicitly setting the `metaField` to `null` or "null" causes the metadata to be stored at the root of the log entry.
 
 The `metaField` option now also supports dot separated and array values to store the metadata at a nested location in the log entry.
 
-<h3>Upgrade Note: For those upgrading from a version of `express-winston` prior to 4.0.0 that use the `metaField` property, to keep the same behavior, prepend `meta.` to your current `metaField` configuration. (i.e. 'foo' would become 'meta.foo')</h3> 
+<h3>Upgrade Note: For those upgrading from a version of `express-winston` prior to 4.0.0 that use the `metaField` property, to keep the same behavior, prepend `meta.` to your current `metaField` configuration. (i.e. 'foo' would become 'meta.foo')</h3>
 
 ## Examples
 
@@ -349,8 +349,8 @@ app.use(expressWinston.logger({
     transports: [new LoggingWinston({})],
     metaField: null, //this causes the metadata to be stored at the root of the log entry
     responseField: null, // this prevents the response from being included in the metadata (including body and status code)
-    requestWhitelist: ['headers', 'query'],  //these are not included in the standard StackDriver httpRequest
-    responseWhitelist: ['body'], // this populates the `res.body` so we can get the response size (not required)
+    requestAllowlist: ['headers', 'query'],  //these are not included in the standard StackDriver httpRequest
+    responseAllowlist: ['body'], // this populates the `res.body` so we can get the response size (not required)
     dynamicMeta:  (req, res) => {
       const httpRequest = {}
       const meta = {}
@@ -365,7 +365,7 @@ app.use(expressWinston.logger({
         httpRequest.userAgent = req.get('User-Agent')
         httpRequest.referrer = req.get('Referrer')
       }
-    
+
       if (res) {
         meta.httpRequest = httpRequest
         httpRequest.status = res.statusCode
@@ -386,44 +386,44 @@ app.use(expressWinston.logger({
 }));
 ```
 
-## Global Whitelists and Blacklists
+## Global AllowLists and Denylists
 
-Express-winston exposes three whitelists that control which properties of the `request`, `body`, and `response` are logged:
+Express-winston exposes three allowLists that control which properties of the `request`, `body`, and `response` are logged:
 
-* `requestWhitelist`
-* `bodyWhitelist`, `bodyBlacklist`
-* `responseWhitelist`
+* `requestAllowlist`
+* `bodyAllowlist`, `bodyDenylist`
+* `responseAllowlist`
 
-For example, `requestWhitelist` defaults to:
+For example, `requestAllowlist` defaults to:
 
     ['url', 'headers', 'method', 'httpVersion', 'originalUrl', 'query'];
 
-Only those properties of the request object will be logged. Set or modify the whitelist as necessary.
+Only those properties of the request object will be logged. Set or modify the allowlist as necessary.
 
 For example, to include the session property (the session data), add the following during logger setup:
 
-    expressWinston.requestWhitelist.push('session');
+    expressWinston.requestAllowlist.push('session');
 
-The blacklisting excludes certain properties and keeps all others. If both `bodyWhitelist` and `bodyBlacklist` are set
-the properties excluded by the blacklist are not included even if they are listed in the whitelist!
+The denylisting excludes certain properties and keeps all others. If both `bodyAllowlist` and `bodyDenylist` are set
+the properties excluded by the denylist are not included even if they are listed in the allowlist!
 
 Example:
 
-    expressWinston.bodyBlacklist.push('secretid', 'secretproperty');
+    expressWinston.bodyDenylist.push('secretid', 'secretproperty');
 
 Note that you can log the whole request and/or response body:
 
-    expressWinston.requestWhitelist.push('body');
-    expressWinston.responseWhitelist.push('body');
-    
-### Nested Whitelists
+    expressWinston.requestAllowlist.push('body');
+    expressWinston.responseAllowlist.push('body');
 
-`requestWhitelist` and `responseWhitelist` also support nested whitelist values, allowing access to parts of an object.
+### Nested Allowlists
+
+`requestAllowlist` and `responseAllowlist` also support nested allowlist values, allowing access to parts of an object.
 
 For example, using the following during logger setup:
 
-    expressWinston.responseWhitelist.push('body.important.value');
-    
+    expressWinston.responseAllowlist.push('body.important.value');
+
 A response that looks like this :
 
     {
@@ -439,7 +439,7 @@ A response that looks like this :
             value: 3
         }
     }
-    
+
 Would only log the following value :
 
     {
@@ -450,14 +450,14 @@ Would only log the following value :
         }
     }
 
-## Route-Specific Whitelists and Blacklists
+## Route-Specific Allowlists and Denylists
 
-New in version 0.2.x is the ability to add whitelist elements in a route.  express-winston adds a `_routeWhitelists` object to the `req`uest, containing `.body`, `.req` and `.res` properties, to which you can set an array of 'whitelist' parameters to include in the log, specific to the route in question:
+New in version 0.2.x is the ability to add allowlist elements in a route.  express-winston adds a `_routeAllowlists` object to the `req`uest, containing `.body`, `.req` and `.res` properties, to which you can set an array of 'allowlist' parameters to include in the log, specific to the route in question:
 
 ``` js
     router.post('/user/register', function(req, res, next) {
-      req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
-      req._routeWhitelists.res = ['_headers'];
+      req._routeAllowlists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
+      req._routeAllowlists.res = ['_headers'];
     });
 ```
 
@@ -494,19 +494,19 @@ Post to `/user/register` would give you something like the following:
       "message": "HTTP GET /favicon.ico"
     }
 
-Blacklisting supports only the `body` property.
+Denylisting supports only the `body` property.
 
 
 ``` js
     router.post('/user/register', function(req, res, next) {
-      req._routeWhitelists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
-      req._routeBlacklists.body = ['username', 'password', 'confirm-password', 'top-secret'];
-      req._routeWhitelists.res = ['_headers'];
+      req._routeAllowlists.body = ['username', 'email', 'age']; // But not 'password' or 'confirm-password' or 'top-secret'
+      req._routeDenylists.body = ['username', 'password', 'confirm-password', 'top-secret'];
+      req._routeAllowlists.res = ['_headers'];
     });
 ```
 
-If both `req._routeWhitelists.body` and `req._routeBlacklists.body` are set the result will be the white listed properties
-excluding any black listed ones. In the above example, only 'email' and 'age' would be included.
+If both `req._routeAllowlists.body` and `req._routeDenylists.body` are set the result will be the white listed properties
+excluding any denylisted ones. In the above example, only 'email' and 'age' would be included.
 
 
 ## Custom Status Levels
@@ -579,7 +579,7 @@ If you ran into any problems, please use the project [Issues section](https://gi
 * [Jonathan Lomas](https://github.com/floatingLomas) (https://github.com/floatingLomas)
 * [Ross Brandes](https://github.com/rosston) (https://github.com/rosston)
 * [Alex Kaplan](https://github.com/kapalex) (https://github.com/kapalex)
-* [Matt Morrissette](https://github.com/yinzara) (https://github.com/yinzara) 
+* [Matt Morrissette](https://github.com/yinzara) (https://github.com/yinzara)
 
 Also see AUTHORS file, add yourself if you are missing.
 
