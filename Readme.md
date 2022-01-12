@@ -7,6 +7,17 @@
 
 [CALL FOR MAINTAINERS](https://github.com/bithavoc/express-winston/issues/192)
 
+
+## IMPORTANT UPDATES TO THIS PACAKGE
+
+the us of below code is now valid in the routes
+
+```
+req._routeBlacklists.res=['body']
+```
+
+you can use this to ignore logging of response body in some specific routes due to a binary response or anything els.
+
 ## Installation
 
     npm install winston express-winston
