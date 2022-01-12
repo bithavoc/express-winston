@@ -359,7 +359,8 @@ exports.logger = function logger(options) {
                 }
 
                 var responseWhitelist = options.responseWhitelist.concat(req._routeWhitelists.res || []);
-                if (_.includes(responseWhitelist, 'body')) {
+                var responseBlacklist = req._routeBlacklists.res || [];
+                if (_.includes(responseWhitelist, 'body') && !_.includes(responseBlacklist, 'body')) {
                     if (chunk) {
                         var isJson = (res.getHeader('content-type')
                             && res.getHeader('content-type').indexOf('json') >= 0);
