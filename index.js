@@ -323,6 +323,11 @@ exports.logger = function logger(options) {
             if (options.meta !== false) {
                 var logData = {};
 
+                if (options.dynamicMeta) {
+                    var dynamicMeta = options.dynamicMeta(req, res);
+                    logData = _.assign(logData, dynamicMeta);
+                }
+
                 if (options.requestField !== null) {
                     var requestWhitelist = options.requestWhitelist.concat(req._routeWhitelists.req || []);
                     var filteredRequest = filterObject(req, requestWhitelist, options.headerBlacklist, options.requestFilter);
@@ -381,11 +386,6 @@ exports.logger = function logger(options) {
 
                 if (!responseWhitelist.includes('responseTime')) {
                     logData.responseTime = res.responseTime;
-                }
-
-                if (options.dynamicMeta) {
-                    var dynamicMeta = options.dynamicMeta(req, res);
-                    logData = _.assign(logData, dynamicMeta);
                 }
 
                 meta = _.assign(meta, logData);
