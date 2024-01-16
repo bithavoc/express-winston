@@ -147,17 +147,9 @@ function getTemplate(loggerOptions, templateOptions) {
 
     return function (data) {
         data = data || {};
-        var m = loggerOptions.msg(data.req, data.res);
 
-        // if there is no interpolation, don't waste resources creating a template.
-        // this quick regex is still way faster than just blindly compiling a new template.
-        if (!/\{\{/.test(m)) {
-            return m;
-        }
-        // since options.msg was a function, and the results seem to contain moustache
-        // interpolation, we'll compile a new template for each request.
-        // Warning: this eats a ton of memory under heavy load.
-        return _.template(m, templateOptions)(data);
+        // ! Do not use the template engine in case `msg` is a function. Allowing this would enable code injection
+        return loggerOptions.msg(data.req, data.res);
     };
 }
 

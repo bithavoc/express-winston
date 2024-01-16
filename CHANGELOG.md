@@ -1,3 +1,8 @@
+## 5.0.0
+* Fixes a critical security vulnerability when `loggerOptions.msg` is a custom function by not invoking the `lodash` template engine. ([#266](https://github.com/bithavoc/express-winston/issues/266))
+#### Breaking changes
+* Drop support of the lodash template engine in case `loggerOptions.msg` is a custom function.
+
 ## 4.2.0
 * Upgraded lodash to 4.17.21 minimum ([#264](https://github.com/bithavoc/express-winston/issues/264))
 * Fixed typos and Readme format ([#262](https://github.com/bithavoc/express-winston/pull/262))

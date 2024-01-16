@@ -13,14 +13,14 @@
 
 (supports node >= 6)
 
-## #BLM and 5.x breaking changes
+## #BLM and 6.x breaking changes
 
 The maintainers of this project no longer feel comfortable with the following terms:
 * whitelist
 * blacklist
 * master
 
-Therefore, exposed configuration options, types in this library using those terms are due to be removed in the upcoming 5.x series,
+Therefore, exposed configuration options, types in this library using those terms are due to be removed in the upcoming 6.x series,
 including the ~~master~~ branch, you should update your apps and your code accordingly.
 We've taken immediate action to make `main` our default branch in Git.
 
