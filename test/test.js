@@ -987,7 +987,7 @@ describe('express-winston', function () {
         });
       });
 
-      it('can be interpolated when it is a function', function () {
+      it('cannot be interpolated when it is a function', function () {
         var testHelperOptions = {
           loggerOptions: {
             msg: function () { return 'fn {{req.url}}'; }
@@ -997,7 +997,7 @@ describe('express-winston', function () {
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
-          result.log.msg.should.eql('fn /all-the-things');
+          result.log.msg.should.eql('fn {{req.url}}');
         });
       });
     });
