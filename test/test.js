@@ -465,7 +465,7 @@ describe('express-winston', function () {
         req: {
           body: {},
           routeLevelAddedProperty: 'value that should be logged',
-          url: '/hello'
+          route: { path: '/hello' }
         },
       };
       return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -486,7 +486,9 @@ describe('express-winston', function () {
             baz: 'qux'
           },
           routeLevelAddedProperty: 'value that should be logged',
-          url: '/hello'
+          route: {
+            path: '/hello'
+          }
         },
         loggerOptions: {
           bodyBlacklist: [],
@@ -518,7 +520,9 @@ describe('express-winston', function () {
         req: {
           body: {},
           routeLevelAddedProperty: 'value that should be logged',
-          url: '/hello',
+          route: {
+            path: '/hello'
+          }
         },
         res: {
           nonWhitelistedProperty: 'value that should not be logged',
@@ -538,7 +542,7 @@ describe('express-winston', function () {
       expressWinston.requestWhitelist = ['foo'];
 
       var options = {
-        req: { foo: 'bar' }
+        req: { foo: 'bar' , route: { path: '/path' }}
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
@@ -554,7 +558,7 @@ describe('express-winston', function () {
       expressWinston.bodyWhitelist = ['foo'];
 
       var options = {
-        req: { body: { foo: 'bar', baz: 'qux' } }
+        req: { body: { foo: 'bar', baz: 'qux' }, route: { path: '/path' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
@@ -570,7 +574,7 @@ describe('express-winston', function () {
       expressWinston.bodyBlacklist = ['foo'];
 
       var options = {
-        req: { body: { foo: 'bar', baz: 'qux' } }
+        req: { body: { foo: 'bar', baz: 'qux' }, route: { path: '/path' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
@@ -586,6 +590,7 @@ describe('express-winston', function () {
       expressWinston.responseWhitelist = ['foo'];
 
       var options = {
+        req: { route: { path: '/path' }},
         res: { foo: 'bar', baz: 'qux' }
       };
       return loggerTestHelper(options).then(function (result) {
@@ -604,7 +609,7 @@ describe('express-winston', function () {
       };
 
       var options = {
-        req: { foo: 'bar' }
+        req: { foo: 'bar', route: { path: '/path' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
@@ -621,7 +626,7 @@ describe('express-winston', function () {
       };
 
       var options = {
-        req: { foo: 'bar' }
+        req: { foo: 'bar', route: { path: '/path' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
@@ -638,7 +643,7 @@ describe('express-winston', function () {
       };
 
       var options = {
-        req: { foo: 'bar' }
+        req: { foo: 'bar', route: { path: '/path' } }
       };
       return loggerTestHelper(options).then(function (result) {
         // Return to the original value for later tests
@@ -685,6 +690,7 @@ describe('express-winston', function () {
             age: 42,
             potato: 'Russet'
           },
+          route: { path: '/path' },
           routeLevelAddedProperty: 'value that should be logged'
         },
         res: {
@@ -743,7 +749,7 @@ describe('express-winston', function () {
           res.end(JSON.stringify(bodyObject));
         }
 
-        return loggerTestHelper({ next: next }).then(function (result) {
+        return loggerTestHelper({ req: { route: { path: '/path' } }, next: next }).then(function (result) {
           result.log.meta.res.body.should.eql(bodyObject);
         });
       });
@@ -756,7 +762,7 @@ describe('express-winston', function () {
           res.end('foo');
         }
 
-        return loggerTestHelper({ next: next, loggerOptions: { responseField: 'response' } })
+        return loggerTestHelper({ req: { route: { path: '/path' } }, next: next, loggerOptions: { responseField: 'response' } })
           .then(function (result) {
             result.log.meta.response.body.should.eql('foo');
           });
@@ -769,6 +775,7 @@ describe('express-winston', function () {
 
         return loggerTestHelper(
           {
+            req: { route: { path: '/path' } },
             next,
             loggerOptions:
               {
@@ -797,7 +804,7 @@ describe('express-winston', function () {
           res.end('}');
         }
 
-        return loggerTestHelper({ next: next });
+        return loggerTestHelper({ req: { route: { path: '/path' } }, next: next });
       });
     });
 
@@ -827,7 +834,7 @@ describe('express-winston', function () {
             expressFormat: true
           },
           req: {
-            url: '/all-the-things'
+            route: { path: '/all-the-things' }
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -844,7 +851,7 @@ describe('express-winston', function () {
             expressFormat: true
           },
           req: {
-            url: '/all-the-things'
+            route: { path: '/all-the-things' }
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -861,7 +868,7 @@ describe('express-winston', function () {
             expressFormat: true
           },
           req: {
-            url: '/all-the-things'
+            route: { path: '/all-the-things' }
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -951,7 +958,7 @@ describe('express-winston', function () {
       it('should have a default log msg', function () {
         var testHelperOptions = {
           req: {
-            url: '/url-of-sandwich'
+            route: { path: '/url-of-sandwich' }
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -987,7 +994,7 @@ describe('express-winston', function () {
         });
       });
 
-      it('can be interpolated when it is a function', function () {
+      it('cannot be interpolated when it is a function', function () {
         var testHelperOptions = {
           loggerOptions: {
             msg: function () { return 'fn {{req.url}}'; }
@@ -997,7 +1004,7 @@ describe('express-winston', function () {
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
-          result.log.msg.should.eql('fn /all-the-things');
+          result.log.msg.should.eql('fn {{req.url}}');
         });
       });
     });
@@ -1038,7 +1045,7 @@ describe('express-winston', function () {
 
     describe('metaField option', function () {
       it('should have a default meta field', function () {
-        return loggerTestHelper().then(function (result) {
+        return loggerTestHelper({ req: { route: { path: '/default' }}}).then(function (result) {
           result.log.meta.req.should.be.ok();
         });
       });
@@ -1047,7 +1054,8 @@ describe('express-winston', function () {
         var testHelperOptions = {
           loggerOptions: {
             metaField: 'foobar'
-          }
+          },
+          req: { route: { path: '/default' }}
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
           result.log.foobar.req.should.be.ok();
@@ -1064,7 +1072,8 @@ describe('express-winston', function () {
             }
           },
           req: {
-            url: '/url-of-sandwich'
+            url: '/url-of-sandwich',
+            route: { path: '/url-of-sandwich' }
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -1080,7 +1089,7 @@ describe('express-winston', function () {
             }
           },
           req: {
-            url: '/hello'
+            route: { path: '/hello' }
           }
         };
         return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -1092,6 +1101,7 @@ describe('express-winston', function () {
     describe('statusLevels option', function () {
       it('should have status level of "info" by default', function () {
         var testHelperOptions = {
+          req: { route: { path: '/path' }},
           next: function (req, res, next) {
             res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
           }
@@ -1111,7 +1121,7 @@ describe('express-winston', function () {
               statusLevels: true
             },
             req: {
-              url: '/url-of-sandwich'
+              route: { path: 'url-of-sandwich' },
             }
           };
           return loggerTestHelper(testHelperOptions).then(function (result) {
@@ -1121,6 +1131,7 @@ describe('express-winston', function () {
 
         it('should have status level of "warn" when 400 <= statusCode < 500', function () {
           var testHelperOptions = {
+            req: { route: { path: '/path' }},
             next: function (req, res, next) {
               res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
             },
@@ -1135,6 +1146,7 @@ describe('express-winston', function () {
 
         it('should have status level of "error" when statusCode >= 500', function () {
           var testHelperOptions = {
+            req: { route: { path: '/path' }},
             next: function (req, res, next) {
               res.status(500).end('{ "message": "Hi!  I\'m a chunk!" }');
             },
@@ -1151,6 +1163,7 @@ describe('express-winston', function () {
       describe('when statusLevels set to an object', function () {
         it('should have custom status level provided by "success" key of object when 100 <= statusCode < 400', function () {
           var testHelperOptions = {
+            req: { route: { path: '/path' }},
             next: function (req, res, next) {
               res.status(200).end('{ "message": "Hi!  I\'m a chunk!" }');
             },
@@ -1168,6 +1181,7 @@ describe('express-winston', function () {
 
         it('should have status level provided by "warn" key of object when 400 <= statusCode < 500', function () {
           var testHelperOptions = {
+            req: { route: { path: '/path' }},
             next: function (req, res, next) {
               res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
             },
@@ -1185,6 +1199,7 @@ describe('express-winston', function () {
 
         it('should have status level provided by "error" key of object when statusCode >= 500', function () {
           var testHelperOptions = {
+            req: { route: { path: '/path' }},
             next: function (req, res, next) {
               res.status(500).end('{ "message": "Hi!  I\'m a chunk!" }');
             },
@@ -1205,6 +1220,7 @@ describe('express-winston', function () {
     describe('when levels set to a function', function () {
       it('should have custom status level provided by the function when 100 <= statusCode < 400', function () {
         var testHelperOptions = {
+          req: { route: { path: '/path' }},
           next: function (req, res, next) {
             res.status(200).end('{ "message": "Hi!  I\'m a chunk!" }');
           },
@@ -1222,6 +1238,7 @@ describe('express-winston', function () {
 
       it('should have custom status level provided by the function when 400 <= statusCode < 500', function () {
         var testHelperOptions = {
+          req: { route: { path: '/path' }},
           next: function (req, res, next) {
             res.status(403).end('{ "message": "Hi!  I\'m a chunk!" }');
           },
@@ -1239,6 +1256,7 @@ describe('express-winston', function () {
 
       it('should have custom status level provided by the function when 500 <= statusCode', function () {
         var testHelperOptions = {
+          req: { route: { path: '/path' }},
           next: function (req, res, next) {
             res.status(500).end('{ "message": "Hi!  I\'m a chunk!" }');
           },
@@ -1257,7 +1275,7 @@ describe('express-winston', function () {
 
     describe('headerBlacklist option', function () {
       it('should default to global defaultHeaderBlackList', function () {
-        return loggerTestHelper().then(function (result) {
+        return loggerTestHelper({ req: { route: { path: '/path' }}}).then(function (result) {
           result.log.meta.req.headers.should.have.property('header-1');
           result.log.meta.req.headers.should.have.property('header-2');
           result.log.meta.req.headers.should.have.property('header-3');
@@ -1266,6 +1284,7 @@ describe('express-winston', function () {
 
       it('should use specified headerBlackList', function () {
         var options = {
+          req: { route: { path: '/path' }},
           loggerOptions: {
             headerBlacklist: ['header-1', 'Header-3']
           }
@@ -1279,6 +1298,7 @@ describe('express-winston', function () {
 
       it('should not use specified headerBlackList since the requestWhiteList is empty', function () {
         var options = {
+          req: { route: { path: '/path' }},
           loggerOptions: {
             requestWhitelist: ['url'],
             headerBlacklist: ['header-1']
@@ -1294,6 +1314,7 @@ describe('express-winston', function () {
           return (propName !== 'headers') ? req[propName] : undefined;
         };
         var options = {
+          req: { route: { path: '/path' }},
           loggerOptions: {
             requestFilter: customRequestFilter,
             headerBlacklist: ['header-1']
@@ -1308,7 +1329,7 @@ describe('express-winston', function () {
     describe('requestWhitelist option', function () {
       it('should default to global requestWhitelist', function () {
         var options = {
-          req: { foo: 'bar' }
+          req: { foo: 'bar' , route: { path: '/path' }}
         };
         return loggerTestHelper(options).then(function (result) {
           result.log.meta.req.should.not.have.property('foo');
@@ -1317,7 +1338,7 @@ describe('express-winston', function () {
 
       it('should use specified requestWhitelist', function () {
         var options = {
-          req: { foo: 'bar' },
+          req: { foo: 'bar' , route: { path: '/path' }},
           loggerOptions: {
             requestWhitelist: ['foo']
           }
@@ -1330,6 +1351,7 @@ describe('express-winston', function () {
 
       it('should not include a req in the log when there is no request whitelist', function () {
         var options = {
+          req: { route: { path: '/path' }},
           loggerOptions: {
             requestWhitelist: [],
           }
@@ -1348,7 +1370,8 @@ describe('express-winston', function () {
             requestWhitelist: ['body'],
           },
           req: {
-            body: { foo: 'bar', baz: 'qux' }
+            body: { foo: 'bar', baz: 'qux' },
+            route: { path: '/path' },
           }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1360,6 +1383,7 @@ describe('express-winston', function () {
     describe('responseWhitelist option', function () {
       it('should default to global responseWhitelist', function () {
         var options = {
+          req: { route: { path: '/path' }},
           res: { foo: 'bar' }
         };
         return loggerTestHelper(options).then(function (result) {
@@ -1369,6 +1393,7 @@ describe('express-winston', function () {
 
       it('should use specified responseWhitelist', function () {
         var options = {
+          req: { route: { path: '/path' }},
           res: { foo: 'bar' },
           loggerOptions: {
             responseWhitelist: ['foo']
@@ -1382,7 +1407,8 @@ describe('express-winston', function () {
 
       it('should work with nested responseWhitelist', function () {
         var options = {
-          res: {foo: {test: "bar"}},
+          req: { route: { path: '/path' }},
+          res: { foo: { test: 'bar' }},
           loggerOptions: {
             responseWhitelist: ['foo.test']
           }
@@ -1429,6 +1455,9 @@ describe('express-winston', function () {
             user: {
               username: 'john@doe.com',
               role: 'operator'
+            },
+            route: {
+              path: '/path'
             }
           },
           res: {
@@ -1517,6 +1546,9 @@ describe('express-winston', function () {
         req: {
           body: {
             content: 'sensitive'
+          },
+          route: {
+            path: '/path'
           }
         },
         loggerOptions: {
