@@ -1,7 +1,10 @@
 ## 5.0.0
 * Fixes a critical security vulnerability when `loggerOptions.msg` is a custom function by not invoking the `lodash` template engine. ([#266](https://github.com/bithavoc/express-winston/issues/266))
+* Replaces `{{req.url}}` with `{{req.route.path}}` in the default message template
+* Does not log user provided information from parameters by default
 #### Breaking changes
-* Drop support of the lodash template engine in case `loggerOptions.msg` is a custom function.
+* Dropped support of the lodash template engine in case `loggerOptions.msg` is a custom function.
+* Default message template variable changed from `{{req.url}}` to `{{req.route.path}}`, e.g. from `/url/param` -> `url/:param` OR `/url?foo=bar` -> `/url`.
 
 ## 4.2.0
 * Upgraded lodash to 4.17.21 minimum ([#264](https://github.com/bithavoc/express-winston/issues/264))

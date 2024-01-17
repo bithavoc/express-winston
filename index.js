@@ -129,11 +129,16 @@ function filterObject(originalObj, whiteList, headerBlacklist, initialFilter) {
     return fieldsSet ? obj : undefined;
 }
 
+const templateDefault = {
+    format: '{{req.method}} {{req.route?.path ? req.route.path : "invalid route"}}',
+    regex: /\{\{([\s\S]+?)\}\}/g
+};
+
 function getTemplate(loggerOptions, templateOptions) {
     if (loggerOptions.expressFormat) {
-        var expressMsgFormat = '{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms';
+        var expressMsgFormat = templateDefault.format + ' {{res.statusCode}} {{res.responseTime}}ms';
         if (loggerOptions.colorize) {
-            expressMsgFormat = chalk.grey('{{req.method}} {{req.url}}') +
+            expressMsgFormat = chalk.grey(templateDefault.format) +
                 ' {{res.statusCode}} ' +
                 chalk.grey('{{res.responseTime}}ms');
         }
@@ -185,7 +190,7 @@ exports.errorLogger = function errorLogger(options) {
     options = _.omit(options, 'expressFormat');
 
     // Using mustache style templating
-    var template = getTemplate(options, { interpolate: /\{\{([\s\S]+?)\}\}/g });
+    var template = getTemplate(options, { interpolate: templateDefault.regex });
 
     return function (err, req, res, next) {
         // Let winston gather all the error data
@@ -264,7 +269,7 @@ exports.logger = function logger(options) {
     }));
     options.statusLevels = options.statusLevels || false;
     options.level = options.statusLevels ? levelFromStatus(options) : (options.level || 'info');
-    options.msg = options.msg || 'HTTP {{req.method}} {{req.url}}';
+    options.msg = options.msg || 'HTTP ' + templateDefault.format;
     options.baseMeta = options.baseMeta || {};
     options.metaField = options.metaField === null || options.metaField === 'null' ? null : options.metaField || 'meta';
     options.colorize = options.colorize || false;
@@ -278,7 +283,7 @@ exports.logger = function logger(options) {
 
     // Using mustache style templating
     var template = getTemplate(options, {
-        interpolate: /\{\{(.+?)\}\}/g
+        interpolate: templateDefault.regex
     });
 
     return function (req, res, next) {
