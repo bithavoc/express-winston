@@ -26,6 +26,81 @@ We've taken immediate action to make `main` our default branch in Git.
 
 You can track the progress of these changes in [#247](https://github.com/bithavoc/express-winston/issues/247).
 
+## 5.x Breaking changes
+
+Starting with version **5.x.x** express-winston tightens the internal usage of the [lodash template engine](https://lodash.com/docs/4.17.15#template) to improve security. However, this is accompanied with breaking changes in the behavior of the package:
+
+1. `{{req.url}}` in the standard templates is replaced by `{{req.route.path}}`.
+
+    As a result, the **path** and **query** parameters of a URL are no longer logged, but only the route specified in the express handler. If express exposes a route, e.g: `GET /resources/:id`, here is what changes when `GET /resources/123` is called:
+
+    ### Default Log in versions < 5.x.x
+
+    ```log
+    GET /resources/123 200 10ms
+    ```
+
+    ### Default Log in versions >= 5.x.x
+
+    ```log
+    GET /resources/:id 200 10ms
+    ```
+
+    It is still possible to log the actual values from the URL. However, there is something to be aware of that is reflected in point 2.
+
+2. If `loggerOptions.msg` is a custom function, the `lodash` template engine is no longer invoked.
+
+    As a result, the mustache syntax for interpolating values from `req` and `res` is no longer supported, which means that values must be passed by reference to the message, not via the template.
+
+    ### `loggerOptions.msg` in versions < 5.x.x
+
+    ```javascript
+    app.use(expressWinston.errorLogger({
+      transports: [
+        new winston.transports.Console()
+      ],
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.json()
+      ),
+      // Unsafe usage of `msg` with the template engine
+      msg: (req, res) => { return '{{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms' }
+    }))
+    ```
+
+    ### `loggerOptions.msg` in versions >= 5.x.x
+
+    ```javascript
+    app.use(expressWinston.errorLogger({
+      transports: [
+        new winston.transports.Console()
+      ],
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.json()
+      ),
+      // Safe usage of `msg` without the template engine
+      msg: (req, res) => { return `${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms` }
+    }))
+    ```
+
+    ### Warning
+
+    As `loggerOptions.msg` can be both, a custom function or a custom template, it is **highly recommended to not use {{req.url}}** in any template:
+
+    Do this
+
+    ```javascript
+    msg: (req, res) => `${req.url} ...`
+    ```
+
+    instead of
+
+    ```javascript
+    msg: '{{req.url}} ...'
+    ```
+
+
 ## Usage
 
 express-winston provides middlewares for request and error logging of your express.js application.  It uses 'whitelists' to select properties from the request and (new in 0.2.x) response objects.
@@ -68,7 +143,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
         winston.format.json()
       ),
       meta: true, // optional: control whether you want to log the meta data about the request (default to true)
-      msg: "HTTP {{req.method}} {{req.url}}", // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}"
+      msg: "HTTP {{req.method}} {{req.route.path}}", // optional: customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.route.path}}", warning: 1. Do not use {{req.url}} in your mustache template engine 2. If `msg` is a function, the lodash template engine is disabled{{req.url}} your template message
       expressFormat: true, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors with colorize set to true
       colorize: false, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
       ignoreRoute: function (req, res) { return false; } // optional: allows to skip some log messages based on request and/or response
@@ -84,7 +159,7 @@ Use `expressWinston.logger(options)` to create a middleware to log your HTTP req
     format: [<logform.Format>], // formatting desired for log output.
     winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports and formats options are ignored.
     level: String or function(req, res) { return String; }, // log level to use, the default is "info". Assign a  function to dynamically set the level based on request and response, or a string to statically set it always at that level. statusLevels must be false for this setting to be used.
-    msg: String or function, // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.url}}", "HTTP {{req.method}} {{req.url}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }, // Warning: while supported, returning mustache style interpolation from an options.msg function has performance and memory implications under load.
+    msg: String or function, // customize the default logging message. E.g. "{{res.statusCode}} {{req.method}} {{res.responseTime}}ms {{req.route.path}}", "HTTP {{req.method}} {{req.route.path}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }, warning: 1. Do not use {{req.url}} in your mustache template engine 2. If `msg` is a function, the lodash template engine is disabled
     expressFormat: Boolean, // Use the default Express/morgan request formatting. Enabling this will override any msg if true. Will only output colors when colorize set to true
     colorize: Boolean, // Color the text and status code, using the Express/morgan color palette (text: gray, status: default green, 3XX cyan, 4XX yellow, 5XX red).
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
@@ -133,7 +208,7 @@ The logger needs to be added AFTER the express router (`app.router`) and BEFORE 
     transports: [<WinstonTransport>], // list of all winston transports instances to use.
     format: [<logform.Format>], // formatting desired for log output
     winstonInstance: <WinstonLogger>, // a winston logger instance. If this is provided the transports and formats options are ignored.
-    msg: String or function // customize the default logging message. E.g. "{{err.message}} {{res.statusCode}} {{req.method}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }
+    msg: String or function // customize the default logging message. E.g. "{{err.message}} {{res.statusCode}} {{req.method}}" or function(req, res) { return `${res.statusCode} - ${req.method}` }, warning: 1. Do not use {{req.url}} in your mustache template engine 2. If `msg` is a function, the lodash template engine is disabled
     baseMeta: Object, // default meta data to be added to log, this will be merged with the error data.
     meta: Boolean, // control whether you want to log the meta data about the request (default to true).
     metaField: String, // if defined, the meta data will be added in this field instead of the meta root object. Defaults to 'meta'. Set to `null` to store metadata at the root of the log entry.
