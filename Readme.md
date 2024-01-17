@@ -50,7 +50,7 @@ Starting with version **5.x.x** express-winston tightens the internal usage of t
 
 2. If `loggerOptions.msg` is a custom function, the `lodash` template engine is no longer invoked.
 
-    As a result, the mustache syntax for interpolating values from `req` and `res` is no longer supported, which means that values must be passed by reference to the message, not via the template.
+    As a result, the mustache syntax for interpolating values from `req` and `res` is no longer supported for custom functions, which means that values must be passed by reference to the message, not via the template.
 
     ### `loggerOptions.msg` in versions < 5.x.x
 
